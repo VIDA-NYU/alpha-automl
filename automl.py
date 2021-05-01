@@ -26,7 +26,7 @@ from alphad3m import __version__
 from alphad3m.multiprocessing import Receiver, run_process
 from alphad3m.grpc_api import grpc_server
 from alphad3m.utils import Observable, ProgressStatus, is_collection, get_dataset_sample, create_outputfolders, \
-    read_streams
+    read_streams, get_internal_scoring_config
 from alphad3m.schema import database
 from alphad3m.schema.convert import to_d3m_json
 from alphad3m.data_ingestion.data_reader import create_d3mdataset, create_d3mproblem
@@ -35,14 +35,14 @@ from d3m.metadata.problem import TaskKeyword, parse_problem_description
 from d3m.metadata import pipeline as pipeline_module
 
 
-TUNE_PIPELINES_COUNT = 0
-TIME_TO_TUNE = 0.1  # The ratio of the time to be used for the tuning process.
-MINUTES_SCORE_PIPELINE = 5
-MAX_RUNNING_TIME = 10080  # In minutes. If time is not provided for the search neither score, run it for 1 week
+PIPELINES_TO_TUNE = 5  # Number of pipelines (top k) to be tuned.
+TIME_TO_TUNE = 0.1  # The ratio of the time to be used for the tuning phase.
+TIME_TO_SCORE = 5  # In minutes. Internal time to score a pipeline during the searching phase.
+MAX_RUNNING_TIME = 43800  # In minutes. If time is not provided for the search neither score, run it for 1 month.
 MAX_RUNNING_PROCESSES = 6
 
 if 'TA2_DEBUG_BE_FAST' in os.environ:
-    TUNE_PIPELINES_COUNT = 0
+    PIPELINES_TO_TUNE = 0
 
 
 logger = logging.getLogger(__name__)
@@ -95,7 +95,7 @@ class AutoML(Observable):
         # Create pipelines, NO TUNING
         with session.with_observer_queue() as queue:
             self.build_pipelines(session.id, dataset_path, task_keywords, session.metrics, timeout, None,
-                                 tune=TUNE_PIPELINES_COUNT)
+                                 tune=PIPELINES_TO_TUNE)
 
             while queue.get(True)[0] != 'done_searching':
                 pass
@@ -459,7 +459,7 @@ class AutoML(Observable):
         timeout_search = timeout_search * 60  # Minutes to seconds
         timeout_search_internal = timeout_search
 
-        if TUNE_PIPELINES_COUNT > 0:
+        if PIPELINES_TO_TUNE > 0:
             timeout_search_internal = timeout_search * (1 - TIME_TO_TUNE)
 
         now = time.time()
@@ -541,15 +541,11 @@ class AutoML(Observable):
 
         This is used by the pipeline synthesis code.
         """
-        scoring_config = {'shuffle': 'true',
-                          'stratified': 'true' if TaskKeyword.CLASSIFICATION in task_keywords else 'false',
-                          'method': 'K_FOLD',
-                          'number_of_folds': '2'}
-
+        scoring_config = get_internal_scoring_config(task_keywords)
         timeout_run = session.timeout_run
 
         if timeout_run is None:
-            timeout_run = MINUTES_SCORE_PIPELINE
+            timeout_run = TIME_TO_SCORE
 
         timeout_run = timeout_run * 60  # Minutes to seconds
 
@@ -769,7 +765,7 @@ class Session(Observable):
 
     def tune_when_ready(self, tune=None):
         if tune is None:
-            tune = TUNE_PIPELINES_COUNT
+            tune = PIPELINES_TO_TUNE
         self._tune_when_ready = tune
         self.working = True
         self.check_status()
@@ -872,8 +868,7 @@ class Session(Observable):
                         timeout_tuning = self.expected_search_end - time.time()
                         for pipeline_id in tune:
                             logger.info("    %s", pipeline_id)
-                            self._ta2._run_queue.put(TuneHyperparamsJob(self, pipeline_id, self.problem,
-                                                                        timeout_tuning=timeout_tuning))
+                            self._ta2._run_queue.put(TuneHyperparamsJob(self, pipeline_id, self.problem, timeout_tuning))
                             self.pipelines_tuning.add(pipeline_id)
                         return
                     logger.info("Found no pipeline to tune")
@@ -1191,33 +1186,29 @@ class TestJob(Job):
 
 
 class TuneHyperparamsJob(Job):
-    def __init__(self, session, pipeline_id, problem, store_results=True, timeout_tuning=60):
+    def __init__(self, session, pipeline_id, problem, timeout_tuning):
         Job.__init__(self)
         self.session = session
         self.pipeline_id = pipeline_id
         self.problem = problem
-        self.store_results = store_results
         self.timeout_tuning = timeout_tuning
 
-    def start(self, db_filename, predictions_root, **kwargs):
-        self.runtime_folder = predictions_root
+    def start(self, db_filename, **kwargs):
         logger.info("Running tuning for %s (session %s has %d pipelines left to tune)",
                     self.pipeline_id, self.session.id,
                     len(self.session.pipelines_tuning))
-        if self.store_results and self.runtime_folder is not None:
-            subdir = os.path.join(self.runtime_folder, str(self.pipeline_id))
-            if not os.path.exists(subdir):
-                os.mkdir(subdir)
 
         self.msg = Receiver()
+
         self.proc = run_process('alphad3m.pipeline_operations.pipeline_tune.tune',
                                 'tune', self.msg,
                                 pipeline_id=self.pipeline_id,
-                                metrics=self.session.metrics,
-                                problem=self.problem,
-                                report_rank=self.session.report_rank,
                                 dataset_uri=self.session.dataset_uri,
                                 sample_dataset_uri=self.session.sample_dataset_uri,
+                                metrics=self.session.metrics,
+                                problem=self.problem,
+                                scoring_config=get_internal_scoring_config(self.problem['problem']['task_keywords']),
+                                report_rank=self.session.report_rank,
                                 timeout_tuning=self.timeout_tuning,
                                 db_filename=db_filename)
         self.started = time.time()
@@ -1226,15 +1217,14 @@ class TuneHyperparamsJob(Job):
                             job_id=id(self))
 
     def poll(self):
-        # TODO: Should it control the time bound limit?
-        '''if self.started + self.timeout_tuning < time.time():
+        if self.started + self.timeout_tuning + 60 < time.time():  # Give 1 extra minute to finish the tuning process
             logger.error("Tunning process is stuck, terminating after %d seconds", time.time() - self.started)
             self.proc.terminate()
             try:
                 self.proc.wait(30)
             except subprocess.TimeoutExpired:
                 self.proc.kill()
-                self.proc.wait()'''
+                self.proc.wait()
 
         if self.proc.poll() is None:
             return False

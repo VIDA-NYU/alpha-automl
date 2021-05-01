@@ -210,6 +210,14 @@ def get_dataset_sample(dataset, problem, dataset_sample_path=None):
     return dataset
 
 
+def get_internal_scoring_config(task_keywords):
+    scoring_config = {'shuffle': 'true', 'method': 'K_FOLD',  'number_of_folds': '2',
+                      'stratified': 'true' if TaskKeyword.CLASSIFICATION in task_keywords else 'false'
+                      }
+
+    return scoring_config
+
+
 def create_outputfolders(folder_path):
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)

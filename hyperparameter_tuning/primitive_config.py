@@ -11,16 +11,14 @@ from ConfigSpace.conditions import EqualsCondition, InCondition
 from ConfigSpace.hyperparameters import CategoricalHyperparameter, UniformFloatHyperparameter, \
      UniformIntegerHyperparameter, UnParametrizedHyperparameter, Constant, NormalFloatHyperparameter
 
+logger = logging.getLogger(__name__)
 
 HYPERPARAMETERS_FROM_METALEARNING_PATH = os.path.join(os.path.dirname(__file__), '../../resource/hyperparams.json')
-
 PRIMITIVES = {}
 primitives_info = get_primitives_by_type()
 for primitive_type in primitives_info:
     for primitive_name in primitives_info[primitive_type]:
         PRIMITIVES[primitive_name] = primitive_type
-
-logger = logging.getLogger(__name__)
 
 
 def is_tunable(primitive_name):

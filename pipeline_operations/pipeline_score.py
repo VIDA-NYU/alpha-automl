@@ -53,6 +53,25 @@ def check_timeindicator(dataset_path):
 
 @database.with_db
 def score(pipeline_id, dataset_uri, sample_dataset_uri, metrics, problem, scoring_config, report_rank, msg_queue, db):
+    # Get pipeline from database
+    logger.info('About to score pipeline, id=%s, metrics=%s', pipeline_id, metrics)
+    pipeline = (
+        db.query(database.Pipeline)
+            .filter(database.Pipeline.id == pipeline_id)
+            .options(joinedload(database.Pipeline.modules),
+                     joinedload(database.Pipeline.connections))
+    ).one()
+
+    scores = calculate_scores(pipeline, dataset_uri, sample_dataset_uri, metrics, problem, scoring_config)
+    logger.info("Evaluation results:\n%s", scores)
+
+    if scoring_config['method'] == 'RANKING':  # Only for TA2 evaluation
+        report_rank = True
+
+    save_scores(pipeline_id, scores, metrics, report_rank, db)
+
+
+def calculate_scores(pipeline, dataset_uri, sample_dataset_uri, metrics, problem, scoring_config):
     dataset_uri_touse = dataset_uri
 
     if sample_dataset_uri:
@@ -61,19 +80,7 @@ def score(pipeline_id, dataset_uri, sample_dataset_uri, metrics, problem, scorin
         check_timeindicator(dataset_uri_touse[7:])
 
     dataset = Dataset.load(dataset_uri_touse)
-    # Get pipeline from database
-
-    pipeline = (
-        db.query(database.Pipeline)
-            .filter(database.Pipeline.id == pipeline_id)
-            .options(joinedload(database.Pipeline.modules),
-                     joinedload(database.Pipeline.connections))
-    ).one()
-
-    logger.info('About to score pipeline, id=%s, metrics=%s, dataset=%r', pipeline_id, metrics, dataset_uri)
-
     scores = {}
-    scores_db = []
     pipeline_split = None
 
     if TaskKeyword.FORECASTING in problem['problem']['task_keywords']:
@@ -85,14 +92,14 @@ def score(pipeline_id, dataset_uri, sample_dataset_uri, metrics, problem, scorin
     elif scoring_config['method'] == 'HOLDOUT':
         pipeline_split = train_test_tabular_split
 
-    elif scoring_config['method'] == 'RANKING':  # For TA2 only evaluation
+    elif scoring_config['method'] == 'RANKING':
         pipeline_split = kfold_tabular_split
-        scoring_config['number_of_folds'] = '4'
-        report_rank = True
     else:
         logger.warning('Unknown evaluation method, using K_FOLD')
         pipeline_split = kfold_tabular_split
 
+    # FIXME: Splitting primitive fails when works with F1 and semisupervised task, so use F1_MACRO instead
+    # https://gitlab.com/datadrivendiscovery/common-primitives/-/issues/92#note_520784899
     if metrics[0]['metric'] == PerformanceMetric.F1 and TaskKeyword.SEMISUPERVISED in problem['problem']['task_keywords']:
         new_metrics = [{'metric': PerformanceMetric.F1_MACRO}]
         scores = evaluate(pipeline, pipeline_split, dataset, new_metrics, problem, scoring_config, dataset_uri)
@@ -100,7 +107,11 @@ def score(pipeline_id, dataset_uri, sample_dataset_uri, metrics, problem, scorin
     else:
         scores = evaluate(pipeline, pipeline_split, dataset, metrics, problem, scoring_config, dataset_uri)
 
-    logger.info("Evaluation results:\n%s", scores)
+    return scores
+
+
+def save_scores(pipeline_id, scores, metrics, report_rank, db):
+    scores_db = []
 
     if len(scores) > 0:  # It's a valid pipeline
         scores_db = add_scores_db(scores, scores_db)
@@ -127,8 +138,6 @@ def evaluate(pipeline, data_pipeline, dataset, metrics, problem, scoring_config,
                 '\n\t'.join([x['primitive']['python_path'] for x in json_pipeline['steps']]))
 
     d3m_pipeline = Pipeline.from_json_structure(json_pipeline, )
-    if 'method' in scoring_config:
-        scoring_config.pop('method')
 
     run_scores, run_results = d3m.runtime.evaluate(
         pipeline=d3m_pipeline,

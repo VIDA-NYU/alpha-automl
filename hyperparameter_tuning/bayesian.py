@@ -3,7 +3,7 @@ import numpy as np
 from smac.configspace import ConfigurationSpace
 from ConfigSpace.hyperparameters import IntegerHyperparameter, FloatHyperparameter, CategoricalHyperparameter, \
     OrdinalHyperparameter
-from smac.facade.smac_facade import SMAC
+from smac.facade.smac_ac_facade import SMAC4AC
 from smac.scenario.scenario import Scenario
 from alphad3m.hyperparameter_tuning.primitive_config import load_primitive_configspace, load_hyperparameters
 
@@ -27,7 +27,7 @@ def get_new_hyperparameters(primitive_name, configspace):
 
     for hyperparameter_name in hyperparameters:
         hyperparameter_config_name = primitive_name + '|' + hyperparameter_name
-        hyperparameter_config_name_case  = hyperparameter_config_name + '|case'
+        hyperparameter_config_name_case = hyperparameter_config_name + '|case'
         if hyperparameter_config_name in configspace:
             value = None if configspace[hyperparameter_config_name] == 'None' \
                 else configspace[hyperparameter_config_name]
@@ -66,15 +66,22 @@ class HyperparameterTuning(object):
     def tune(self, runner, wallclock, output_dir):
         # Scenario object
         cutoff = wallclock / (self.runcount / 10)  # Allow long pipelines to try to execute one fourth of the iterations limit
-        scenario = Scenario({"run_obj": "quality",  # We optimize quality (alternatively runtime)
-                             "runcount-limit": self.runcount,  # Maximum function evaluations
-                             "wallclock-limit": wallclock,
-                             "cutoff_time": cutoff,
-                             "cs": self.configspace,  # Configuration space
-                             "deterministic": "true",
-                             "output_dir": output_dir,
-                             "abort_on_first_run_crash": False
+        scenario = Scenario({'run_obj': 'quality',  # We optimize quality (alternatively runtime)
+                             'runcount-limit': self.runcount,  # Maximum function evaluations
+                             'wallclock-limit': wallclock,
+                             'cutoff_time': cutoff,
+                             'cs': self.configspace,  # Configuration space
+                             'deterministic': 'true',
+                             'output_dir': output_dir,
+                             'abort_on_first_run_crash': False
                              })
-        smac = SMAC(scenario=scenario, rng=np.random.RandomState(42), tae_runner=runner)
+        smac = SMAC4AC(scenario=scenario, rng=np.random.RandomState(0), tae_runner=runner)
+        best_configuration = smac.optimize()
+        min_cost = 100
+        best_scores = {}
 
-        return smac.optimize()
+        for _, run_data in smac.get_runhistory().data.items():
+            if run_data.cost < min_cost:
+                best_scores = run_data.additional_info
+
+        return best_configuration, best_scores
