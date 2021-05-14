@@ -1,7 +1,6 @@
 import os
 import pickle
 import logging
-import itertools
 from alphad3m.schema import database
 from d3m import index
 from d3m.container import Dataset, DataFrame, ndarray, List
@@ -142,14 +141,14 @@ def need_entire_dataframe(primitives):
     return False
 
 
-def encode_features(pipeline, attribute_step, target_step, features_metadata, db):
+def encode_features(pipeline, attribute_step, target_step, metadata, db):
     last_step = attribute_step
-    feature_types = features_metadata['only_attribute_types']
+    feature_types = metadata['only_attribute_types']
     count_steps = 0
     if 'http://schema.org/Text' in feature_types:
         # It has multiple targets? Then, use other primitive until
         # https://github.com/uncharted-distil/distil-primitives/issues/265 is fixed.
-        if len(features_metadata['semantictypes_indices']
+        if len(metadata['semantictypes_indices']
                ['https://metadata.datadrivendiscovery.org/types/TrueTarget']) > 1:
             text_step = make_pipeline_module(db, pipeline, 'd3m.primitives.feature_extraction.tfidf_vectorizer.SKlearn')
             set_hyperparams(db, pipeline, text_step, use_semantic_types=True, return_result='replace')
@@ -210,10 +209,10 @@ def process_template(db, input_data, pipeline, pipeline_template, count_template
     return prev_step, count_template_steps
 
 
-def add_semantic_types(db, features_metadata, pipeline, pipeline_template, prev_step):
+def add_semantic_types(db, metadata, pipeline, pipeline_template, prev_step):
     count_steps = 0
     if pipeline_template is None:
-        for semantic_type, columns in features_metadata['semantictypes_indices'].items():
+        for semantic_type, columns in metadata['semantictypes_indices'].items():
             step_add_type = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.'
                                                                'add_semantic_types.Common')
             count_steps += 1
@@ -221,8 +220,7 @@ def add_semantic_types(db, features_metadata, pipeline, pipeline_template, prev_
             connect(db, pipeline, prev_step, step_add_type)
             prev_step = step_add_type
     else:
-        step_add_type = make_pipeline_module(db, pipeline, 'd3m.primitives.schema_discovery.'
-                                                           'profiler.Common')
+        step_add_type = make_pipeline_module(db, pipeline, 'd3m.primitives.schema_discovery.profiler.Common')
         count_steps += 1
         connect(db, pipeline, prev_step, step_add_type)
         prev_step = step_add_type
@@ -290,7 +288,7 @@ def add_previous_primitive(db, pipeline, primitives, prev_step):
 class BaseBuilder:
 
     def make_d3mpipeline(self, primitives, origin, dataset, pipeline_template, targets, features,
-                         features_metadata, privileged_data=[], metrics=[], DBSession=None):
+                         metadata, privileged_data=[], metrics=[], DBSession=None):
         # TODO parameters 'features and 'targets' are not needed
         db = DBSession()
         dataset_path = dataset[7:]
@@ -317,8 +315,8 @@ class BaseBuilder:
                 prev_step, reader_steps = add_file_readers(db, pipeline, prev_step, dataset_path)
                 count_steps += reader_steps
 
-            if len(features_metadata['semantictypes_indices']) > 0:
-                prev_step, semantic_steps = add_semantic_types(db, features_metadata, pipeline, pipeline_template, prev_step)
+            if len(metadata['semantictypes_indices']) > 0:
+                prev_step, semantic_steps = add_semantic_types(db, metadata, pipeline, pipeline_template, prev_step)
                 count_steps += semantic_steps
 
             dataframe_step = prev_step
@@ -378,8 +376,7 @@ class BaseBuilder:
             db.close()
 
     @staticmethod
-    def make_template(imputer, estimator, dataset, pipeline_template, targets, features, features_metadata,
-                      privileged_data, metrics,  DBSession=None):
+    def make_template(imputer, estimator, dataset, targets, features, metadata, privileged_data, metrics,  DBSession=None):
         db = DBSession()
         origin_name = 'Template (%s, %s)' % (imputer, estimator)
         origin_name = origin_name.replace('d3m.primitives.', '')
@@ -389,21 +386,15 @@ class BaseBuilder:
             # TODO: Use pipeline input for this
             input_data = make_data_module(db, pipeline, targets, features)
             step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.denormalize.Common')
-
-            if pipeline_template:
-                template_step, template_count = process_template(db, input_data, pipeline, pipeline_template)
-                connect(db, pipeline, template_step, step0)
-                count_steps += template_count
-            else:
-                connect(db, pipeline, input_data, step0, from_output='dataset')
+            connect(db, pipeline, input_data, step0, from_output='dataset')
 
             step1 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.dataset_to_dataframe.Common')
             connect(db, pipeline, step0, step1)
             count_steps += 1
 
             prev_step = step1
-            if len(features_metadata['semantictypes_indices']) > 0:
-                prev_step, semantic_steps = add_semantic_types(db, features_metadata, pipeline, pipeline_template, prev_step)
+            if len(metadata['semantictypes_indices']) > 0:
+                prev_step, semantic_steps = add_semantic_types(db, metadata, pipeline, None, prev_step)
                 count_steps += semantic_steps
 
             dataframe_step = prev_step
@@ -429,7 +420,7 @@ class BaseBuilder:
             connect(db, pipeline, step3, step5)
             count_steps += 1
 
-            encoder_step, encode_steps = encode_features(pipeline, step5, step4, features_metadata, db)
+            encoder_step, encode_steps = encode_features(pipeline, step5, step4, metadata, db)
             count_steps += encode_steps
 
             prev_step = encoder_step
@@ -460,79 +451,11 @@ class BaseBuilder:
         finally:
             db.close()
 
-    @staticmethod
-    def make_denormalize_pipeline(dataset, targets, features, DBSession=None):
-        db = DBSession()
-        pipeline = database.Pipeline(origin="denormalize", dataset=dataset)
-
-        try:
-            input_data = make_data_module(db, pipeline, targets, features)
-
-            step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.denormalize.Common')
-            connect(db, pipeline, input_data, step0, from_output='dataset')
-
-            step1 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.dataset_to_dataframe.Common')
-            connect(db, pipeline, step0, step1)
-
-            db.add(pipeline)
-            db.commit()
-            return pipeline.id
-        except:
-            logger.exception('Error creating pipeline id=%s', pipeline.id)
-            return None
-        finally:
-            db.close()
-
-    TEMPLATES = {
-        'CLASSIFICATION': list(itertools.product(
-            # Imputer
-            ['d3m.primitives.data_cleaning.imputer.SKlearn'],
-            # Classifier
-            [
-                'd3m.primitives.classification.random_forest.SKlearn',
-                'd3m.primitives.classification.xgboost_gbtree.Common',
-                'd3m.primitives.classification.extra_trees.SKlearn',
-                'd3m.primitives.classification.gradient_boosting.SKlearn',
-                'd3m.primitives.classification.ada_boost.SKlearn'
-            ],
-        )),
-        'DEBUG_CLASSIFICATION': list(itertools.product(
-            # Imputer
-            ['d3m.primitives.data_cleaning.imputer.SKlearn'],
-            # Classifier
-            [
-                'd3m.primitives.classification.random_forest.SKlearn',
-                'd3m.primitives.classification.xgboost_gbtree.Common'
-            ],
-        )),
-        'REGRESSION': list(itertools.product(
-            # Imputer
-            ['d3m.primitives.data_cleaning.imputer.SKlearn'],
-            # Classifier
-            [
-                'd3m.primitives.regression.random_forest.SKlearn',
-                'd3m.primitives.regression.xgboost_gbtree.Common',
-                'd3m.primitives.regression.extra_trees.SKlearn',
-                'd3m.primitives.regression.gradient_boosting.SKlearn',
-                'd3m.primitives.regression.ada_boost.SKlearn'
-            ],
-        )),
-        'DEBUG_REGRESSION': list(itertools.product(
-            # Imputer
-            ['d3m.primitives.data_cleaning.imputer.SKlearn'],
-            # Classifier
-            [
-                'd3m.primitives.regression.random_forest.SKlearn',
-                'd3m.primitives.regression.xgboost_gbtree.Common'
-            ],
-        )),
-    }
-
 
 class TimeseriesClassificationBuilder(BaseBuilder):
 
     def make_d3mpipeline(self, primitives, origin, dataset, pipeline_template, targets, features,
-                         features_metadata, privileged_data=[], metrics=[], DBSession=None):
+                         metadata, privileged_data=[], metrics=[], DBSession=None):
         db = DBSession()
         origin_name = '%s (%s)' % (origin, ', '.join([p.replace('d3m.primitives.', '') for p in primitives]))
         pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
@@ -583,7 +506,7 @@ class TimeseriesClassificationBuilder(BaseBuilder):
                 return pipeline.id
             else:
                 pipeline_id = super().make_d3mpipeline(primitives, origin, dataset, pipeline_template,
-                                                       targets, features, features_metadata,
+                                                       targets, features, metadata,
                                                        privileged_data=privileged_data,
                                                        metrics=metrics, DBSession=DBSession)
                 return pipeline_id
@@ -597,7 +520,7 @@ class TimeseriesClassificationBuilder(BaseBuilder):
 class CommunityDetectionBuilder(BaseBuilder):
 
     def make_d3mpipeline(self, primitives, origin, dataset, pipeline_template, targets, features,
-                         features_metadata, privileged_data=[], metrics=[], DBSession=None):
+                         metadata, privileged_data=[], metrics=[], DBSession=None):
         db = DBSession()
         origin_name = '%s (%s)' % (origin, ', '.join([p.replace('d3m.primitives.', '') for p in primitives]))
         pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
@@ -620,7 +543,7 @@ class CommunityDetectionBuilder(BaseBuilder):
                 return pipeline.id
             else:
                 pipeline_id = super().make_d3mpipeline(primitives, origin, dataset, pipeline_template,
-                                                       targets, features, features_metadata,
+                                                       targets, features, metadata,
                                                        privileged_data=privileged_data,
                                                        metrics=metrics, DBSession=DBSession)
                 return pipeline_id
@@ -633,7 +556,7 @@ class CommunityDetectionBuilder(BaseBuilder):
 
 class LinkPredictionBuilder(BaseBuilder):
     def make_d3mpipeline(self, primitives, origin, dataset, pipeline_template, targets, features,
-                         features_metadata, privileged_data=[], metrics=[], DBSession=None):
+                         metadata, privileged_data=[], metrics=[], DBSession=None):
         db = DBSession()
         origin_name = '%s (%s)' % (origin, ', '.join([p.replace('d3m.primitives.', '') for p in primitives]))
         pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
@@ -658,7 +581,7 @@ class LinkPredictionBuilder(BaseBuilder):
                 return pipeline.id
             else:
                 pipeline_id = super().make_d3mpipeline(primitives, origin, dataset, pipeline_template,
-                                                       targets, features, features_metadata,
+                                                       targets, features, metadata,
                                                        privileged_data=privileged_data,
                                                        metrics=metrics, DBSession=DBSession)
                 return pipeline_id
@@ -671,7 +594,7 @@ class LinkPredictionBuilder(BaseBuilder):
 
 class GraphMatchingBuilder(BaseBuilder):
     def make_d3mpipeline(self, primitives, origin, dataset, pipeline_template, targets, features,
-                         features_metadata, privileged_data=[], metrics=[], DBSession=None):
+                         metadata, privileged_data=[], metrics=[], DBSession=None):
         db = DBSession()
         origin_name = '%s (%s)' % (origin, ', '.join([p.replace('d3m.primitives.', '') for p in primitives]))
         try:
@@ -691,7 +614,7 @@ class GraphMatchingBuilder(BaseBuilder):
             else:
                 pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
                 pipeline_id = super().make_d3mpipeline(primitives, origin, dataset, pipeline_template,
-                                                       targets, features, features_metadata,
+                                                       targets, features, metadata,
                                                        privileged_data=privileged_data,
                                                        metrics=metrics, DBSession=DBSession)
                 return pipeline_id
@@ -704,7 +627,7 @@ class GraphMatchingBuilder(BaseBuilder):
 
 class VertexClassificationBuilder(BaseBuilder):
     def make_d3mpipeline(self, primitives, origin, dataset, pipeline_template, targets, features,
-                         features_metadata, privileged_data=[], metrics=[], DBSession=None):
+                         metadata, privileged_data=[], metrics=[], DBSession=None):
         db = DBSession()
         origin_name = '%s (%s)' % (origin, ', '.join([p.replace('d3m.primitives.', '') for p in primitives]))
         pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
@@ -750,7 +673,7 @@ class VertexClassificationBuilder(BaseBuilder):
                 return pipeline.id
             else:
                 pipeline_id = super().make_d3mpipeline(primitives, origin, dataset, pipeline_template,
-                                                       targets, features, features_metadata,
+                                                       targets, features, metadata,
                                                        privileged_data=privileged_data,
                                                        metrics=metrics, DBSession=DBSession)
                 return pipeline_id
@@ -764,7 +687,7 @@ class VertexClassificationBuilder(BaseBuilder):
 class ObjectDetectionBuilder(BaseBuilder):
 
     def make_d3mpipeline(self, primitives, origin, dataset, pipeline_template, targets, features,
-                         features_metadata, privileged_data=[], metrics=[], DBSession=None):
+                         metadata, privileged_data=[], metrics=[], DBSession=None):
         db = DBSession()
         origin_name = '%s (%s)' % (origin, ', '.join([p.replace('d3m.primitives.', '') for p in primitives]))
         pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
@@ -824,7 +747,7 @@ class ObjectDetectionBuilder(BaseBuilder):
 class AudioBuilder(BaseBuilder):
 
     def make_d3mpipeline(self, primitives, origin, dataset, pipeline_template, targets, features,
-                         features_metadata, privileged_data=[], metrics=[], DBSession=None):
+                         metadata, privileged_data=[], metrics=[], DBSession=None):
         db = DBSession()
         origin_name = '%s (%s)' % (origin, ', '.join([p.replace('d3m.primitives.', '') for p in primitives]))
         pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
@@ -891,7 +814,7 @@ class AudioBuilder(BaseBuilder):
 class CollaborativeFilteringBuilder:
 
     def make_d3mpipeline(self, primitives, origin, dataset, pipeline_template, targets, features,
-                         features_metadata, privileged_data=[], metrics=[], DBSession=None):
+                         metadata, privileged_data=[], metrics=[], DBSession=None):
         # TODO parameters 'features and 'targets' are not needed
         db = DBSession()
         dataset_path = dataset[7:]
@@ -915,8 +838,8 @@ class CollaborativeFilteringBuilder:
             if is_collection(dataset_path):
                 prev_step = add_file_readers(db, pipeline, prev_step, dataset_path)
 
-            if len(features_metadata['semantictypes_indices']) > 0:
-                prev_step, _ = add_semantic_types(db, features_metadata, pipeline, pipeline_template, prev_step)
+            if len(metadata['semantictypes_indices']) > 0:
+                prev_step, _ = add_semantic_types(db, metadata, pipeline, pipeline_template, prev_step)
 
             dataframe_step = prev_step
             if need_entire_dataframe(primitives):

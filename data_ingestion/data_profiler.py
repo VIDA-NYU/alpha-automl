@@ -1,7 +1,12 @@
 import re
+import json
 import logging
 import datamart_profiler
 import pandas as pd
+from os.path import dirname
+from d3m import index
+from d3m.container import Dataset
+from d3m.metadata.problem import TaskKeyword
 from d3m.container.dataset import D3M_COLUMN_TYPE_CONSTANTS_TO_SEMANTIC_TYPES, D3M_ROLE_CONSTANTS_TO_SEMANTIC_TYPES
 
 logger = logging.getLogger(__name__)
@@ -27,8 +32,8 @@ def select_annotated_feature_types(dataset_doc):
     return feature_types
 
 
-def select_unkown_feature_types(csv_path, annotated_features):
-    all_features = pd.read_csv(csv_path).columns
+def select_unkown_feature_types(dataset, annotated_features):
+    all_features = dataset.columns
     unkown_feature_types = []
 
     for feature_name in all_features:
@@ -43,8 +48,8 @@ def select_unkown_feature_types(csv_path, annotated_features):
     return unkown_feature_types
 
 
-def indentify_feature_types(csv_path, unkown_feature_types, target_names):
-    metadata = datamart_profiler.process_dataset(csv_path)
+def indentify_feature_types(dataset, unkown_feature_types, target_names):
+    metadata = datamart_profiler.process_dataset(dataset)
     inferred_feature_types = {}
     has_missing_values = False
 
@@ -57,7 +62,6 @@ def indentify_feature_types(csv_path, unkown_feature_types, target_names):
                 if semantic_type == 'http://schema.org/Enumeration':  # Changing to D3M format
                     semantic_type = 'https://metadata.datadrivendiscovery.org/types/CategoricalData'
                 elif semantic_type == 'http://schema.org/identifier':  # Changing to D3M format
-                    #semantic_type = 'https://metadata.datadrivendiscovery.org/types/PrimaryKey'
                     semantic_type = 'http://schema.org/Integer'
                 elif semantic_type == 'https://metadata.datadrivendiscovery.org/types/MissingData':
                     semantic_type = 'http://schema.org/Text'
@@ -78,10 +82,15 @@ def indentify_feature_types(csv_path, unkown_feature_types, target_names):
     return inferred_feature_types, has_missing_values
 
 
-def profile_data(csv_path, target_names, dataset_doc):
+def profile_data(dataset_uri, targets):
+    with open(dataset_uri[7:]) as fin:
+        dataset_doc = json.load(fin)
+
+    target_names = [x[1] for x in targets]
+    denormalized_dataset = denormalize_dataset(dataset_uri)
     annotated_feature_types = select_annotated_feature_types(dataset_doc)
-    unkown_feature_types = select_unkown_feature_types(csv_path, annotated_feature_types.keys())
-    inferred_feature_types, has_missing_values = indentify_feature_types(csv_path, unkown_feature_types, target_names)
+    unkown_feature_types = select_unkown_feature_types(denormalized_dataset, annotated_feature_types.keys())
+    inferred_feature_types, has_missing_values = indentify_feature_types(denormalized_dataset, unkown_feature_types, target_names)
     only_attribute_types = set()
     semantictypes_by_index = {}
 
@@ -97,7 +106,51 @@ def profile_data(csv_path, target_names, dataset_doc):
             if semantic_type not in semantictypes_by_index:
                 semantictypes_by_index[semantic_type] = []
             semantictypes_by_index[semantic_type].append(index)
+
     features_metadata = {'semantictypes_indices': semantictypes_by_index, 'only_attribute_types': only_attribute_types,
                          'use_imputer': has_missing_values}
 
     return features_metadata
+
+
+def denormalize_dataset(dataset_uri):
+    denormalized_dataset = None
+    dataset = Dataset.load(dataset_uri)
+
+    try:
+        primitive_class = index.get_primitive('d3m.primitives.data_transformation.denormalize.Common')
+        primitive_hyperparams = primitive_class.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+        primitive_denormalize = primitive_class(hyperparams=primitive_hyperparams.defaults())
+        primitive_output = primitive_denormalize.produce(inputs=dataset).value
+
+        primitive_class = index.get_primitive('d3m.primitives.data_transformation.dataset_to_dataframe.Common')
+        primitive_hyperparams = primitive_class.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
+        primitive_dataframe = primitive_class(hyperparams=primitive_hyperparams.defaults())
+        primitive_output = primitive_dataframe.produce(inputs=primitive_output).value
+        denormalized_dataset = primitive_output
+    except:
+        denormalized_dataset = pd.read_csv(dirname(dataset_uri[7:]) + '/tables/learningData.csv')
+        logger.exception('Error denormalizing dataset, using only learningData.csv file')
+
+    return denormalized_dataset
+
+
+def get_privileged_data(problem, task_keywords):
+    privileged_data = []
+    if TaskKeyword.LUPI in task_keywords and 'privileged_data' in problem['inputs'][0]:
+        for column in problem['inputs'][0]['privileged_data']:
+            privileged_data.append(column['column_index'])
+
+    return privileged_data
+
+
+def select_encoders(feature_types):
+    encoders = []
+    mapping_feature_types = {'https://metadata.datadrivendiscovery.org/types/CategoricalData': 'CATEGORICAL_ENCODER',
+                             'http://schema.org/Text': 'TEXT_ENCODER', 'http://schema.org/DateTime': 'DATETIME_ENCODER'}
+
+    for features_type in feature_types:
+        if features_type in mapping_feature_types:
+            encoders.append(mapping_feature_types[features_type])
+
+    return sorted(encoders, reverse=True)

@@ -1,24 +1,21 @@
 import signal
 import os
 import sys
-import json
 
 # Use a headless matplotlib backend
 os.environ['MPLBACKEND'] = 'Agg'
 
-from alphad3m.primitive_loader import get_primitives_by_type
-from alphad3m.grammar_loader import create_game_grammar
+from os.path import join
 from alphaAutoMLEdit.Coach import Coach
 from alphaAutoMLEdit.pipeline.PipelineGame import PipelineGame
 from alphaAutoMLEdit.pipeline.NNet import NNetWrapper
-
+from alphad3m.primitive_loader import get_primitives_by_type
+from alphad3m.grammar_loader import create_game_grammar
+from alphad3m.data_ingestion.data_profiler import get_privileged_data, select_encoders
 from alphad3m.search.d3mpipeline_builder import *
 from alphad3m.metafeature.metafeature_extractor import ComputeMetafeatures
-from d3m.metadata.problem import TaskKeyword
-from os.path import join
-from alphad3m.pipeline_operations.pipeline_execute import execute
-from alphad3m.data_ingestion.data_profiler import profile_data
 from alphad3m.utils import get_collection_type
+from d3m.metadata.problem import TaskKeyword
 
 
 logger = logging.getLogger(__name__)
@@ -73,96 +70,15 @@ config = {
 }
 
 
-def denormalize_dataset(dataset, targets, features, DBSession):
-    new_path = join(os.environ.get('D3MOUTPUTDIR'), 'temp', 'denormalized_dataset.csv')
-    pipeline_id = BaseBuilder.make_denormalize_pipeline(dataset, targets, features, DBSession=DBSession)
-    try:
-        execute(pipeline_id, dataset, None, new_path, None,
-                db_filename=join(os.environ.get('D3MOUTPUTDIR'), 'temp', 'db.sqlite3'))  # TODO: Change this static path
-    except:
-        new_path = os.path.dirname(dataset[7:]) + '/tables/learningData.csv'
-        logger.exception('Error denormalizing dataset, using only learningData.csv file')
-
-    return new_path
-
-
-def get_privileged_data(problem, task_keywords):
-    privileged_data = []
-    if TaskKeyword.LUPI in task_keywords and 'privileged_data' in problem['inputs'][0]:
-        for column in problem['inputs'][0]['privileged_data']:
-            privileged_data.append(column['column_index'])
-
-    return privileged_data
-
-
-def select_encoders(feature_types):
-    encoders = []
-    mapping_feature_types = {'https://metadata.datadrivendiscovery.org/types/CategoricalData': 'CATEGORICAL_ENCODER',
-                             'http://schema.org/Text': 'TEXT_ENCODER', 'http://schema.org/DateTime': 'DATETIME_ENCODER'}
-
-    for features_type in feature_types:
-        if features_type in mapping_feature_types:
-            encoders.append(mapping_feature_types[features_type])
-
-    return sorted(encoders, reverse=True)
-
-
-def send(msg_queue, pipeline_id):
-    msg_queue.send(('eval', pipeline_id))
-    return msg_queue.recv()
-
-
-def generate_by_templates(task_keywords, dataset, pipeline_template, targets, features,
-                          features_metadata, privileged_data, metrics, msg_queue, DBSession):
-    task_keywords = set(task_keywords)
-
-    if task_keywords & {TaskKeyword.GRAPH_MATCHING, TaskKeyword.LINK_PREDICTION, TaskKeyword.VERTEX_NOMINATION,
-                        TaskKeyword.VERTEX_CLASSIFICATION, TaskKeyword.CLUSTERING, TaskKeyword.OBJECT_DETECTION,
-                        TaskKeyword.COMMUNITY_DETECTION, TaskKeyword.SEMISUPERVISED, TaskKeyword.LUPI}:
-        template_name = 'DEBUG_CLASSIFICATION'
-    elif task_keywords & {TaskKeyword.COLLABORATIVE_FILTERING, TaskKeyword.FORECASTING}:
-        template_name = 'DEBUG_REGRESSION'
-    elif TaskKeyword.REGRESSION in task_keywords:
-        template_name = 'REGRESSION'
-        if task_keywords & {TaskKeyword.IMAGE, TaskKeyword.TEXT, TaskKeyword.AUDIO, TaskKeyword.VIDEO}:
-            template_name = 'DEBUG_REGRESSION'
-    else:
-        template_name = 'CLASSIFICATION'
-        if task_keywords & {TaskKeyword.IMAGE, TaskKeyword.TEXT, TaskKeyword.AUDIO, TaskKeyword.VIDEO}:
-            template_name = 'DEBUG_CLASSIFICATION'
-
-    logger.info("Creating pipelines from template %s" % template_name)
-
-    templates = BaseBuilder.TEMPLATES.get(template_name, [])
-    for imputer, classifier in templates:
-        pipeline_id = BaseBuilder.make_template(imputer, classifier, dataset, pipeline_template, targets, features,
-                                                features_metadata, privileged_data, metrics, DBSession=DBSession)
-        send(msg_queue, pipeline_id)
-
-
 @database.with_sessionmaker
-def generate(task_keywords, dataset, pipeline_template, metrics, problem, targets, features, msg_queue, DBSession):
-    with open(dataset[7:]) as fin:
-        dataset_doc = json.load(fin)
-
-    target_names = [x[1] for x in targets]
-    csv_path = denormalize_dataset(dataset, targets, features, DBSession)
-    features_metadata = profile_data(csv_path, target_names, dataset_doc)
-    privileged_data = get_privileged_data(problem, task_keywords)
-
-    if os.environ.get('SKIPTEMPLATES', 'not') == 'not':
-        generate_by_templates(task_keywords, dataset, pipeline_template, targets,
-                              features, features_metadata, privileged_data, metrics, msg_queue, DBSession)
-
-    if 'TA2_DEBUG_BE_FAST' in os.environ:
-        sys.exit(0)
-
+def generate_pipelines(task_keywords, dataset, metrics, problem, targets, features, metadata, pipeline_template, msg_queue, DBSession):
     builder = None
     task_name = 'CLASSIFICATION' if TaskKeyword.CLASSIFICATION in task_keywords else 'REGRESSION'
+    privileged_data = get_privileged_data(problem, task_keywords)
 
     def eval_pipeline(primitive_names, origin):
         pipeline_id = builder.make_d3mpipeline(primitive_names, origin, dataset, pipeline_template, targets,
-                                               features, features_metadata, privileged_data, metrics, DBSession=DBSession)
+                                               features, metadata, privileged_data, metrics, DBSession=DBSession)
         #execute(pipeline_id, dataset, problem, join(os.environ.get('D3MOUTPUTDIR'), 'output_dataframe.csv'), None,
         #        db_filename=join(os.environ.get('D3MOUTPUTDIR'), 'temp', 'db.sqlite3'))
         # Evaluate the pipeline if syntax is correct:
@@ -225,8 +141,8 @@ def generate(task_keywords, dataset, pipeline_template, metrics, problem, target
         task_name = 'NA'
         builder = BaseBuilder()
 
-    encoders = select_encoders(features_metadata['only_attribute_types'])
-    use_imputer = features_metadata['use_imputer']
+    encoders = select_encoders(metadata['only_attribute_types'])
+    use_imputer = metadata['use_imputer']
 
     def update_config(primitives, task_name):
         metafeatures_extractor = ComputeMetafeatures(dataset, targets, features, DBSession)
@@ -235,7 +151,7 @@ def generate(task_keywords, dataset, pipeline_template, metrics, problem, target
         config['DATA_TYPE'] = 'TABULAR'
         config['METRIC'] = metrics[0]['metric'].name
         config['DATASET_METAFEATURES'] = [0] * 50 #metafeatures_extractor.compute_metafeatures('AlphaD3M_compute_metafeatures')
-        config['DATASET'] = dataset_doc['about']['datasetID']
+        config['DATASET'] = problem['inputs'][0]['dataset_id']
         config['ARGS']['stepsfile'] = join(os.environ.get('D3MOUTPUTDIR'), 'temp', config['DATASET'] + '_pipeline_steps.txt')
 
         return config

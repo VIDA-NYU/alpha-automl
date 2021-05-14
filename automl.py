@@ -25,6 +25,8 @@ from uuid import uuid4, UUID
 from alphad3m import __version__
 from alphad3m.multiprocessing import Receiver, run_process
 from alphad3m.grpc_api import grpc_server
+from alphad3m.data_ingestion.data_profiler import profile_data
+from alphad3m.search.templates import generate_pipelines
 from alphad3m.utils import Observable, ProgressStatus, is_collection, get_dataset_sample, create_outputfolders, \
     read_streams, get_internal_scoring_config
 from alphad3m.schema import database
@@ -40,9 +42,11 @@ TIME_TO_TUNE = 0.1  # The ratio of the time to be used for the tuning phase.
 TIME_TO_SCORE = 5  # In minutes. Internal time to score a pipeline during the searching phase.
 MAX_RUNNING_TIME = 43800  # In minutes. If time is not provided for the search neither score, run it for 1 month.
 MAX_RUNNING_PROCESSES = 6
+SEARCH_STRATEGIES = ['TEMPLATES', 'ALPHA_AUTOML']
 
 if 'TA2_DEBUG_BE_FAST' in os.environ:
     PIPELINES_TO_TUNE = 0
+    SEARCH_STRATEGIES.remove('ALPHA_AUTOML')
 
 
 logger = logging.getLogger(__name__)
@@ -435,7 +439,7 @@ class AutoML(Observable):
     # Runs in a worker thread from executor
     def _build_pipelines(self, session_id, dataset_uri, task_keywords, metrics, timeout_search, timeout_run, pipeline_template,
                          targets, features, tune, report_rank):
-        """Generates pipelines for the session, using the generator process.
+        """Generates pipelines for the session.
         """
         session = self.sessions[session_id]
         with session.lock:
@@ -464,34 +468,41 @@ class AutoML(Observable):
 
         now = time.time()
         expected_search_end = now + timeout_search
+        # TODO: sampling and data profiling consume time, we should reduce it from the search time-bound
         sample_dataset_uri = self._get_sample_uri(dataset_uri, session.problem)
-
+        metadata = profile_data(dataset_uri, session.targets)
         session.dataset_uri = dataset_uri
         session.sample_dataset_uri = sample_dataset_uri
         session.report_rank = report_rank
         session.timeout_run = timeout_run
         session.expected_search_end = expected_search_end
 
-        self._build_pipelines_from_generator(session, task_keywords, dataset_uri, sample_dataset_uri, pipeline_template,
-                                             metrics, timeout_search_internal)
+        if 'TEMPLATES' in SEARCH_STRATEGIES:
+            self._build_pipeline_from_template(session, task_keywords, dataset_uri, sample_dataset_uri, metrics,
+                                               metadata, timeout_search_internal)
+        if 'ALPHA_AUTOML' in SEARCH_STRATEGIES:
+            self._build_pipelines_from_generator(session, task_keywords, dataset_uri, sample_dataset_uri, metrics,
+                                                 metadata, timeout_search_internal, pipeline_template)
 
         session.tune_when_ready(tune)
 
-    def _build_pipelines_from_generator(self, session, task, dataset_uri, sample_dataset_uri, pipeline_template,
-                                        metrics, timeout_search):
+    def _build_pipelines_from_generator(self, session, task_keywords, dataset_uri, sample_dataset_uri, metrics,
+                                        metadata, timeout_search, pipeline_template):
+
         logger.info("Starting AlphaD3M process, timeout is %s", timeout_search)
         msg_queue = Receiver()
         proc = run_process(
-            'alphad3m.search.interface_alphaautoml.generate',
+            'alphad3m.search.alphaautoml.generate_pipelines',
             'generate',
             msg_queue,
-            task_keywords=task,
+            task_keywords=task_keywords,
             dataset=dataset_uri,
-            pipeline_template=pipeline_template,
             metrics=metrics,
             problem=session.problem,
             targets=session.targets,
             features=session.features,
+            metadata=metadata,
+            pipeline_template=pipeline_template,
             db_filename=self.db_filename,
         )
 
@@ -506,7 +517,7 @@ class AutoML(Observable):
                     proc.terminate()
                     stopped = True
 
-                if timeout_search is not None and time.time() > start + timeout_search:
+                if time.time() > start + timeout_search:
                     logger.error("Reached search timeout (%d > %d seconds), sending SIGTERM to generator process",
                                  time.time() - start, timeout_search)
                     proc.terminate()
@@ -522,7 +533,7 @@ class AutoML(Observable):
                     return
                 pipeline_id, = args
                 logger.info("Got pipeline %s from generator process", pipeline_id)
-                score = self.run_pipeline(session, dataset_uri, sample_dataset_uri, task, pipeline_id)
+                score = self.run_pipeline(session, dataset_uri, sample_dataset_uri, task_keywords, pipeline_id)
 
                 logger.info("Sending score to generator process")
                 try:  # Fixme, just to avoid Broken pipe error
@@ -534,6 +545,25 @@ class AutoML(Observable):
                 raise RuntimeError("Got unknown message from generator process: %r" % msg)
 
         logger.warning("Generator process exited with %r", proc.returncode)
+
+    def _build_pipeline_from_template(self, session, task_keywords, dataset_uri, sample_dataset_uri, metrics,
+                                      metadata, timeout_search):
+
+        pipeline_ids = generate_pipelines(task_keywords, dataset_uri, session.problem, session.targets, session.features,
+                                          metadata,  metrics, self.DBSession)
+        for pipeline_id in pipeline_ids:
+            try:
+                # Add it to the session
+                session.add_scoring_pipeline(pipeline_id)
+                logger.info('Created pipeline %s', pipeline_id)
+                scoring_config = get_internal_scoring_config(task_keywords)
+
+                self._run_queue.put(ScoreJob(self, pipeline_id, dataset_uri, session.metrics, session.problem,
+                                             scoring_config, timeout_search, session.report_rank, sample_dataset_uri))
+
+                session.notify('new_pipeline', pipeline_id=pipeline_id)
+            except Exception:
+                logger.exception('Error building pipeline from template')
 
     def run_pipeline(self, session, dataset_uri, sample_dataset_uri, task_keywords, pipeline_id):
 

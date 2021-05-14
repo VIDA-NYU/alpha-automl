@@ -9,6 +9,10 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(mes
 logger = logging.getLogger(__name__)
 
 
+PRIMITIVES_BY_NAME_PATH = os.path.join(os.path.dirname(__file__), '../../resource/primitives_by_name.json')
+PRIMITIVES_BY_TYPE_PATH = os.path.join(os.path.dirname(__file__), '../../resource/primitives_by_type.json')
+METALEARNINGDB_PATH = os.path.join(os.path.dirname(__file__), '../../resource/metalearningdb.json')
+
 IGNORE_PRIMITIVES = {'d3m.primitives.data_transformation.construct_predictions.Common',
                      'd3m.primitives.data_transformation.extract_columns_by_semantic_types.Common',
                      'd3m.primitives.data_transformation.dataset_to_dataframe.Common',
@@ -64,7 +68,7 @@ def merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file, n=-1
                     logger.error(problem['id'], repr(e))
     logger.info('Done.')
 
-    with open(join(os.path.dirname(__file__), '../resource/metalearningdb.json'), 'w') as fout:
+    with open(METALEARNINGDB_PATH, 'w') as fout:
         fout.write('\n'.join(merged))
 
 
@@ -77,7 +81,7 @@ def load_metalearningdb(task):
 
     logger.info('Loading pipelines from metalearning database...')
 
-    with open(join(os.path.dirname(__file__), '../resource/metalearningdb.json')) as fin:
+    with open(METALEARNINGDB_PATH) as fin:
         for line in fin:
             all_pipelines.append(json.loads(line))
 
@@ -245,6 +249,7 @@ def analyze_distribution(pipelines_metalearningdb):
     primitives_by_id = load_primitives_by_id()
     primitive_frequency = {}
     primitive_distribution = {}
+    logger.info('Analyzing the distribution of primitives')
 
     for pipeline, score in pipelines_metalearningdb:
         for primitive_id in pipeline:
@@ -269,10 +274,11 @@ def analyze_distribution(pipelines_metalearningdb):
     return primitive_distribution
 
 
-def is_available_primitive(pipeline_primitives, current_primitives):
+def is_available_primitive(pipeline_primitives, current_primitives, verbose=False):
     for primitive in pipeline_primitives:
         if primitive['primitive']['id'] not in current_primitives:
-            logger.warning('Primitive %s is not longer available' % primitive['primitive']['python_path'])
+            if verbose:
+                logger.warning('Primitive %s is not longer available' % primitive['primitive']['python_path'])
             return False
     return True
 
@@ -282,7 +288,8 @@ def is_target_task(problem, task):
     if 'task_type' in problem:
         problem_task = [problem['task_type']]
     elif 'task_keywords' in problem:
-        if 'CLASSIFICATION' in problem['task_keywords'] and 'TABULAR' in problem['task_keywords']:
+        if 'CLASSIFICATION' in problem['task_keywords'] and 'SEMISUPERVISED' not in problem['task_keywords'] \
+                and 'TABULAR' in problem['task_keywords']:
             problem_task = 'CLASSIFICATION'
         elif 'REGRESSION' in problem['task_keywords'] and 'TABULAR' in problem['task_keywords']:
             problem_task = 'REGRESSION'
@@ -307,12 +314,12 @@ def load_primitives_by_name():
     primitives_by_name = {}
     available_primitives = set()
 
-    with open(join(os.path.dirname(__file__), '../resource/primitives_by_type.json')) as fin:
+    with open(PRIMITIVES_BY_TYPE_PATH) as fin:
         for primitive_type, primitive_names in json.load(fin).items():
             for primitive_name in primitive_names:
                 available_primitives.add(primitive_name)
 
-    with open(join(os.path.dirname(__file__), '../resource/primitives_by_name.json')) as fin:
+    with open(PRIMITIVES_BY_NAME_PATH) as fin:
         primitives = json.load(fin)
 
     for primitive in primitives:
@@ -326,12 +333,12 @@ def load_primitives_by_id():
     primitives_by_id = {}
     available_primitives = set()
 
-    with open(join(os.path.dirname(__file__), '../resource/primitives_by_type.json')) as fin:
+    with open(PRIMITIVES_BY_TYPE_PATH) as fin:
         for primitive_type, primitive_names in json.load(fin).items():
             for primitive_name in primitive_names:
                 available_primitives.add(primitive_name)
 
-    with open(join(os.path.dirname(__file__), '../resource/primitives_by_name.json')) as fin:
+    with open(PRIMITIVES_BY_NAME_PATH) as fin:
         primitives = json.load(fin)
 
     for primitive in primitives:
@@ -345,7 +352,7 @@ def load_primitives_by_type():
     primitives_by_type = {}
     primitives_by_name = load_primitives_by_name()
 
-    with open(join(os.path.dirname(__file__), '../resource/primitives_by_type.json')) as fin:
+    with open(PRIMITIVES_BY_TYPE_PATH) as fin:
         primitives = json.load(fin)
 
     for primitive_type in primitives:
