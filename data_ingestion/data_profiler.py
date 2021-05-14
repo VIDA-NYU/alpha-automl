@@ -1,19 +1,25 @@
 import re
+import os
 import json
 import logging
 import datamart_profiler
 import pandas as pd
-from os.path import dirname
+from os.path import join, dirname
 from d3m import index
 from d3m.container import Dataset
 from d3m.metadata.problem import TaskKeyword
 from d3m.container.dataset import D3M_COLUMN_TYPE_CONSTANTS_TO_SEMANTIC_TYPES, D3M_ROLE_CONSTANTS_TO_SEMANTIC_TYPES
+from alphad3m.utils import need_denormalize
 
 logger = logging.getLogger(__name__)
 
 
-def select_annotated_feature_types(dataset_doc):
+def select_annotated_feature_types(dataset_doc_path):
     feature_types = {}
+
+    with open(dataset_doc_path) as fin:
+        dataset_doc = json.load(fin)
+
     try:
         for data_res in dataset_doc['dataResources']:
             if data_res['resID'] == 'learningData' and data_res['resType'] == 'table':
@@ -32,8 +38,8 @@ def select_annotated_feature_types(dataset_doc):
     return feature_types
 
 
-def select_unkown_feature_types(dataset, annotated_features):
-    all_features = dataset.columns
+def select_unkown_feature_types(csv_path, annotated_features):
+    all_features = pd.read_csv(csv_path, index_col=0, nrows=0).columns
     unkown_feature_types = []
 
     for feature_name in all_features:
@@ -48,8 +54,8 @@ def select_unkown_feature_types(dataset, annotated_features):
     return unkown_feature_types
 
 
-def indentify_feature_types(dataset, unkown_feature_types, target_names):
-    metadata = datamart_profiler.process_dataset(dataset, coverage=False)
+def indentify_feature_types(csv_path, unkown_feature_types, target_names):
+    metadata = datamart_profiler.process_dataset(csv_path, coverage=False)
     inferred_feature_types = {}
     has_missing_values = False
 
@@ -83,14 +89,15 @@ def indentify_feature_types(dataset, unkown_feature_types, target_names):
 
 
 def profile_data(dataset_uri, targets):
-    with open(dataset_uri[7:]) as fin:
-        dataset_doc = json.load(fin)
+    dataset_doc_path = dataset_uri[7:]
+    csv_path = join(dirname(dataset_doc_path), 'tables', 'learningData.csv')
+    if need_denormalize(dataset_doc_path):
+        csv_path = denormalize_dataset(dataset_uri)
 
     target_names = [x[1] for x in targets]
-    denormalized_dataset = denormalize_dataset(dataset_uri)
-    annotated_feature_types = select_annotated_feature_types(dataset_doc)
-    unkown_feature_types = select_unkown_feature_types(denormalized_dataset, annotated_feature_types.keys())
-    inferred_feature_types, has_missing_values = indentify_feature_types(denormalized_dataset, unkown_feature_types, target_names)
+    annotated_feature_types = select_annotated_feature_types(dataset_doc_path)
+    unkown_feature_types = select_unkown_feature_types(csv_path, annotated_feature_types.keys())
+    inferred_feature_types, has_missing_values = indentify_feature_types(csv_path, unkown_feature_types, target_names)
     only_attribute_types = set()
     semantictypes_by_index = {}
 
@@ -114,7 +121,8 @@ def profile_data(dataset_uri, targets):
 
 
 def denormalize_dataset(dataset_uri):
-    denormalized_dataset = None
+    logger.info('Denormalizing the dataset')
+    csv_path = None
     dataset = Dataset.load(dataset_uri)
 
     try:
@@ -127,12 +135,14 @@ def denormalize_dataset(dataset_uri):
         primitive_hyperparams = primitive_class.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
         primitive_dataframe = primitive_class(hyperparams=primitive_hyperparams.defaults())
         primitive_output = primitive_dataframe.produce(inputs=primitive_output).value
-        denormalized_dataset = primitive_output
+
+        csv_path = join(os.environ.get('D3MOUTPUTDIR'), 'temp', 'denormalized_dataset.csv')
+        primitive_output.to_csv(csv_path)
     except:
-        denormalized_dataset = pd.read_csv(dirname(dataset_uri[7:]) + '/tables/learningData.csv')
+        csv_path = join(dirname(dataset_uri[7:]),  'tables', 'learningData.csv')
         logger.exception('Error denormalizing dataset, using only learningData.csv file')
 
-    return denormalized_dataset
+    return csv_path
 
 
 def get_privileged_data(problem, task_keywords):

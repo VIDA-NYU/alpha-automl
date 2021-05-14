@@ -160,6 +160,14 @@ def get_collection_type(dataset_path):
     return None
 
 
+def need_denormalize(dataset_path):
+    with open(dataset_path) as fin:
+        dataset_doc = json.load(fin)
+        if len(dataset_doc['dataResources']) > 1:
+            return True
+        return False
+
+
 def get_dataset_sample(dataset, problem, dataset_sample_path=None):
     task_keywords = problem['problem']['task_keywords']
     sample_size = SAMPLE_SIZE
