@@ -49,7 +49,7 @@ def select_unkown_feature_types(dataset, annotated_features):
 
 
 def indentify_feature_types(dataset, unkown_feature_types, target_names):
-    metadata = datamart_profiler.process_dataset(dataset)
+    metadata = datamart_profiler.process_dataset(dataset, coverage=False)
     inferred_feature_types = {}
     has_missing_values = False
 
