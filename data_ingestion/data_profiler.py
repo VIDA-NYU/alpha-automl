@@ -5,7 +5,7 @@ import logging
 import datamart_profiler
 import pandas as pd
 from os.path import join, dirname
-from d3m import index
+from d3m import index as d3m_index
 from d3m.container import Dataset
 from d3m.metadata.problem import TaskKeyword
 from d3m.container.dataset import D3M_COLUMN_TYPE_CONSTANTS_TO_SEMANTIC_TYPES, D3M_ROLE_CONSTANTS_TO_SEMANTIC_TYPES
@@ -126,12 +126,12 @@ def denormalize_dataset(dataset_uri):
     dataset = Dataset.load(dataset_uri)
 
     try:
-        primitive_class = index.get_primitive('d3m.primitives.data_transformation.denormalize.Common')
+        primitive_class = d3m_index.get_primitive('d3m.primitives.data_transformation.denormalize.Common')
         primitive_hyperparams = primitive_class.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
         primitive_denormalize = primitive_class(hyperparams=primitive_hyperparams.defaults())
         primitive_output = primitive_denormalize.produce(inputs=dataset).value
 
-        primitive_class = index.get_primitive('d3m.primitives.data_transformation.dataset_to_dataframe.Common')
+        primitive_class = d3m_index.get_primitive('d3m.primitives.data_transformation.dataset_to_dataframe.Common')
         primitive_hyperparams = primitive_class.metadata.query()['primitive_code']['class_type_arguments']['Hyperparams']
         primitive_dataframe = primitive_class(hyperparams=primitive_hyperparams.defaults())
         primitive_output = primitive_dataframe.produce(inputs=primitive_output).value
