@@ -58,6 +58,7 @@ def indentify_feature_types(csv_path, unkown_feature_types, target_names):
     metadata = datamart_profiler.process_dataset(csv_path, coverage=False)
     inferred_feature_types = {}
     has_missing_values = False
+    is_big_dataset = False
 
     for index, item in enumerate(metadata['columns']):
         feature_name = item['name']
@@ -82,10 +83,13 @@ def indentify_feature_types(csv_path, unkown_feature_types, target_names):
         if 'missing_values_ratio' in item and feature_name not in target_names:
             has_missing_values = True
 
+    if 'nb_columns' in metadata and metadata['nb_columns'] > 1000:
+        is_big_dataset = True
+
     logger.info('Inferred feature types:\n%s',
                 '\n'.join(['%s = [%s]' % (k, ', '.join([i for i in v[1]])) for k, v in inferred_feature_types.items()]))
 
-    return inferred_feature_types, has_missing_values
+    return inferred_feature_types, has_missing_values, is_big_dataset
 
 
 def profile_data(dataset_uri, targets):
@@ -97,7 +101,7 @@ def profile_data(dataset_uri, targets):
     target_names = [x[1] for x in targets]
     annotated_feature_types = select_annotated_feature_types(dataset_doc_path)
     unkown_feature_types = select_unkown_feature_types(csv_path, annotated_feature_types.keys())
-    inferred_feature_types, has_missing_values = indentify_feature_types(csv_path, unkown_feature_types, target_names)
+    inferred_feature_types, has_missing_values, is_big_dataset = indentify_feature_types(csv_path, unkown_feature_types, target_names)
     only_attribute_types = set()
     semantictypes_by_index = {}
 
@@ -115,7 +119,7 @@ def profile_data(dataset_uri, targets):
             semantictypes_by_index[semantic_type].append(index)
 
     features_metadata = {'semantictypes_indices': semantictypes_by_index, 'only_attribute_types': only_attribute_types,
-                         'use_imputer': has_missing_values}
+                         'use_imputer': has_missing_values, 'is_big_dataset': is_big_dataset}
 
     return features_metadata
 

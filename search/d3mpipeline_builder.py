@@ -324,7 +324,10 @@ class BaseBuilder:
                 prev_step, primitives, primitive_steps = add_previous_primitive(db, pipeline, primitives, prev_step)
                 count_steps += primitive_steps
 
-            step2 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.column_parser.Common')
+            if metadata['is_big_dataset']:
+                step2 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.column_parser.DistilColumnParser')
+            else:
+                step2 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.column_parser.Common')
             connect(db, pipeline, prev_step, step2)
             count_steps += 1
 
@@ -398,7 +401,10 @@ class BaseBuilder:
                 count_steps += semantic_steps
 
             dataframe_step = prev_step
-            step2 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.column_parser.Common')
+            if metadata['is_big_dataset']:
+                step2 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.column_parser.DistilColumnParser')
+            else:
+                step2 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.column_parser.Common')
             connect(db, pipeline, prev_step, step2)
             count_steps += 1
 
