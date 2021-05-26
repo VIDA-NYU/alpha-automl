@@ -609,9 +609,25 @@ class GraphMatchingBuilder(BaseBuilder):
                 pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
 
                 input_data = make_data_module(db, pipeline, targets, features)
+                if primitives[0] == 'd3m.primitives.graph_matching.euclidean_nomination.JHU':
+                    step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.dataset_to_dataframe.Common')
+                    connect(db, pipeline, input_data, step0)
 
-                step0 = make_pipeline_module(db, pipeline, primitives[0])
-                connect(db, pipeline, input_data, step0)
+                    step1 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.dataset_to_dataframe.Common')
+                    set_hyperparams(db, pipeline, step1, dataframe_resource='1')
+                    connect(db, pipeline, input_data, step1)
+
+                    step2 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.dataset_to_dataframe.Common')
+                    set_hyperparams(db, pipeline, step2, dataframe_resource='2')
+                    connect(db, pipeline, input_data, step2)
+
+                    step3 = make_pipeline_module(db, pipeline, primitives[0])
+                    connect(db, pipeline, step1, step3, to_input='inputs_1')
+                    connect(db, pipeline, step2, step3, to_input='inputs_2')
+                    connect(db, pipeline, step0, step3, to_input='reference')
+                else:
+                    step0 = make_pipeline_module(db, pipeline, primitives[0])
+                    connect(db, pipeline, input_data, step0)
 
                 db.add(pipeline)
                 db.commit()

@@ -70,8 +70,10 @@ def indentify_feature_types(csv_path, unkown_feature_types, target_names):
                     semantic_type = 'https://metadata.datadrivendiscovery.org/types/CategoricalData'
                 elif semantic_type == 'http://schema.org/identifier':  # Changing to D3M format
                     semantic_type = 'http://schema.org/Integer'
-                elif semantic_type == 'https://metadata.datadrivendiscovery.org/types/MissingData':
-                    semantic_type = 'http://schema.org/Text'
+                elif semantic_type == 'http://schema.org/identifier':  # Changing to D3M format
+                    semantic_type = 'http://schema.org/Integer'
+                elif semantic_type in {'http://schema.org/longitude', 'http://schema.org/latitude'}:
+                    semantic_type = 'http://schema.org/Float'
                 d3m_semantic_types.append(semantic_type)
 
             role = 'https://metadata.datadrivendiscovery.org/types/Attribute'
