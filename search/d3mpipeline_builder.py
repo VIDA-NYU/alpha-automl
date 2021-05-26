@@ -677,9 +677,11 @@ class VertexClassificationBuilder(BaseBuilder):
                 return pipeline.id
 
             elif len(primitives) == 1 and primitives[0] == 'd3m.primitives.vertex_nomination.seeded_graph_matching.DistilVertexNomination':
+                origin_name = 'MtLDB ' + origin_name
+                pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
                 input_data = make_data_module(db, pipeline, targets, features)
 
-                step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.load_edgelist.DistilEdgeListLoader')
+                step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.load_single_graph.DistilSingleGraphLoader')
                 connect(db, pipeline, input_data, step0, from_output='dataset')
 
                 step1 = make_pipeline_module(db, pipeline, primitives[0])
