@@ -113,7 +113,7 @@ def change_default_hyperparams(db, pipeline, primitive_name, primitive, index_le
     if primitive_name == 'd3m.primitives.data_transformation.one_hot_encoder.SKlearn':
         set_hyperparams(db, pipeline, primitive, use_semantic_types=True, return_result='replace', handle_unknown='ignore')
     elif primitive_name == 'd3m.primitives.data_cleaning.imputer.SKlearn':
-        set_hyperparams(db, pipeline, primitive, use_semantic_types=True, return_result='replace', strategy='most_frequent')
+        set_hyperparams(db, pipeline, primitive, use_semantic_types=True, return_result='replace', strategy='most_frequent', error_on_no_input=False)
     elif primitive_name.endswith('.SKlearn') and not (primitive_name.startswith('d3m.primitives.classification.') or
                                                       primitive_name.startswith('d3m.primitives.regression.')):
         set_hyperparams(db, pipeline, primitive, use_semantic_types=True, return_result='replace')
@@ -422,7 +422,7 @@ class BaseBuilder:
             count_steps += 1
 
             step5 = make_pipeline_module(db, pipeline, imputer)
-            set_hyperparams(db, pipeline, step5, use_semantic_types=True, return_result='replace', strategy='most_frequent')
+            set_hyperparams(db, pipeline, step5, use_semantic_types=True, return_result='replace', strategy='most_frequent', error_on_no_input=False)
             connect(db, pipeline, step3, step5)
             count_steps += 1
 
