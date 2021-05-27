@@ -39,7 +39,7 @@ from d3m.metadata import pipeline as pipeline_module
 
 PIPELINES_TO_TUNE = 5  # Number of pipelines (top k) to be tuned.
 TIME_TO_TUNE = 0.1  # The ratio of the time to be used for the tuning phase.
-TIME_TO_SCORE = 5  # In minutes. Internal time to score a pipeline during the searching phase.
+TIME_TO_SCORE = 10  # In minutes. Internal time to score a pipeline during the searching phase.
 MAX_RUNNING_TIME = 43800  # In minutes. If time is not provided for the search neither score, run it for 1 month.
 MAX_RUNNING_PROCESSES = 6
 SEARCH_STRATEGIES = ['TEMPLATES', 'ALPHA_AUTOML']
@@ -188,7 +188,9 @@ class AutoML(Observable):
 
     def score_pipeline(self, pipeline_id, metrics, dataset_uri, problem, scoring_config, timeout_run):
         if timeout_run is None:
-            timeout_run = MAX_RUNNING_TIME * 60  # Minutes to seconds
+            timeout_run = MAX_RUNNING_TIME
+
+        timeout_run = timeout_run * 60  # Minutes to seconds# Minutes to seconds
 
         job = ScoreJob(self, pipeline_id, dataset_uri, metrics, problem, scoring_config, timeout_run)
         self._run_queue.put(job)
