@@ -530,16 +530,38 @@ class CommunityDetectionBuilder(BaseBuilder):
         pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
 
         try:
-            if len(primitives) == 1:
+            if len(primitives) == 1 and primitives[0] == 'd3m.primitives.community_detection.parser.DistilCommunityDetection':
                 input_data = make_data_module(db, pipeline, targets, features)
 
-                step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.'
-                                                           'load_single_graph.DistilSingleGraphLoader')
+                step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.load_single_graph.DistilSingleGraphLoader')
                 connect(db, pipeline, input_data, step0, from_output='dataset')
 
                 step1 = make_pipeline_module(db, pipeline, primitives[0])
                 connect(db, pipeline, step0, step1)
                 connect(db, pipeline, step0, step1, to_input='outputs', from_output='produce_target')
+
+                db.add(pipeline)
+                db.commit()
+                logger.info('%s PIPELINE ID: %s', origin, pipeline.id)
+                return pipeline.id
+            elif len(primitives) == 1 and primitives[0] == 'd3m.primitives.graph_clustering.gaussian_clustering.JHU':
+                origin_name = 'MtLDB ' + origin_name
+                pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
+                input_data = make_data_module(db, pipeline, targets, features)
+
+                step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.load_graphs.JHU')
+                connect(db, pipeline, input_data, step0, from_output='dataset')
+
+                step1 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_preprocessing.largest_connected_component.JHU')
+                connect(db, pipeline, step0, step1)
+
+                step2 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.adjacency_spectral_embedding.JHU')
+                set_hyperparams(db, pipeline, step2, use_attributes=True, max_dimension=5)
+                connect(db, pipeline, step1, step2)
+
+                step3 = make_pipeline_module(db, pipeline, primitives[0])
+                set_hyperparams(db, pipeline, step3, max_clusters=10)
+                connect(db, pipeline, step2, step3)
 
                 db.add(pipeline)
                 db.commit()

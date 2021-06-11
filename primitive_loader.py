@@ -160,6 +160,9 @@ def get_primitives_by_type():
                                     'd3m.primitives.classification.gaussian_classification.JHU'}:
                 family = 'VERTEX_CLASSIFICATION'
 
+            elif primitive_name in {'d3m.primitives.graph_clustering.gaussian_clustering.JHU'}:
+                family = 'COMMUNITY_DETECTION'
+
             elif primitive_name in {'d3m.primitives.feature_extraction.yolo.DSBOX'}:
                 family = 'OBJECT_DETECTION'
 
