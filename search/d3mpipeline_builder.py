@@ -144,17 +144,9 @@ def encode_features(pipeline, attribute_step, target_step, metadata, db):
     feature_types = metadata['only_attribute_types']
     count_steps = 0
     if 'http://schema.org/Text' in feature_types:
-        # It has multiple targets? Then, use other primitive until
-        # https://github.com/uncharted-distil/distil-primitives/issues/265 is fixed.
-        if len(metadata['semantictypes_indices']
-               ['https://metadata.datadrivendiscovery.org/types/TrueTarget']) > 1:
-            text_step = make_pipeline_module(db, pipeline, 'd3m.primitives.feature_extraction.tfidf_vectorizer.SKlearn')
-            set_hyperparams(db, pipeline, text_step, use_semantic_types=True, return_result='replace')
-            connect(db, pipeline, last_step, text_step)
-        else:
-            text_step = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.encoder.DistilTextEncoder')
-            connect(db, pipeline, last_step, text_step)
-            connect(db, pipeline, target_step, text_step, to_input='outputs')
+        text_step = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.encoder.DistilTextEncoder')
+        connect(db, pipeline, last_step, text_step)
+        connect(db, pipeline, target_step, text_step, to_input='outputs')
         last_step = text_step
         count_steps += 1
 
