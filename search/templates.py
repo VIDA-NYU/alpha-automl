@@ -16,7 +16,8 @@ TEMPLATES = {
             'd3m.primitives.classification.xgboost_gbtree.Common',
             'd3m.primitives.classification.extra_trees.SKlearn',
             'd3m.primitives.classification.gradient_boosting.SKlearn',
-            'd3m.primitives.classification.ada_boost.SKlearn'
+            'd3m.primitives.classification.ada_boost.SKlearn',
+            'd3m.primitives.classification.linear_svc.SKlearn'
         ],
     )),
     'DEBUG_CLASSIFICATION': list(itertools.product(
@@ -31,19 +32,20 @@ TEMPLATES = {
     'REGRESSION': list(itertools.product(
         # Imputer
         ['d3m.primitives.data_cleaning.imputer.SKlearn'],
-        # Classifier
+        # Regressor
         [
             'd3m.primitives.regression.random_forest.SKlearn',
             'd3m.primitives.regression.xgboost_gbtree.Common',
             'd3m.primitives.regression.extra_trees.SKlearn',
             'd3m.primitives.regression.gradient_boosting.SKlearn',
-            'd3m.primitives.regression.ada_boost.SKlearn'
+            'd3m.primitives.regression.ada_boost.SKlearn',
+            'd3m.primitives.regression.linear_svr.SKlearn'
         ],
     )),
     'DEBUG_REGRESSION': list(itertools.product(
         # Imputer
         ['d3m.primitives.data_cleaning.imputer.SKlearn'],
-        # Classifier
+        # Regressor
         [
             'd3m.primitives.regression.random_forest.SKlearn',
             'd3m.primitives.regression.xgboost_gbtree.Common'
