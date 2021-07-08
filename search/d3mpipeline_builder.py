@@ -139,34 +139,6 @@ def need_entire_dataframe(primitives):
     return False
 
 
-def encode_features(pipeline, attribute_step, target_step, metadata, db):
-    last_step = attribute_step
-    feature_types = metadata['only_attribute_types']
-    count_steps = 0
-    if 'http://schema.org/Text' in feature_types:
-        text_step = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.encoder.DistilTextEncoder')
-        connect(db, pipeline, last_step, text_step)
-        connect(db, pipeline, target_step, text_step, to_input='outputs')
-        last_step = text_step
-        count_steps += 1
-
-    if 'http://schema.org/DateTime' in feature_types:
-        time_step = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.enrich_dates.DistilEnrichDates')
-        set_hyperparams(db, pipeline, time_step, replace=True)
-        connect(db, pipeline, last_step, time_step)
-        last_step = time_step
-        count_steps += 1
-
-    if 'https://metadata.datadrivendiscovery.org/types/CategoricalData' in feature_types:
-        onehot_step = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.encoder.DSBOX')
-        set_hyperparams(db, pipeline, onehot_step, n_limit=50)
-        connect(db, pipeline, last_step, onehot_step)
-        last_step = onehot_step
-        count_steps += 1
-
-    return last_step, count_steps
-
-
 def process_template(db, input_data, pipeline, pipeline_template, count_template_steps=0, prev_step=None):
     prev_steps = {}
     for pipeline_step in pipeline_template['steps']:
@@ -372,94 +344,6 @@ class BaseBuilder:
             return pipeline.id
         except:
             logger.exception('Error creating pipeline id=%s, primitives=%s', pipeline.id, str(primitives))
-            return None
-        finally:
-            db.close()
-
-    @staticmethod
-    def make_template(imputer, estimator, dataset, targets, features, metadata, metrics,  DBSession=None):
-        db = DBSession()
-        origin_name = 'Template (%s, %s)' % (imputer, estimator)
-        origin_name = origin_name.replace('d3m.primitives.', '')
-        pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
-        count_steps = 0
-        try:
-            # TODO: Use pipeline input for this
-            input_data = make_data_module(db, pipeline, targets, features)
-
-            step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.denormalize.Common')
-            connect(db, pipeline, input_data, step0, from_output='dataset')
-
-            if metadata['large_rows']:
-                step_sample = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.dataset_sample.Common')
-                set_hyperparams(db, pipeline, step_sample, sample_size=metadata['sample_size'])
-                connect(db, pipeline, step0, step_sample)
-                count_steps += 1
-                step0 = step_sample
-
-            step1 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.dataset_to_dataframe.Common')
-            connect(db, pipeline, step0, step1)
-            count_steps += 1
-
-            prev_step = step1
-            if len(metadata['semantictypes_indices']) > 0:
-                prev_step, semantic_steps = add_semantic_types(db, metadata, pipeline, None, prev_step)
-                count_steps += semantic_steps
-
-            dataframe_step = prev_step
-            if metadata['large_columns']:
-                # Remove this when https://gitlab.com/datadrivendiscovery/common-primitives/-/issues/149 is fixed
-                step2 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.column_parser.DistilColumnParser')
-            else:
-                step2 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.column_parser.Common')
-            connect(db, pipeline, prev_step, step2)
-            count_steps += 1
-
-            step3 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.extract_columns_by_semantic_types.Common')
-            set_hyperparams(db, pipeline, step3,
-                            semantic_types=['https://metadata.datadrivendiscovery.org/types/Attribute'],
-                            exclude_columns=metadata['exclude_columns']
-                            )
-            connect(db, pipeline, step2, step3)
-            count_steps += 1
-
-            step4 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.extract_columns_by_semantic_types.Common')
-            set_hyperparams(db, pipeline, step4, semantic_types=['https://metadata.datadrivendiscovery.org/types/TrueTarget'])
-            connect(db, pipeline, dataframe_step, step4)
-            count_steps += 1
-
-            step5 = make_pipeline_module(db, pipeline, imputer)
-            set_hyperparams(db, pipeline, step5, use_semantic_types=True, return_result='replace', strategy='most_frequent', error_on_no_input=False)
-            connect(db, pipeline, step3, step5)
-            count_steps += 1
-
-            encoder_step, encode_steps = encode_features(pipeline, step5, step4, metadata, db)
-            count_steps += encode_steps
-
-            prev_step = encoder_step
-            if encoder_step == step5:  # Encoders were not applied, so use to_numeric for all features
-                step_fallback = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.to_numeric.DSBOX')
-                connect(db, pipeline, step5, step_fallback)
-                prev_step = step_fallback
-                count_steps += 1
-
-            step6 = make_pipeline_module(db, pipeline, estimator)
-            connect(db, pipeline, prev_step, step6)
-            connect(db, pipeline, step4, step6, to_input='outputs')
-            count_steps += 1
-
-            if 'ROC_AUC' in metrics[0]['metric'].name:
-                add_rocauc_primitives(pipeline, step6, prev_step, step4, dataframe_step, count_steps, db)
-            else:
-                step7 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.construct_predictions.Common')
-                connect(db, pipeline, step6, step7)
-                connect(db, pipeline, dataframe_step, step7, to_input='reference')
-
-            db.add(pipeline)
-            db.commit()
-            return pipeline.id
-        except:
-            logger.exception('Error creating pipeline id=%s', pipeline.id)
             return None
         finally:
             db.close()

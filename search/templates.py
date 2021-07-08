@@ -1,5 +1,4 @@
 import logging
-import itertools
 from d3m.metadata.problem import TaskKeyword
 from alphad3m.search.d3mpipeline_builder import BaseBuilder
 from alphad3m.data_ingestion.data_profiler import get_privileged_data
@@ -7,10 +6,7 @@ from alphad3m.data_ingestion.data_profiler import get_privileged_data
 logger = logging.getLogger(__name__)
 
 TEMPLATES = {
-    'CLASSIFICATION': list(itertools.product(
-        # Imputer
-        ['d3m.primitives.data_cleaning.imputer.SKlearn'],
-        # Classifier
+    'CLASSIFICATION':
         [
             'd3m.primitives.classification.random_forest.SKlearn',
             'd3m.primitives.classification.xgboost_gbtree.Common',
@@ -19,20 +15,12 @@ TEMPLATES = {
             'd3m.primitives.classification.ada_boost.SKlearn',
             'd3m.primitives.classification.linear_svc.SKlearn'
         ],
-    )),
-    'DEBUG_CLASSIFICATION': list(itertools.product(
-        # Imputer
-        ['d3m.primitives.data_cleaning.imputer.SKlearn'],
-        # Classifier
+    'DEBUG_CLASSIFICATION':
         [
             'd3m.primitives.classification.random_forest.SKlearn',
             'd3m.primitives.classification.xgboost_gbtree.Common'
         ],
-    )),
-    'REGRESSION': list(itertools.product(
-        # Imputer
-        ['d3m.primitives.data_cleaning.imputer.SKlearn'],
-        # Regressor
+    'REGRESSION':
         [
             'd3m.primitives.regression.random_forest.SKlearn',
             'd3m.primitives.regression.xgboost_gbtree.Common',
@@ -41,16 +29,11 @@ TEMPLATES = {
             'd3m.primitives.regression.ada_boost.SKlearn',
             'd3m.primitives.regression.linear_svr.SKlearn'
         ],
-    )),
-    'DEBUG_REGRESSION': list(itertools.product(
-        # Imputer
-        ['d3m.primitives.data_cleaning.imputer.SKlearn'],
-        # Regressor
+    'DEBUG_REGRESSION':
         [
             'd3m.primitives.regression.random_forest.SKlearn',
             'd3m.primitives.regression.xgboost_gbtree.Common'
-        ],
-    )),
+        ]
 }
 
 
@@ -77,12 +60,24 @@ def generate_pipelines(task_keywords, dataset, problem, targets, features, metad
 
     logger.info("Creating pipelines from template %s" % template_name)
 
-    templates = TEMPLATES.get(template_name, [])
+    feature_types = metadata['only_attribute_types']
+    template_preprocessing = ['d3m.primitives.data_cleaning.imputer.SKlearn']
+
+    if 'http://schema.org/Text' in feature_types:
+        template_preprocessing.append('d3m.primitives.data_transformation.encoder.DistilTextEncoder')
+    if 'http://schema.org/DateTime' in feature_types:
+        template_preprocessing.append('d3m.primitives.data_transformation.enrich_dates.DistilEnrichDates')
+    if 'https://metadata.datadrivendiscovery.org/types/CategoricalData' in feature_types:
+        template_preprocessing.append('d3m.primitives.data_transformation.encoder.DSBOX')
+
+    template_estimators = TEMPLATES.get(template_name, [])
+    builder = BaseBuilder()
     pipeline_ids = []
 
-    for imputer, classifier in templates:
-        pipeline_id = BaseBuilder.make_template(imputer, classifier, dataset, targets, features, metadata, metrics,
-                                                DBSession=DBSession)
+    for template_estimator in template_estimators:
+        template = template_preprocessing + [template_estimator]
+        pipeline_id = builder.make_d3mpipeline(template, 'Template', dataset, None, targets, features, metadata,
+                                               metrics, DBSession=DBSession)
         pipeline_ids.append(pipeline_id)
 
     return pipeline_ids
