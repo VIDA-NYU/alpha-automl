@@ -54,11 +54,8 @@ def select_unkown_feature_types(csv_path, annotated_features):
     return unkown_feature_types
 
 
-def indentify_feature_types(csv_path, unkown_feature_types, target_names):
-    metadata = datamart_profiler.process_dataset(csv_path, coverage=False)
-    inferred_feature_types = {}
-    has_missing_values = False
-    is_big_dataset = False
+def select_identified_feature_types(metadata, unkown_feature_types, target_names):
+    identified_feature_types = {}
 
     for index, item in enumerate(metadata['columns']):
         feature_name = item['name']
@@ -70,8 +67,6 @@ def indentify_feature_types(csv_path, unkown_feature_types, target_names):
                     semantic_type = 'https://metadata.datadrivendiscovery.org/types/CategoricalData'
                 elif semantic_type == 'http://schema.org/identifier':  # Changing to D3M format
                     semantic_type = 'http://schema.org/Integer'
-                elif semantic_type == 'http://schema.org/identifier':  # Changing to D3M format
-                    semantic_type = 'http://schema.org/Integer'
                 elif semantic_type in {'http://schema.org/longitude', 'http://schema.org/latitude'}:
                     semantic_type = 'http://schema.org/Float'
                 d3m_semantic_types.append(semantic_type)
@@ -81,17 +76,30 @@ def indentify_feature_types(csv_path, unkown_feature_types, target_names):
                 role = 'https://metadata.datadrivendiscovery.org/types/PrimaryKey'
             elif feature_name in target_names:
                 role = 'https://metadata.datadrivendiscovery.org/types/TrueTarget'
-            inferred_feature_types[feature_name] = (role, d3m_semantic_types, index)
-        if 'missing_values_ratio' in item and feature_name not in target_names:
-            has_missing_values = True
-
-    if 'nb_columns' in metadata and metadata['nb_columns'] > 1000:
-        is_big_dataset = True
+            identified_feature_types[feature_name] = (role, d3m_semantic_types, index)
 
     logger.info('Inferred feature types:\n%s',
                 '\n'.join(['%s = [%s]' % (k, ', '.join([i for i in v[1]])) for k, v in inferred_feature_types.items()]))
 
-    return inferred_feature_types, has_missing_values, is_big_dataset
+    return identified_feature_types
+
+
+def get_extra_metadata(metadata, exclude_columns):
+    extra_metadata = {'missing_values': False, 'large_rows': False, 'large_columns': False, 'exclude_columns': []}
+
+    for item in metadata['columns']:
+        if 'missing_values_ratio' in item and item['name'] not in exclude_columns:
+            extra_metadata['missing_values'] = True
+            break
+
+    if 'nb_rows' in metadata and metadata['nb_rows'] > 1000000:
+        extra_metadata['large_rows'] = True
+        extra_metadata['sample_size'] = metadata['nb_profiled_rows']
+
+    if 'nb_columns' in metadata and metadata['nb_columns'] > 1000:
+        extra_metadata['large_columns'] = True
+
+    return extra_metadata
 
 
 def profile_data(dataset_uri, targets):
@@ -103,7 +111,8 @@ def profile_data(dataset_uri, targets):
     target_names = [x[1] for x in targets]
     annotated_feature_types = select_annotated_feature_types(dataset_doc_path)
     unkown_feature_types = select_unkown_feature_types(csv_path, annotated_feature_types.keys())
-    inferred_feature_types, has_missing_values, is_big_dataset = indentify_feature_types(csv_path, unkown_feature_types, target_names)
+    metadata = datamart_profiler.process_dataset(csv_path, coverage=False)
+    identified_feature_types = select_identified_feature_types(metadata, unkown_feature_types, target_names)
     only_attribute_types = set()
     semantictypes_by_index = {}
 
@@ -111,7 +120,7 @@ def profile_data(dataset_uri, targets):
         if role == 'https://metadata.datadrivendiscovery.org/types/Attribute':
             only_attribute_types.update(semantic_types)
 
-    for role, semantic_types, index in inferred_feature_types.values():
+    for role, semantic_types, index in identified_feature_types.values():
         if role == 'https://metadata.datadrivendiscovery.org/types/Attribute':
             only_attribute_types.update(semantic_types)
 
@@ -120,8 +129,9 @@ def profile_data(dataset_uri, targets):
                 semantictypes_by_index[semantic_type] = []
             semantictypes_by_index[semantic_type].append(index)
 
-    features_metadata = {'semantictypes_indices': semantictypes_by_index, 'only_attribute_types': only_attribute_types,
-                         'use_imputer': has_missing_values, 'is_big_dataset': is_big_dataset}
+    features_metadata = {'semantictypes_indices': semantictypes_by_index, 'only_attribute_types': only_attribute_types}
+    extra_metadata = get_extra_metadata(metadata, target_names)
+    features_metadata.update(extra_metadata)
 
     return features_metadata
 

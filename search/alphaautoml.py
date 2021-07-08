@@ -74,11 +74,13 @@ config = {
 def generate_pipelines(task_keywords, dataset, metrics, problem, targets, features, metadata, pipeline_template, msg_queue, DBSession):
     builder = None
     task_name = 'CLASSIFICATION' if TaskKeyword.CLASSIFICATION in task_keywords else 'REGRESSION'
+    # Primitives for LUPI problems are no longer available. So, just exclude privileged data
     privileged_data = get_privileged_data(problem, task_keywords)
+    metadata['exclude_columns'] += privileged_data
 
     def eval_pipeline(primitive_names, origin):
         pipeline_id = builder.make_d3mpipeline(primitive_names, origin, dataset, pipeline_template, targets,
-                                               features, metadata, privileged_data, metrics, DBSession=DBSession)
+                                               features, metadata, metrics, DBSession=DBSession)
         #execute(pipeline_id, dataset, problem, join(os.environ.get('D3MOUTPUTDIR'), 'output_dataframe.csv'), None,
         #        db_filename=join(os.environ.get('D3MOUTPUTDIR'), 'temp', 'db.sqlite3'))
         # Evaluate the pipeline if syntax is correct:
@@ -142,7 +144,7 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
         builder = BaseBuilder()
 
     encoders = select_encoders(metadata['only_attribute_types'])
-    use_imputer = metadata['use_imputer']
+    use_imputer = metadata['missing_values']
 
     def update_config(primitives, task_name):
         metafeatures_extractor = ComputeMetafeatures(dataset, targets, features, DBSession)

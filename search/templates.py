@@ -55,7 +55,9 @@ TEMPLATES = {
 
 
 def generate_pipelines(task_keywords, dataset, problem, targets, features, metadata, metrics, DBSession):
+    # Primitives for LUPI problems are no longer available. So, just exclude privileged data
     privileged_data = get_privileged_data(problem, task_keywords)
+    metadata['exclude_columns'] += privileged_data
     task_keywords_set = set(task_keywords)
     #  Verify if two sets have at-least one element common
     if task_keywords_set & {TaskKeyword.GRAPH_MATCHING, TaskKeyword.LINK_PREDICTION, TaskKeyword.VERTEX_NOMINATION,
@@ -79,8 +81,8 @@ def generate_pipelines(task_keywords, dataset, problem, targets, features, metad
     pipeline_ids = []
 
     for imputer, classifier in templates:
-        pipeline_id = BaseBuilder.make_template(imputer, classifier, dataset, targets, features, metadata,
-                                                privileged_data, metrics, DBSession=DBSession)
+        pipeline_id = BaseBuilder.make_template(imputer, classifier, dataset, targets, features, metadata, metrics,
+                                                DBSession=DBSession)
         pipeline_ids.append(pipeline_id)
 
     return pipeline_ids
