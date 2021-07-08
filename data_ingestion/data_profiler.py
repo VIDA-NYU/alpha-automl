@@ -79,7 +79,7 @@ def select_identified_feature_types(metadata, unkown_feature_types, target_names
             identified_feature_types[feature_name] = (role, d3m_semantic_types, index)
 
     logger.info('Inferred feature types:\n%s',
-                '\n'.join(['%s = [%s]' % (k, ', '.join([i for i in v[1]])) for k, v in inferred_feature_types.items()]))
+                '\n'.join(['%s = [%s]' % (k, ', '.join([i for i in v[1]])) for k, v in identified_feature_types.items()]))
 
     return identified_feature_types
 
