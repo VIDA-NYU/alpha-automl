@@ -69,6 +69,8 @@ def generate_pipelines(task_keywords, dataset, problem, targets, features, metad
         template_preprocessing.append('d3m.primitives.data_transformation.enrich_dates.DistilEnrichDates')
     if 'https://metadata.datadrivendiscovery.org/types/CategoricalData' in feature_types:
         template_preprocessing.append('d3m.primitives.data_transformation.encoder.DSBOX')
+    if len(template_preprocessing) == 1:  # Encoders were not applied, so use to_numeric for all features
+        template_preprocessing.append('d3m.primitives.data_transformation.to_numeric.DSBOX')
 
     template_estimators = TEMPLATES.get(template_name, [])
     builder = BaseBuilder()
