@@ -189,10 +189,13 @@ def get_primitives_by_type():
                 family = 'VIDEO_FEATURIZER'
 
             elif primitive_name in {'d3m.primitives.feature_extraction.random_projection_timeseries_featurization.DSBOX'}:
-                family = 'TIMESERIES_FEATURIZER'
+                family = 'TIME_SERIES_FEATURIZER'
 
             elif primitive_name in {'d3m.primitives.data_transformation.time_series_to_list.DSBOX'}:
-                family = 'TIMESERIES_READER'
+                family = 'TIME_SERIES_READER'
+
+            elif primitive_name in {'d3m.primitives.data_transformation.grouping_field_compose.Common'}:
+                family = 'TIME_SERIES_GROUPER'
 
             if family == 'ENCODE_ONE_HOT':
                 family = 'CATEGORICAL_ENCODER'
