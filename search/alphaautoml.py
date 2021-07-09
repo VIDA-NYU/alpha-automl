@@ -98,7 +98,7 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
         builder = BaseBuilder()
     elif TaskKeyword.COLLABORATIVE_FILTERING in task_keywords:
         task_name = 'COLLABORATIVE_FILTERING'
-        builder = CollaborativeFilteringBuilder()
+        builder = BaseBuilder()
     elif TaskKeyword.COMMUNITY_DETECTION in task_keywords:
         task_name = 'COMMUNITY_DETECTION'
         builder = CommunityDetectionBuilder()
