@@ -99,6 +99,9 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
     elif TaskKeyword.COLLABORATIVE_FILTERING in task_keywords:
         task_name = 'COLLABORATIVE_FILTERING'
         builder = BaseBuilder()
+    elif TaskKeyword.FORECASTING in task_keywords:
+        task_name = 'TIME_SERIES_FORECASTING'
+        builder = BaseBuilder()
     elif TaskKeyword.COMMUNITY_DETECTION in task_keywords:
         task_name = 'COMMUNITY_DETECTION'
         builder = CommunityDetectionBuilder()
@@ -111,9 +114,6 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
     elif TaskKeyword.GRAPH_MATCHING in task_keywords:
         task_name = 'GRAPH_MATCHING'
         builder = GraphMatchingBuilder()
-    elif TaskKeyword.FORECASTING in task_keywords:
-        task_name = 'TIME_SERIES_FORECASTING'
-        builder = TimeseriesForecastingBuilder()
     elif TaskKeyword.TIME_SERIES in task_keywords and TaskKeyword.CLASSIFICATION in task_keywords:
         task_name = 'TIME_SERIES_CLASSIFICATION'
         builder = TimeseriesClassificationBuilder()
