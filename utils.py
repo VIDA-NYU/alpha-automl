@@ -192,15 +192,11 @@ def get_dataset_sample(dataset, problem, dataset_sample_path=None):
         if hasattr(dataset[res_id], 'columns') and len(dataset[res_id]) > sample_size:
             labels = dataset[res_id].get(target_name)
             ratio = sample_size / original_size
-            stratified_labels = None
-            if TaskKeyword.CLASSIFICATION in task_keywords:
-                stratified_labels = labels
-
             try:
                 x_train, x_test, y_train, y_test = train_test_split(dataset[res_id], labels, random_state=RANDOM_SEED,
-                                                                    test_size=ratio, stratify=stratified_labels)
+                                                                    test_size=ratio, stratify=labels)
             except:
-                # Not using stratified sampling when the minority class has few instances, not enough for the folds
+                # Not using stratified sampling when the minority class has few instances, not enough for all the folds
                 x_train, x_test, y_train, y_test = train_test_split(dataset[res_id], labels, random_state=RANDOM_SEED,
                                                                     test_size=ratio)
             dataset[res_id] = x_test
