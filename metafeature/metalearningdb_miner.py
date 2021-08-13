@@ -3,6 +3,7 @@ import json
 import copy
 import logging
 from os.path import join
+import statistics
 from collections import OrderedDict
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
@@ -17,6 +18,7 @@ IGNORE_PRIMITIVES = {'d3m.primitives.data_transformation.construct_predictions.C
                      'd3m.primitives.data_transformation.extract_columns_by_semantic_types.Common',
                      'd3m.primitives.data_transformation.dataset_to_dataframe.Common',
                      'd3m.primitives.data_transformation.denormalize.Common',
+                     'd3m.primitives.data_transformation.flatten.DataFrameCommon',
                      'd3m.primitives.data_transformation.column_parser.Common',
                      'd3m.primitives.schema_discovery.profiler.DSBOX',
                      'd3m.primitives.data_cleaning.column_type_profiler.Simon'}
@@ -72,7 +74,7 @@ def merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file, n=-1
         fout.write('\n'.join(merged))
 
 
-def load_metalearningdb(task):
+def load_metalearningdb(task_keywords):
     primitives_by_name = load_primitives_by_name()
     primitive_ids = set(primitives_by_name.values())
     ignore_primitives_ids = set()
@@ -91,13 +93,13 @@ def load_metalearningdb(task):
 
     for pipeline_run in all_pipelines:
         pipeline_primitives = pipeline_run['steps']
-        if is_target_task(pipeline_run['problem'], task) and is_available_primitive(pipeline_primitives, primitive_ids):
+        if is_target_task(pipeline_run['problem'], task_keywords) and is_available_primitive(pipeline_primitives, primitive_ids):
             primitives = filter_primitives(pipeline_primitives, ignore_primitives_ids)
             if len(primitives) > 0:
                 score = pipeline_run['scores'][0]['value']
                 task_pipelines.append((primitives, score))
 
-    logger.info('Found %d pipelines for task %s', len(task_pipelines), task)
+    logger.info('Found %d pipelines for task %s', len(task_pipelines), '_'.join(task_keywords))
 
     return task_pipelines
 
@@ -223,25 +225,64 @@ def create_vectors_from_metalearningdb(task, grammar):
     return train_examples
 
 
-def create_grammar_from_metalearningdb(task):
-    pipelines = load_metalearningdb(task)
-    patterns = extract_patterns(pipelines)
+def create_grammar_from_metalearningdb(task_keywords):
+    pipelines = load_metalearningdb(task_keywords)
+    combine_encoders = 'TEXT' not in task_keywords
+    patterns = extract_patterns(pipelines, combine_encoders)
     # TODO: Convert patterns to grammar format
 
 
-def extract_patterns(pipelines):
+def extract_patterns(pipelines, combine_encoders=True, min_frequency=5, min_avg_performance=0.5):
     primitives_by_type = load_primitives_by_type()
     patterns = {}
 
-    for pipeline, score in sorted(pipelines, key=lambda x: x[1], reverse=True):
+    for pipeline, score in pipelines:
         primitive_types = [primitives_by_type[p] for p in pipeline]
+        if combine_encoders:
+            primitive_types = combine_type_encoders(primitive_types)
         pattern_id = ' '.join(primitive_types)
         if pattern_id not in patterns:
-            patterns[pattern_id] = primitive_types
+            patterns[pattern_id] = {'structure': primitive_types, 'scores': [], 'frequency': 0}
+        patterns[pattern_id]['scores'].append(score)
+        patterns[pattern_id]['frequency'] += 1
 
-    logger.info('Found %d different patterns:\n%s', len(patterns), '\n'.join([str(x) for x in patterns.values()]))
+    logger.info('Found %d different patterns', len(patterns))
+    # Remove patterns with fewer elements than the minimum frequency
+    patterns = {k: v for k, v in patterns.items() if v['frequency'] >= min_frequency}
+    logger.info('Found %d different patterns, after removing uncommon patterns', len(patterns))
 
-    return list(patterns.values())
+    for pattern_id in patterns:
+        scores = patterns[pattern_id].pop('scores')
+        patterns[pattern_id]['average'] = statistics.mean(scores)
+
+    # Remove patterns with low performances
+    blacklist_primitive_types = {'OPERATOR', 'ARRAY_CONCATENATION'}
+    patterns = {k: v for k, v in patterns.items() if not blacklist_primitive_types & set(v['structure'])}
+    logger.info('Found %d different patterns, after blacklisting primitive types', len(patterns))
+
+    # Remove patterns with low performances
+    patterns = {k: v for k, v in patterns.items() if v['average'] >= min_avg_performance}
+    logger.info('Found %d different patterns, after removing low-performance patterns', len(patterns))
+    patterns = sorted(patterns.values(), key=lambda x: x['average'], reverse=True)
+    logger.info('Patterns:\n%s', '\n'.join([str(x) for x in patterns]))
+    patterns = [p['structure'] for p in patterns]
+
+    return patterns
+
+
+def combine_type_encoders(primitive_types):
+    encoders = ['TEXT_ENCODER', 'DATETIME_ENCODER', 'CATEGORICAL_ENCODER', 'TEXT_FEATURIZER']
+    encoder_group = 'ENCODERS'
+    new_primitive_types = []
+
+    for primitive_type in primitive_types:
+        if primitive_type in encoders:
+            if encoder_group not in new_primitive_types:
+                new_primitive_types.append(encoder_group)
+        else:
+            new_primitive_types.append(primitive_type)
+
+    return new_primitive_types
 
 
 def analyze_distribution(pipelines_metalearningdb):
@@ -283,18 +324,18 @@ def is_available_primitive(pipeline_primitives, current_primitives, verbose=Fals
     return True
 
 
-def is_target_task(problem, task):
-    problem_task = None
-    if 'task_type' in problem:
-        problem_task = [problem['task_type']]
+def is_target_task(problem, task_keywords):
+    problem_task_keywords = []
+    if 'task_type' in problem:  # For old versions of the problem's schema
+        problem_task_keywords = [problem['task_type']]
     elif 'task_keywords' in problem:
-        if 'CLASSIFICATION' in problem['task_keywords'] and 'SEMISUPERVISED' not in problem['task_keywords'] \
-                and 'TABULAR' in problem['task_keywords']:
-            problem_task = 'CLASSIFICATION'
-        elif 'REGRESSION' in problem['task_keywords'] and 'TABULAR' in problem['task_keywords']:
-            problem_task = 'REGRESSION'
+        problem_task_keywords = problem['task_keywords']
 
-    if task == problem_task:
+    # Skip semisupervised pipelines when it's not in the target task
+    if 'SEMISUPERVISED' in problem_task_keywords and 'SEMISUPERVISED' not in task_keywords:
+        return False
+
+    if all(t in problem_task_keywords for t in task_keywords):
         return True
 
     return False
@@ -364,13 +405,13 @@ def load_primitives_by_type():
 
 
 if __name__ == '__main__':
-    task = 'CLASSIFICATION'
+    task_keywords = ['CLASSIFICATION', 'TABULAR']
     #pipelines_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/pipelines-1583354358.json'
     #pipeline_runs_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/pipeline_runs-1583354387.json'
     #problems_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/problems-1583354357.json'
     #merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file)
-    create_grammar_from_metalearningdb(task)
-    analyze_distribution(load_metalearningdb(task))
+    create_grammar_from_metalearningdb(task_keywords)
+    #analyze_distribution(load_metalearningdb(task_keywords))
     '''non_terminals = {x: i+1 for i, x in enumerate(set(load_primitives_by_type().values()))}
     terminals = {x: len(non_terminals) + i for i, x in enumerate(load_primitives_by_name().keys())}
     terminals['E'] = 0
