@@ -21,7 +21,12 @@ IGNORE_PRIMITIVES = {'d3m.primitives.data_transformation.construct_predictions.C
                      'd3m.primitives.data_transformation.flatten.DataFrameCommon',
                      'd3m.primitives.data_transformation.column_parser.Common',
                      'd3m.primitives.schema_discovery.profiler.DSBOX',
-                     'd3m.primitives.data_cleaning.column_type_profiler.Simon'}
+                     'd3m.primitives.data_cleaning.column_type_profiler.Simon',
+                     'd3m.primitives.data_transformation.text_reader.Common',
+                     'd3m.primitives.data_transformation.image_reader.Common',
+                     'd3m.primitives.data_transformation.audio_reader.Common',
+                     'd3m.primitives.data_transformation.dataframe_to_tensor.DSBOX'
+                     }
 
 
 def merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file, n=-1, verbose=False):
@@ -104,132 +109,27 @@ def load_metalearningdb(task_keywords):
     return task_pipelines
 
 
-def create_vectors_from_metalearningdb5(task, grammar):
-    pipelines_metalearningdb = load_metalearningdb(task)
-    primitives_by_type = load_primitives_by_type()
-    primitives_by_name = load_primitives_by_name()
-    current_primitive_ids = {}
-    train_examples = []
-
-    current_primitives = grammar['TERMINALS']
-    current_primitive_types = grammar['NON_TERMINALS']
-    rules = grammar['RULES']
-
-    for primitive_name in current_primitives:
-        if primitive_name != 'E':  # Special symbol for empty primitive
-            current_primitive_ids[primitives_by_name[primitive_name]] = current_primitives[primitive_name]
-
-    primitives_distribution = analyze_distribution(pipelines_metalearningdb)
-    action_probabilities = {}
-    actions = [i for i, j in sorted(rules.items(), key=lambda x: x[1])]
-    for primitive_type, primitives_info in primitives_distribution.items():
-        for primitive, distribution in primitives_info.items():
-            action = primitive_type + ' -> ' + primitive
-            action_probabilities[action] = distribution
-    count_inputs = 0
-    unique_pipelines = {}
-    for pipeline, score in pipelines_metalearningdb:
-        if all(primitive in current_primitive_ids for primitive in pipeline):
-            count_inputs += 1
-            pipeline_representation = ' '.join(sorted(pipeline.values()))
-            if pipeline_representation not in unique_pipelines:
-                unique_pipelines[pipeline_representation] = []
-            unique_pipelines[pipeline_representation].append(score)
-
-    for pipeline in unique_pipelines.keys():
-        scores = unique_pipelines[pipeline]
-        unique_pipelines[pipeline] = sum(scores) / len(scores)
-        #print('>>>>>', pipeline, unique_pipelines[pipeline])
-
-
-    logger.info('Found %d training examples for task %s', len(unique_pipelines), task)
-
-    return unique_pipelines
-
-
-def create_vectors_from_metalearningdb(task, grammar):
-    pipelines_metalearningdb = load_metalearningdb(task)
-    primitives_by_type = load_primitives_by_type()
-    primitives_by_name = load_primitives_by_name()
-    current_primitive_ids = {}
-    train_examples = []
-
-    current_primitives = grammar['TERMINALS']
-    current_primitive_types = grammar['NON_TERMINALS']
-    rules = grammar['RULES']
-
-    for primitive_name in current_primitives:
-        if primitive_name != 'E':  # Special symbol for empty primitive
-            current_primitive_ids[primitives_by_name[primitive_name]] = current_primitives[primitive_name]
-
-    primitives_distribution = analyze_distribution(pipelines_metalearningdb)
-    action_probabilities = {}
-    actions = [i for i, j in sorted(rules.items(), key=lambda x: x[1])]
-    for primitive_type, primitives_info in primitives_distribution.items():
-        for primitive, distribution in primitives_info.items():
-            action = primitive_type + ' -> ' + primitive
-            action_probabilities[action] = distribution
-    count_inputs = 0
-    for pipeline, score in pipelines_metalearningdb:
-        if all(primitive in current_primitive_ids for primitive in pipeline):
-            count_inputs += 1
-            # Action probabilities vector
-            # TODO: we send always the same action_vector, they should be different
-            action_vector = [0] * len(actions)
-            for index, action in enumerate(actions):
-                if action in action_probabilities:
-                    action_vector[index] = action_probabilities[action]
-
-            # Metafeatures vector
-            metafeature_vector = [0] * 50 + [1, 1]  # Add problem (classification) and datatype (tabular)
-
-            # Board vectors
-            size_vector = len(current_primitives) + len(current_primitive_types)
-            start_vector = [0] * size_vector
-            start_vector[1] = 1  # For the start symbol (S)
-            train_example = (metafeature_vector + start_vector, action_vector, 0)  # Initially score zero
-            train_examples.append(train_example)
-
-            primitive_types_vector = [0] * size_vector
-            for primitive_id in pipeline:
-                primitive_type = primitives_by_type[primitive_id]
-                primitive_types_vector[current_primitive_types.get(primitive_type, current_primitive_types['TEXT_ENCODER'])] = 1
-            train_example = (metafeature_vector + primitive_types_vector, action_vector, 0)  # Initially score zero
-            train_examples.append(train_example)
-
-            previous_step_vector = copy.deepcopy(primitive_types_vector)
-            for index, primitive_id in enumerate(pipeline, 1):
-                primitive_type = primitives_by_type[primitive_id]
-                previous_step_vector[current_primitive_types.get(primitive_type, current_primitive_types['TEXT_ENCODER'])] = 0  # Replace primitive by its type
-                previous_step_vector[current_primitive_ids[primitive_id]] = 1
-                previous_step_vector = copy.deepcopy(previous_step_vector)
-
-                if index == len(pipeline):
-                    # Add the current score if all the primitives are terminals
-                    train_example = (metafeature_vector + previous_step_vector, action_vector, score)
-                else:
-                    train_example = (metafeature_vector + previous_step_vector, action_vector, 0)
-                train_examples.append(train_example)
-
-                '''s = " "
-                for i in range(len(previous_step_vector)):
-                    if previous_step_vector[i] == 1:
-                        if i in current_primitives.values():
-                            s += " " + list(current_primitives.keys())[list(current_primitives.values()).index(i)]
-                        if i in current_primitive_types.values():
-                            s += " " + list(current_primitive_types.keys())[list(current_primitive_types.values()).index(i)]
-                print(s)'''
-
-    logger.info('Found %d training examples for task %s', count_inputs, task)
-
-    return train_examples
-
-
 def create_grammar_from_metalearningdb(task_keywords):
     pipelines = load_metalearningdb(task_keywords)
     combine_encoders = 'TEXT' not in task_keywords
     patterns = extract_patterns(pipelines, combine_encoders)
-    # TODO: Convert patterns to grammar format
+    patterns, empty_elements = merge_patterns(patterns)
+    grammar = format_grammar(patterns, empty_elements)
+
+    return grammar
+
+
+def format_grammar(patterns, empty_elements):
+    grammar = 'S -> ' + ' | '.join([' '.join(p) for p in patterns])
+
+    for element in set([item for sublist in patterns for item in sublist]):
+        production_rule = element + " -> 'primitive_terminal'"
+        if element in empty_elements:
+            production_rule += " | 'E'"
+
+        grammar += '\n' + production_rule
+    logger.info('Grammar obtained:\n%s', grammar)
+    return grammar
 
 
 def extract_patterns(pipelines, combine_encoders=True, min_frequency=5, min_avg_performance=0.5):
@@ -268,6 +168,32 @@ def extract_patterns(pipelines, combine_encoders=True, min_frequency=5, min_avg_
     patterns = [p['structure'] for p in patterns]
 
     return patterns
+
+
+def merge_patterns(grammar_patterns):
+    patterns = sorted(grammar_patterns, key=lambda x: len(x), reverse=True)
+    empty_elements = set()
+    skip_patterns = []
+
+    for pattern in patterns:
+        for element in pattern:
+            modified_pattern = [e for e in pattern if e != element]
+            for current_pattern in patterns:
+                if modified_pattern == current_pattern:
+                    empty_elements.add(element)
+                    skip_patterns.append(modified_pattern)
+
+    for skip_pattern in skip_patterns:
+        if skip_pattern in patterns:
+            patterns.remove(skip_pattern)
+
+    return patterns, empty_elements
+
+
+
+
+
+    pass
 
 
 def combine_type_encoders(primitive_types):
