@@ -1,8 +1,6 @@
-import os
 import json
-import copy
 import logging
-from os.path import join
+from os.path import join, dirname
 import statistics
 from collections import OrderedDict
 
@@ -10,9 +8,9 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(mes
 logger = logging.getLogger(__name__)
 
 
-PRIMITIVES_BY_NAME_PATH = os.path.join(os.path.dirname(__file__), '../../resource/primitives_by_name.json')
-PRIMITIVES_BY_TYPE_PATH = os.path.join(os.path.dirname(__file__), '../../resource/primitives_by_type.json')
-METALEARNINGDB_PATH = os.path.join(os.path.dirname(__file__), '../../resource/metalearningdb.json')
+PRIMITIVES_LIST_PATH = join(dirname(__file__), '../../resource/primitives_list.json')
+PRIMITIVES_HIERARCHY_PATH = join(dirname(__file__), '../../resource/primitives_hierarchy.json')
+METALEARNINGDB_PATH = join(dirname(__file__), '../../resource/metalearningdb.json')
 
 IGNORE_PRIMITIVES = {'d3m.primitives.data_transformation.construct_predictions.Common',
                      'd3m.primitives.data_transformation.extract_columns_by_semantic_types.Common',
@@ -80,8 +78,8 @@ def merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file, n=-1
 
 
 def load_metalearningdb(task_keywords):
+    primitives_by_id = load_primitives_by_id()
     primitives_by_name = load_primitives_by_name()
-    primitive_ids = set(primitives_by_name.values())
     ignore_primitives_ids = set()
     all_pipelines = []
     task_pipelines = []
@@ -98,11 +96,15 @@ def load_metalearningdb(task_keywords):
 
     for pipeline_run in all_pipelines:
         pipeline_primitives = pipeline_run['steps']
-        if is_target_task(pipeline_run['problem'], task_keywords) and is_available_primitive(pipeline_primitives, primitive_ids):
+        if is_target_task(pipeline_run['problem'], task_keywords) and is_available_primitive(pipeline_primitives, primitives_by_id):
             primitives = filter_primitives(pipeline_primitives, ignore_primitives_ids)
+            primitives = [primitives_by_id[p] for p in primitives]  # Use the current names of primitives
             if len(primitives) > 0:
                 score = pipeline_run['scores'][0]['value']
-                task_pipelines.append((primitives, score))
+                metric = pipeline_run['scores'][0]['metric']['metric']
+                dataset = pipeline_run['problem']['id']
+                task_pipelines.append({'pipeline': primitives, 'score': score, 'metric': metric, 'dataset': dataset,
+                                       'pipeline_repr': '_'.join(primitives)})
 
     logger.info('Found %d pipelines for task %s', len(task_pipelines), '_'.join(task_keywords))
 
@@ -112,11 +114,11 @@ def load_metalearningdb(task_keywords):
 def create_grammar_from_metalearningdb(task_keywords):
     pipelines = load_metalearningdb(task_keywords)
     combine_encoders = 'TEXT' not in task_keywords
-    patterns = extract_patterns(pipelines, combine_encoders)
+    patterns, hierarchy_primitives = extract_patterns(pipelines, combine_encoders)
     patterns, empty_elements = merge_patterns(patterns)
     grammar = format_grammar(patterns, empty_elements)
 
-    return grammar
+    return grammar, hierarchy_primitives
 
 
 def format_grammar(patterns, empty_elements):
@@ -132,18 +134,23 @@ def format_grammar(patterns, empty_elements):
     return grammar
 
 
-def extract_patterns(pipelines, combine_encoders=True, min_frequency=5, min_avg_performance=0.5):
+def extract_patterns(pipelines, combine_encoders=True, min_frequency=5, avg_performance=0.5):
     primitives_by_type = load_primitives_by_type()
+    pipelines = calculate_adtm(pipelines)
     patterns = {}
 
-    for pipeline, score in pipelines:
-        primitive_types = [primitives_by_type[p] for p in pipeline]
+    for pipeline_data in pipelines:
+        if pipeline_data['adtm'] > avg_performance:
+            continue
+
+        primitive_types = [primitives_by_type[p] for p in pipeline_data['pipeline']]
         if combine_encoders:
             primitive_types = combine_type_encoders(primitive_types)
         pattern_id = ' '.join(primitive_types)
         if pattern_id not in patterns:
-            patterns[pattern_id] = {'structure': primitive_types, 'scores': [], 'frequency': 0}
-        patterns[pattern_id]['scores'].append(score)
+            patterns[pattern_id] = {'structure': primitive_types, 'primitives': [], 'scores': [], 'frequency': 0}
+        patterns[pattern_id]['primitives'].append(pipeline_data['pipeline'])
+        patterns[pattern_id]['scores'].append(pipeline_data['score'])
         patterns[pattern_id]['frequency'] += 1
 
     logger.info('Found %d different patterns', len(patterns))
@@ -161,13 +168,72 @@ def extract_patterns(pipelines, combine_encoders=True, min_frequency=5, min_avg_
     logger.info('Found %d different patterns, after blacklisting primitive types', len(patterns))
 
     # Remove patterns with low performances
-    patterns = {k: v for k, v in patterns.items() if v['average'] >= min_avg_performance}
+    patterns = {k: v for k, v in patterns.items() if v['average'] >= avg_performance}
     logger.info('Found %d different patterns, after removing low-performance patterns', len(patterns))
+
+    hierarchy_primitives = {}
+
+    for pattern in patterns.values():
+        for pipeline in pattern['primitives']:
+            for primitive in pipeline:
+                primitive_type = primitives_by_type[primitive]
+                if primitive_type not in hierarchy_primitives:
+                    hierarchy_primitives[primitive_type] = set()
+                hierarchy_primitives[primitive_type].add(primitive)
+
     patterns = sorted(patterns.values(), key=lambda x: x['average'], reverse=True)
-    logger.info('Patterns:\n%s', '\n'.join([str(x) for x in patterns]))
+    logger.info('Patterns:\n%s', '\n'.join(['structure: %s, frequency: %d' % (str(x['structure']), x['frequency']) for x in patterns]))
     patterns = [p['structure'] for p in patterns]
 
-    return patterns
+    return patterns, hierarchy_primitives
+
+
+def calculate_adtm(pipelines):
+    dataset_performaces = {}
+    pipeline_performances = {}
+
+    for pipeline_data in pipelines:
+        id_dataset = pipeline_data['dataset'] + '_' + pipeline_data['metric']
+
+        if id_dataset not in dataset_performaces:
+            dataset_performaces[id_dataset] = {'min': float('inf'), 'max': 0}
+        performance = pipeline_data['score']
+
+        if performance > dataset_performaces[id_dataset]['max']:
+            dataset_performaces[id_dataset]['max'] = performance
+
+        if performance < dataset_performaces[id_dataset]['min']:
+            dataset_performaces[id_dataset]['min'] = performance
+
+        id_pipeline = pipeline_data['pipeline_repr']
+
+        if id_pipeline not in pipeline_performances:
+            pipeline_performances[id_pipeline] = {}
+
+        if id_dataset not in pipeline_performances[id_pipeline]:
+            pipeline_performances[id_pipeline][id_dataset] = pipeline_data['score']
+        else:
+            # A pipeline can have different performances for a given dataset, choose the best one
+            if pipeline_data['score'] > pipeline_performances[id_pipeline][id_dataset]:
+                pipeline_performances[id_pipeline][id_dataset] = pipeline_data['score']
+
+    for pipeline_data in pipelines:
+        id_pipeline = pipeline_data['pipeline_repr']
+        id_dataset_pipeline = pipeline_data['dataset'] + '_' + pipeline_data['metric']
+        dtm = 0
+
+        for id_dataset in pipeline_performances[id_pipeline]:
+            minimum = dataset_performaces[id_dataset]['min']
+            maximum = dataset_performaces[id_dataset]['max']
+            if id_dataset_pipeline == id_dataset:
+                score = pipeline_data['score']
+            else:
+                score = pipeline_performances[id_pipeline][id_dataset]
+            dtm += (maximum - score) / (maximum - minimum)
+        adtm = dtm / len(pipeline_performances[id_pipeline])
+        pipeline_data['adtm'] = adtm
+
+    return pipelines
 
 
 def merge_patterns(grammar_patterns):
@@ -190,12 +256,6 @@ def merge_patterns(grammar_patterns):
     return patterns, empty_elements
 
 
-
-
-
-    pass
-
-
 def combine_type_encoders(primitive_types):
     encoders = ['TEXT_ENCODER', 'DATETIME_ENCODER', 'CATEGORICAL_ENCODER', 'TEXT_FEATURIZER']
     encoder_group = 'ENCODERS'
@@ -213,17 +273,16 @@ def combine_type_encoders(primitive_types):
 
 def analyze_distribution(pipelines_metalearningdb):
     primitives_by_type = load_primitives_by_type()
-    primitives_by_id = load_primitives_by_id()
     primitive_frequency = {}
     primitive_distribution = {}
     logger.info('Analyzing the distribution of primitives')
 
-    for pipeline, score in pipelines_metalearningdb:
-        for primitive_id in pipeline:
-            primitive_type = primitives_by_type[primitive_id]
+    for pipeline_data in pipelines_metalearningdb:
+        for primitive_name in pipeline_data['pipeline']:
+            print(primitive_name)
+            primitive_type = primitives_by_type[primitive_name]
             if primitive_type not in primitive_frequency:
                 primitive_frequency[primitive_type] = {'primitives': {}, 'total': 0}
-            primitive_name = primitives_by_id[primitive_id]
             if primitive_name not in primitive_frequency[primitive_type]['primitives']:
                 primitive_frequency[primitive_type]['primitives'][primitive_name] = 0
             primitive_frequency[primitive_type]['primitives'][primitive_name] += 1
@@ -268,64 +327,49 @@ def is_target_task(problem, task_keywords):
 
 
 def filter_primitives(pipeline_steps, ignore_primitives):
-    primitives = OrderedDict()
+    primitives = []
 
     for pipeline_step in pipeline_steps:
         if pipeline_step['primitive']['id'] not in ignore_primitives:
-                primitives[pipeline_step['primitive']['id']] = pipeline_step['primitive']['python_path']
+                primitives.append(pipeline_step['primitive']['id'])
 
     return primitives
 
 
 def load_primitives_by_name():
     primitives_by_name = {}
-    available_primitives = set()
 
-    with open(PRIMITIVES_BY_TYPE_PATH) as fin:
-        for primitive_type, primitive_names in json.load(fin).items():
-            for primitive_name in primitive_names:
-                available_primitives.add(primitive_name)
-
-    with open(PRIMITIVES_BY_NAME_PATH) as fin:
+    with open(PRIMITIVES_LIST_PATH) as fin:
         primitives = json.load(fin)
 
     for primitive in primitives:
-        if primitive['python_path'] in available_primitives:
-            primitives_by_name[primitive['python_path']] = primitive['id']
+        primitives_by_name[primitive['python_path']] = primitive['id']
 
     return primitives_by_name
 
 
 def load_primitives_by_id():
     primitives_by_id = {}
-    available_primitives = set()
 
-    with open(PRIMITIVES_BY_TYPE_PATH) as fin:
-        for primitive_type, primitive_names in json.load(fin).items():
-            for primitive_name in primitive_names:
-                available_primitives.add(primitive_name)
-
-    with open(PRIMITIVES_BY_NAME_PATH) as fin:
+    with open(PRIMITIVES_LIST_PATH) as fin:
         primitives = json.load(fin)
 
     for primitive in primitives:
-        if primitive['python_path'] in available_primitives:
-            primitives_by_id[primitive['id']] = primitive['python_path']
+        primitives_by_id[primitive['id']] = primitive['python_path']
 
     return primitives_by_id
 
 
 def load_primitives_by_type():
     primitives_by_type = {}
-    primitives_by_name = load_primitives_by_name()
 
-    with open(PRIMITIVES_BY_TYPE_PATH) as fin:
+    with open(PRIMITIVES_HIERARCHY_PATH) as fin:
         primitives = json.load(fin)
 
     for primitive_type in primitives:
         primitive_names = primitives[primitive_type]
         for primitive_name in primitive_names:
-            primitives_by_type[primitives_by_name[primitive_name]] = primitive_type
+            primitives_by_type[primitive_name] = primitive_type
 
     return primitives_by_type
 
@@ -338,9 +382,3 @@ if __name__ == '__main__':
     #merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file)
     create_grammar_from_metalearningdb(task_keywords)
     #analyze_distribution(load_metalearningdb(task_keywords))
-    '''non_terminals = {x: i+1 for i, x in enumerate(set(load_primitives_by_type().values()))}
-    terminals = {x: len(non_terminals) + i for i, x in enumerate(load_primitives_by_name().keys())}
-    terminals['E'] = 0
-    rules = {'S -> IMPUTATION ENCODERS FEATURE_SCALING FEATURE_SELECTION CLASSIFICATION': 1, 'ENCODERS -> CATEGORICAL_ENCODER TEXT_ENCODER': 2, 'IMPUTATION -> d3m.primitives.data_cleaning.imputer.SKlearn': 3, 'IMPUTATION -> d3m.primitives.data_cleaning.missing_indicator.SKlearn': 4, 'IMPUTATION -> d3m.primitives.data_cleaning.string_imputer.SKlearn': 5, 'IMPUTATION -> d3m.primitives.data_cleaning.tabular_extractor.Common': 6, 'IMPUTATION -> d3m.primitives.data_preprocessing.greedy_imputation.DSBOX': 7, 'IMPUTATION -> d3m.primitives.data_preprocessing.iterative_regression_imputation.DSBOX': 8, 'IMPUTATION -> d3m.primitives.data_preprocessing.mean_imputation.DSBOX': 9, 'IMPUTATION -> d3m.primitives.data_preprocessing.random_sampling_imputer.BYU': 10, 'IMPUTATION -> d3m.primitives.data_transformation.imputer.DistilCategoricalImputer': 11, 'IMPUTATION -> E': 12, 'FEATURE_SELECTION -> d3m.primitives.feature_selection.generic_univariate_select.SKlearn': 13, 'FEATURE_SELECTION -> d3m.primitives.feature_selection.select_fwe.SKlearn': 14, 'FEATURE_SELECTION -> d3m.primitives.feature_selection.select_percentile.SKlearn': 15, 'FEATURE_SELECTION -> d3m.primitives.feature_selection.variance_threshold.SKlearn': 16, 'FEATURE_SELECTION -> d3m.primitives.feature_selection.joint_mutual_information.AutoRPI': 17, 'FEATURE_SELECTION -> d3m.primitives.feature_selection.pca_features.Pcafeatures': 18, 'FEATURE_SELECTION -> d3m.primitives.feature_selection.rffeatures.Rffeatures': 19, 'FEATURE_SELECTION -> d3m.primitives.feature_selection.score_based_markov_blanket.RPI': 20, 'FEATURE_SELECTION -> d3m.primitives.feature_selection.simultaneous_markov_blanket.AutoRPI': 21, 'FEATURE_SELECTION -> d3m.primitives.feature_selection.skfeature.TAMU': 22, 'FEATURE_SELECTION -> E': 23, 'FEATURE_SCALING -> d3m.primitives.data_preprocessing.binarizer.SKlearn': 24, 'FEATURE_SCALING -> d3m.primitives.data_preprocessing.max_abs_scaler.SKlearn': 25, 'FEATURE_SCALING -> d3m.primitives.data_preprocessing.min_max_scaler.SKlearn': 26, 'FEATURE_SCALING -> d3m.primitives.data_preprocessing.robust_scaler.SKlearn': 27, 'FEATURE_SCALING -> d3m.primitives.data_preprocessing.standard_scaler.SKlearn': 28, 'FEATURE_SCALING -> E': 29, 'CLASSIFICATION -> d3m.primitives.classification.ada_boost.SKlearn': 30, 'CLASSIFICATION -> d3m.primitives.classification.bagging.SKlearn': 31, 'CLASSIFICATION -> d3m.primitives.classification.bernoulli_naive_bayes.SKlearn': 32, 'CLASSIFICATION -> d3m.primitives.classification.decision_tree.SKlearn': 33, 'CLASSIFICATION -> d3m.primitives.classification.dummy.SKlearn': 34, 'CLASSIFICATION -> d3m.primitives.classification.extra_trees.SKlearn': 35, 'CLASSIFICATION -> d3m.primitives.classification.gaussian_naive_bayes.SKlearn': 36, 'CLASSIFICATION -> d3m.primitives.classification.gradient_boosting.SKlearn': 37, 'CLASSIFICATION -> d3m.primitives.classification.k_neighbors.SKlearn': 38, 'CLASSIFICATION -> d3m.primitives.classification.linear_discriminant_analysis.SKlearn': 39, 'CLASSIFICATION -> d3m.primitives.classification.linear_svc.SKlearn': 40, 'CLASSIFICATION -> d3m.primitives.classification.logistic_regression.SKlearn': 41, 'CLASSIFICATION -> d3m.primitives.classification.mlp.SKlearn': 42, 'CLASSIFICATION -> d3m.primitives.classification.multinomial_naive_bayes.SKlearn': 43, 'CLASSIFICATION -> d3m.primitives.classification.nearest_centroid.SKlearn': 44, 'CLASSIFICATION -> d3m.primitives.classification.passive_aggressive.SKlearn': 45, 'CLASSIFICATION -> d3m.primitives.classification.quadratic_discriminant_analysis.SKlearn': 46, 'CLASSIFICATION -> d3m.primitives.classification.random_forest.SKlearn': 47, 'CLASSIFICATION -> d3m.primitives.classification.sgd.SKlearn': 48, 'CLASSIFICATION -> d3m.primitives.classification.svc.SKlearn': 49, 'CLASSIFICATION -> d3m.primitives.classification.bert_classifier.DistilBertPairClassification': 50, 'CLASSIFICATION -> d3m.primitives.classification.cover_tree.Fastlvm': 51, 'CLASSIFICATION -> d3m.primitives.classification.gaussian_classification.JHU': 52, 'CLASSIFICATION -> d3m.primitives.classification.light_gbm.Common': 53, 'CLASSIFICATION -> d3m.primitives.classification.logistic_regression.UBC': 54, 'CLASSIFICATION -> d3m.primitives.classification.lstm.DSBOX': 55, 'CLASSIFICATION -> d3m.primitives.classification.mlp.BBNMLPClassifier': 56, 'CLASSIFICATION -> d3m.primitives.classification.multilayer_perceptron.UBC': 57, 'CLASSIFICATION -> d3m.primitives.classification.random_classifier.Test': 58, 'CLASSIFICATION -> d3m.primitives.classification.random_forest.Common': 59, 'CLASSIFICATION -> d3m.primitives.classification.search.Find_projections': 60, 'CLASSIFICATION -> d3m.primitives.classification.search_hybrid.Find_projections': 61, 'CLASSIFICATION -> d3m.primitives.classification.simple_cnaps.UBC': 62, 'CLASSIFICATION -> d3m.primitives.classification.text_classifier.DistilTextClassifier': 63, 'CLASSIFICATION -> d3m.primitives.classification.xgboost_dart.Common': 64, 'CLASSIFICATION -> d3m.primitives.classification.xgboost_gbtree.Common': 65, 'CATEGORICAL_ENCODER -> d3m.primitives.data_transformation.one_hot_encoder.SKlearn': 66, 'CATEGORICAL_ENCODER -> d3m.primitives.data_preprocessing.encoder.DSBOX': 67, 'CATEGORICAL_ENCODER -> d3m.primitives.data_preprocessing.one_hot_encoder.MakerCommon': 68, 'CATEGORICAL_ENCODER -> d3m.primitives.data_preprocessing.one_hot_encoder.PandasCommon': 69, 'CATEGORICAL_ENCODER -> d3m.primitives.data_preprocessing.unary_encoder.DSBOX': 70, 'CATEGORICAL_ENCODER -> d3m.primitives.data_transformation.one_hot_encoder.DistilOneHotEncoder': 71, 'CATEGORICAL_ENCODER -> d3m.primitives.data_transformation.one_hot_encoder.TPOT': 72, 'TEXT_ENCODER -> d3m.primitives.data_preprocessing.count_vectorizer.SKlearn': 73, 'TEXT_ENCODER -> d3m.primitives.data_preprocessing.tfidf_vectorizer.SKlearn': 74, 'TEXT_ENCODER -> d3m.primitives.data_transformation.encoder.DistilTextEncoder': 75, 'TEXT_ENCODER -> d3m.primitives.feature_construction.corex_text.DSBOX': 76}
-    grammar = {'RULES': rules, 'NON_TERMINALS': non_terminals, 'TERMINALS': terminals}
-    create_vectors_from_metalearningdb(task, grammar)'''
