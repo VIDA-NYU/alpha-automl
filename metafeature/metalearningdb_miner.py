@@ -3,13 +3,11 @@ import logging
 from os.path import join, dirname
 import statistics
 from collections import OrderedDict
+from alphad3m.primitive_loader import load_primitives_hierarchy, load_primitives_list
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
 
-
-PRIMITIVES_LIST_PATH = join(dirname(__file__), '../../resource/primitives_list.json')
-PRIMITIVES_HIERARCHY_PATH = join(dirname(__file__), '../../resource/primitives_hierarchy.json')
 METALEARNINGDB_PATH = join(dirname(__file__), '../../resource/metalearningdb.json')
 
 IGNORE_PRIMITIVES = {'d3m.primitives.data_transformation.construct_predictions.Common',
@@ -111,18 +109,19 @@ def load_metalearningdb(task_keywords):
     return task_pipelines
 
 
-def create_grammar_from_metalearningdb(task_keywords):
+def create_grammar_from_metalearningdb(task_name, task_keywords):
     pipelines = load_metalearningdb(task_keywords)
     combine_encoders = 'TEXT' not in task_keywords
     patterns, hierarchy_primitives = extract_patterns(pipelines, combine_encoders)
     patterns, empty_elements = merge_patterns(patterns)
-    grammar = format_grammar(patterns, empty_elements)
+    grammar = format_grammar(task_name, patterns, empty_elements)
 
     return grammar, hierarchy_primitives
 
 
-def format_grammar(patterns, empty_elements):
-    grammar = 'S -> ' + ' | '.join([' '.join(p) for p in patterns])
+def format_grammar(task_name, patterns, empty_elements):
+    grammar = 'S -> %s\n' % task_name
+    grammar += task_name + ' -> ' + ' | '.join([' '.join(p) for p in patterns])
 
     for element in set([item for sublist in patterns for item in sublist]):
         production_rule = element + " -> 'primitive_terminal'"
@@ -131,6 +130,7 @@ def format_grammar(patterns, empty_elements):
 
         grammar += '\n' + production_rule
     logger.info('Grammar obtained:\n%s', grammar)
+
     return grammar
 
 
@@ -338,9 +338,7 @@ def filter_primitives(pipeline_steps, ignore_primitives):
 
 def load_primitives_by_name():
     primitives_by_name = {}
-
-    with open(PRIMITIVES_LIST_PATH) as fin:
-        primitives = json.load(fin)
+    primitives = load_primitives_list()
 
     for primitive in primitives:
         primitives_by_name[primitive['python_path']] = primitive['id']
@@ -350,9 +348,7 @@ def load_primitives_by_name():
 
 def load_primitives_by_id():
     primitives_by_id = {}
-
-    with open(PRIMITIVES_LIST_PATH) as fin:
-        primitives = json.load(fin)
+    primitives = load_primitives_list()
 
     for primitive in primitives:
         primitives_by_id[primitive['id']] = primitive['python_path']
@@ -362,9 +358,7 @@ def load_primitives_by_id():
 
 def load_primitives_by_type():
     primitives_by_type = {}
-
-    with open(PRIMITIVES_HIERARCHY_PATH) as fin:
-        primitives = json.load(fin)
+    primitives = load_primitives_hierarchy()
 
     for primitive_type in primitives:
         primitive_names = primitives[primitive_type]
@@ -375,10 +369,11 @@ def load_primitives_by_type():
 
 
 if __name__ == '__main__':
+    task_name = 'CLASSIFICATION_TASK'
     task_keywords = ['CLASSIFICATION', 'TABULAR']
     #pipelines_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/pipelines-1583354358.json'
     #pipeline_runs_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/pipeline_runs-1583354387.json'
     #problems_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/problems-1583354357.json'
     #merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file)
-    create_grammar_from_metalearningdb(task_keywords)
+    create_grammar_from_metalearningdb(task_name, task_keywords)
     #analyze_distribution(load_metalearningdb(task_keywords))

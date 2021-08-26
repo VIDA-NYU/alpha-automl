@@ -10,7 +10,7 @@ from alphaAutoMLEdit.Coach import Coach
 from alphaAutoMLEdit.pipeline.PipelineGame import PipelineGame
 from alphaAutoMLEdit.pipeline.NNet import NNetWrapper
 from alphad3m.primitive_loader import load_primitives_hierarchy
-from alphad3m.grammar_loader import create_game_grammar
+from alphad3m.grammar_loader import load_manual_grammar, load_automatic_grammar
 from alphad3m.data_ingestion.data_profiler import get_privileged_data, select_encoders
 from alphad3m.search.d3mpipeline_builder import *
 from alphad3m.metafeature.metafeature_extractor import ComputeMetafeatures
@@ -148,7 +148,10 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
 
     def update_config(primitives, task_name):
         metafeatures_extractor = ComputeMetafeatures(dataset, targets, features, DBSession)
-        config['GRAMMAR'] = create_game_grammar(task_name + '_TASK', primitives, encoders, use_imputer)
+        task_name_id = task_name + '_TASK'
+        task_keyword_ids = [t.value for t in task_keywords]
+        #config['GRAMMAR'] = load_automatic_grammar(task_name_id, task_keyword_ids, encoders, use_imputer)
+        config['GRAMMAR'] = load_manual_grammar(task_name_id, primitives, encoders, use_imputer)
         config['PROBLEM'] = task_name
         config['DATA_TYPE'] = 'TABULAR'
         config['METRIC'] = metrics[0]['metric'].name

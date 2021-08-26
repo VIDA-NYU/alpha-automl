@@ -2,6 +2,7 @@ import os
 import logging
 import itertools
 from nltk.grammar import Production, Nonterminal, CFG, is_terminal, is_nonterminal
+from alphad3m.metafeature.metalearningdb_miner import create_grammar_from_metalearningdb
 
 logger = logging.getLogger(__name__)
 BASE_GRAMMAR_PATH = os.path.join(os.path.dirname(__file__), '../resource/base_grammar.bnf')
@@ -9,22 +10,21 @@ COMPLETE_GRAMMAR_PATH = os.path.join(os.environ.get('D3MOUTPUTDIR'), 'temp', 'co
 TASK_GRAMMAR_PATH = os.path.join(os.environ.get('D3MOUTPUTDIR'), 'temp', 'task_grammar.bnf')
 
 
-def load_grammar(grammar_path, encoders, use_imputer):
-    logger.info('Loading grammar in %s' % grammar_path)
-    line_list = []
-    with open(grammar_path) as fin:
-        for line in fin.readlines():
-            if line.startswith('ENCODERS -> '):
-                if len(encoders) > 0:
-                    line = 'ENCODERS -> %s' % ' '.join(encoders)
-                else:
-                    line = "ENCODERS -> 'E'"
-            elif line.startswith('IMPUTATION -> '):
-                if not use_imputer:
-                    line = "IMPUTATION -> 'E'"
-            line_list.append(line.strip())
+def load_grammar(grammar_string, encoders, use_imputer):
+    production_rules = []
 
-    grammar_string = '\n'.join(line_list)
+    for production_rule in grammar_string.split('\n'):
+        if production_rule.startswith('ENCODERS -> '):
+            if len(encoders) > 0:
+                production_rule = 'ENCODERS -> %s' % ' '.join(encoders)
+            else:
+                production_rule = "ENCODERS -> 'E'"
+        elif production_rule.startswith('IMPUTATION -> '):
+            if not use_imputer:
+                production_rule = "IMPUTATION -> 'E'"
+        production_rules.append(production_rule.strip())
+
+    grammar_string = '\n'.join(production_rules)
     return CFG.fromstring(grammar_string)
 
 
@@ -80,16 +80,14 @@ def create_task_grammar(global_grammar, task):
     return task_grammar
 
 
-def create_game_grammar(task, primitives, encoders, use_imputer):
-    base_grammar = load_grammar(BASE_GRAMMAR_PATH, encoders, use_imputer)
-    global_grammar = create_global_grammar(base_grammar, primitives)
-    task_grammar = create_task_grammar(global_grammar, task)
-    game_grammar = {'NON_TERMINALS': {}, 'TERMINALS': {}, 'RULES': {}, 'RULES_LOOKUP': {}}
-    game_grammar['START'] = task_grammar.start().symbol()
+def create_game_grammar(grammar):
+    # Convert a context-free grammar to the game format
+    start_symbol = grammar.start().symbol()
+    game_grammar = {'START': start_symbol, 'NON_TERMINALS': {}, 'TERMINALS': {}, 'RULES': {}, 'RULES_LOOKUP': {}}
     terminals = []
 
     logger.info('Creating game grammar')
-    for production in task_grammar.productions():
+    for production in grammar.productions():
         non_terminal = production.lhs().symbol()
         production_str = str(production).replace('\'', '')
 
@@ -108,5 +106,27 @@ def create_game_grammar(task, primitives, encoders, use_imputer):
 
     game_grammar['TERMINALS'] = {t: i+len(game_grammar['NON_TERMINALS']) for i, t in enumerate(terminals, 1)}
     game_grammar['TERMINALS']['E'] = 0  # Special case for the empty symbol
+
+    return game_grammar
+
+
+def load_manual_grammar(task, primitives, encoders, use_imputer):
+    with open(BASE_GRAMMAR_PATH) as fin:
+        grammar_string = fin.read()
+
+    base_grammar = load_grammar(grammar_string, encoders, use_imputer)
+    global_grammar = create_global_grammar(base_grammar, primitives)
+    task_grammar = create_task_grammar(global_grammar, task)
+    game_grammar = create_game_grammar(task_grammar)
+
+    return game_grammar
+
+
+def load_automatic_grammar(task, task_keywords, encoders, use_imputer):
+    grammar_string, primitives = create_grammar_from_metalearningdb(task, task_keywords)
+    base_grammar = load_grammar(grammar_string, encoders, use_imputer)
+    global_grammar = create_global_grammar(base_grammar, primitives)
+    task_grammar = create_task_grammar(global_grammar, task)
+    game_grammar = create_game_grammar(task_grammar)
 
     return game_grammar
