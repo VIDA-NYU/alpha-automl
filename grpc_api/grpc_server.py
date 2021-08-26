@@ -26,7 +26,7 @@ from d3m.metadata import pipeline as pipeline_module
 from d3m.metadata.problem import Problem
 from google.protobuf.timestamp_pb2 import Timestamp
 from alphad3m.grpc_api.grpc_logger import log_service
-from alphad3m.primitive_loader import get_primitives_by_name
+from alphad3m.primitive_loader import load_primitives_list
 from alphad3m.utils import PersistentQueue
 
 logger = logging.getLogger(__name__)
@@ -580,7 +580,7 @@ class CoreService(pb_core_grpc.CoreServicer):
 
     def ListPrimitives(self, request, context):
         primitives = []
-        installed_primitives = get_primitives_by_name()
+        installed_primitives = load_primitives_list()
 
         for primitive in installed_primitives:
             primitives.append(pb_primitive.Primitive(id=primitive['id'], version=primitive['version'],

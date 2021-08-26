@@ -3,7 +3,7 @@ import logging
 import json
 import os
 from d3m import index
-from alphad3m.primitive_loader import get_primitives_by_type
+from alphad3m.primitive_loader import load_primitives_hierarchy
 from d3m.metadata.hyperparams import Bounded, Enumeration, UniformInt, UniformBool, Uniform, Normal, Union, \
     Constant as ConstantD3M
 from ConfigSpace.configuration_space import ConfigurationSpace
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 HYPERPARAMETERS_FROM_METALEARNING_PATH = os.path.join(os.path.dirname(__file__), '../../resource/hyperparams.json')
 PRIMITIVES = {}
-primitives_info = get_primitives_by_type()
+primitives_info = load_primitives_hierarchy()
 for primitive_type in primitives_info:
     for primitive_name in primitives_info[primitive_type]:
         PRIMITIVES[primitive_name] = primitive_type

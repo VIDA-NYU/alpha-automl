@@ -1,15 +1,13 @@
-import os
 import logging
 import json
+from os.path import join, dirname, isfile
 from d3m import index
 from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
 
-
-PRIMITIVES_BY_NAME_PATH = os.path.join(os.path.dirname(__file__), '../resource/primitives_by_name.json')
-PRIMITIVES_BY_TYPE_PATH = os.path.join(os.path.dirname(__file__), '../resource/primitives_by_type.json')
-
+PRIMITIVES_LIST_PATH = join(dirname(__file__), '../resource/primitives_list.json')
+PRIMITIVES_HIERARCHY_PATH = join(dirname(__file__), '../resource/primitives_hierarchy.json')
 INSTALLED_PRIMITIVES = sorted(index.search(), key=lambda x: x.endswith('SKlearn'), reverse=True)
 
 BLACK_LIST = {
@@ -85,33 +83,114 @@ BLACK_LIST = {
 }
 
 
-def get_primitive_class(name):
-    return index.get_primitive(name)
+def get_primitive_class(primitive_name):
+    return index.get_primitive(primitive_name)
 
 
-def get_primitive_family(name):
-    return get_primitive_class(name).metadata.to_json_structure()['primitive_family']
+def get_primitive_family(primitive_name):
+    return get_primitive_class(primitive_name).metadata.to_json_structure()['primitive_family']
 
 
-def get_primitive_algorithms(name):
-    return get_primitive_class(name).metadata.to_json_structure()['algorithm_types']
+def get_primitive_algorithms(primitive_name):
+    return get_primitive_class(primitive_name).metadata.to_json_structure()['algorithm_types']
 
 
-def get_primitive_info(name):
-    primitive_dict = get_primitive_class(name).metadata.to_json_structure()
+def get_primitive_info(primitive_name):
+    primitive_dict = get_primitive_class(primitive_name).metadata.to_json_structure()
 
     return {
             'id': primitive_dict['id'],
             'name': primitive_dict['name'],
             'version': primitive_dict['version'],
             'python_path': primitive_dict['python_path'],
-            'digest': primitive_dict['digest']
+            'digest': primitive_dict['digest'],
+            'type': get_primitive_type(primitive_name)
     }
 
 
-def get_primitives_by_type():
-    if os.path.isfile(PRIMITIVES_BY_TYPE_PATH):
-        with open(PRIMITIVES_BY_TYPE_PATH) as fin:
+def get_primitive_type(primitive_name):
+    primitive_type = get_primitive_family(primitive_name)
+    #  Use the algorithm types as families because they are more descriptive
+    if primitive_type in {'DATA_TRANSFORMATION', 'DATA_PREPROCESSING', 'DATA_CLEANING'}:
+        algorithm_types = get_primitive_algorithms(primitive_name)
+        primitive_type = algorithm_types[0]
+
+    # Changing the primitive families using some predefined rules
+    if primitive_name in {'d3m.primitives.data_cleaning.quantile_transformer.SKlearn',
+                          'd3m.primitives.data_cleaning.normalizer.SKlearn',
+                          'd3m.primitives.normalization.iqr_scaler.DSBOX'}:
+        primitive_type = 'FEATURE_SCALING'
+
+    elif primitive_name in {'d3m.primitives.feature_extraction.feature_agglomeration.SKlearn',
+                            'd3m.primitives.feature_selection.mutual_info_classif.DistilMIRanking'}:
+        primitive_type = 'FEATURE_SELECTION'
+
+    elif primitive_name in {'d3m.primitives.feature_extraction.pca.SKlearn',
+                            'd3m.primitives.feature_selection.pca_features.Pcafeatures',
+                            'd3m.primitives.feature_extraction.truncated_svd.SKlearn',
+                            'd3m.primitives.feature_extraction.pca_features.RandomizedPolyPCA',
+                            'd3m.primitives.data_transformation.gaussian_random_projection.SKlearn',
+                            'd3m.primitives.data_transformation.sparse_random_projection.SKlearn',
+                            'd3m.primitives.data_transformation.fast_ica.SKlearn'}:
+        primitive_type = 'DIMENSIONALITY_REDUCTION'  # Or should it be FEATURE_SELECTION ?
+
+    elif primitive_name in {'d3m.primitives.classification.bert_classifier.DistilBertPairClassification',
+                            'd3m.primitives.classification.text_classifier.DistilTextClassifier'}:
+        primitive_type = 'TEXT_CLASSIFIER'
+
+    elif primitive_name in {'d3m.primitives.data_transformation.enrich_dates.DistilEnrichDates'}:
+        primitive_type = 'DATETIME_ENCODER'
+
+    elif primitive_name in {'d3m.primitives.vertex_nomination.seeded_graph_matching.DistilVertexNomination',
+                            'd3m.primitives.classification.gaussian_classification.JHU'}:
+        primitive_type = 'VERTEX_CLASSIFICATION'
+
+    elif primitive_name in {'d3m.primitives.graph_clustering.gaussian_clustering.JHU'}:
+        primitive_type = 'COMMUNITY_DETECTION'
+
+    elif primitive_name in {'d3m.primitives.feature_extraction.yolo.DSBOX'}:
+        primitive_type = 'OBJECT_DETECTION'
+
+    elif primitive_name in {'d3m.primitives.feature_construction.corex_text.DSBOX',
+                            'd3m.primitives.data_transformation.encoder.DistilTextEncoder',
+                            'd3m.primitives.feature_extraction.tfidf_vectorizer.SKlearn'}:
+        primitive_type = 'TEXT_ENCODER'
+
+    elif primitive_name in {'d3m.primitives.feature_extraction.boc.UBC',
+                            'd3m.primitives.feature_extraction.bow.UBC',
+                            'd3m.primitives.feature_extraction.count_vectorizer.SKlearn',
+                            'd3m.primitives.feature_extraction.nk_sent2vec.Sent2Vec',
+                            'd3m.primitives.feature_extraction.tfidf_vectorizer.BBNTfidfTransformer'}:
+        primitive_type = 'TEXT_FEATURIZER'
+
+    elif primitive_name in {'d3m.primitives.feature_extraction.image_transfer.DistilImageTransfer',
+                            'd3m.primitives.feature_extraction.resnet50_image_feature.DSBOX'}:
+        primitive_type = 'IMAGE_FEATURIZER'
+
+    elif primitive_name in {'d3m.primitives.feature_extraction.audio_transfer.DistilAudioTransfer'}:
+        primitive_type = 'AUDIO_FEATURIZER'
+
+    elif primitive_name in {'d3m.primitives.feature_extraction.resnext101_kinetics_video_features.VideoFeaturizer'}:
+        primitive_type = 'VIDEO_FEATURIZER'
+
+    elif primitive_name in {'d3m.primitives.feature_extraction.random_projection_timeseries_featurization.DSBOX'}:
+        primitive_type = 'TIME_SERIES_FEATURIZER'
+
+    elif primitive_name in {'d3m.primitives.data_transformation.time_series_to_list.DSBOX'}:
+        primitive_type = 'TIME_SERIES_READER'
+
+    elif primitive_name in {'d3m.primitives.data_transformation.grouping_field_compose.Common'}:
+        primitive_type = 'TIME_SERIES_GROUPER'
+
+    if primitive_type == 'ENCODE_ONE_HOT':
+        primitive_type = 'CATEGORICAL_ENCODER'
+
+    return primitive_type
+
+
+def load_primitives_hierarchy():
+    if isfile(PRIMITIVES_HIERARCHY_PATH):
+        with open(PRIMITIVES_HIERARCHY_PATH) as fin:
             primitives = json.load(fin)
         logger.info('Loading primitives info from file')
 
@@ -121,109 +200,34 @@ def get_primitives_by_type():
     for primitive_name in INSTALLED_PRIMITIVES:
         if primitive_name not in BLACK_LIST:
             try:
-                family = get_primitive_family(primitive_name)
-                algorithm_types = get_primitive_algorithms(primitive_name)
+                primitive_type = get_primitive_type(primitive_name)
             except:
                 logger.error('Loading metadata about primitive %s', primitive_name)
                 continue
-            #  Use the algorithm types as families because they are more descriptive
-            if family in {'DATA_TRANSFORMATION', 'DATA_PREPROCESSING', 'DATA_CLEANING'}:
-                family = algorithm_types[0]
 
-            # Changing the primitive families using some predefined rules
-            if primitive_name in {'d3m.primitives.data_cleaning.quantile_transformer.SKlearn',
-                                    'd3m.primitives.data_cleaning.normalizer.SKlearn',
-                                    'd3m.primitives.normalization.iqr_scaler.DSBOX'}:
-                family = 'FEATURE_SCALING'
-
-            elif primitive_name in {'d3m.primitives.feature_extraction.feature_agglomeration.SKlearn',
-                                    'd3m.primitives.feature_selection.mutual_info_classif.DistilMIRanking'}:
-                family = 'FEATURE_SELECTION'
-
-            elif primitive_name in {'d3m.primitives.feature_extraction.pca.SKlearn',
-                                    'd3m.primitives.feature_selection.pca_features.Pcafeatures',
-                                    'd3m.primitives.feature_extraction.truncated_svd.SKlearn',
-                                    'd3m.primitives.feature_extraction.pca_features.RandomizedPolyPCA',
-                                    'd3m.primitives.data_transformation.gaussian_random_projection.SKlearn',
-                                    'd3m.primitives.data_transformation.sparse_random_projection.SKlearn',
-                                    'd3m.primitives.data_transformation.fast_ica.SKlearn'}:
-                family = 'DIMENSIONALITY_REDUCTION'  # Or should it be FEATURE_SELECTION ?
-
-            elif primitive_name in {'d3m.primitives.classification.bert_classifier.DistilBertPairClassification',
-                                    'd3m.primitives.classification.text_classifier.DistilTextClassifier'}:
-                family = 'TEXT_CLASSIFIER'
-
-            elif primitive_name in {'d3m.primitives.data_transformation.enrich_dates.DistilEnrichDates'}:
-                family = 'DATETIME_ENCODER'
-
-            elif primitive_name in {'d3m.primitives.vertex_nomination.seeded_graph_matching.DistilVertexNomination',
-                                    'd3m.primitives.classification.gaussian_classification.JHU'}:
-                family = 'VERTEX_CLASSIFICATION'
-
-            elif primitive_name in {'d3m.primitives.graph_clustering.gaussian_clustering.JHU'}:
-                family = 'COMMUNITY_DETECTION'
-
-            elif primitive_name in {'d3m.primitives.feature_extraction.yolo.DSBOX'}:
-                family = 'OBJECT_DETECTION'
-
-            elif primitive_name in {'d3m.primitives.feature_construction.corex_text.DSBOX',
-                                    'd3m.primitives.data_transformation.encoder.DistilTextEncoder',
-                                    'd3m.primitives.feature_extraction.tfidf_vectorizer.SKlearn'}:
-                family = 'TEXT_ENCODER'
-
-            elif primitive_name in {'d3m.primitives.feature_extraction.boc.UBC',
-                                    'd3m.primitives.feature_extraction.bow.UBC',
-                                    'd3m.primitives.feature_extraction.count_vectorizer.SKlearn',
-                                    'd3m.primitives.feature_extraction.nk_sent2vec.Sent2Vec',
-                                    'd3m.primitives.feature_extraction.tfidf_vectorizer.BBNTfidfTransformer'}:
-                family = 'TEXT_FEATURIZER'
-
-            elif primitive_name in {'d3m.primitives.feature_extraction.image_transfer.DistilImageTransfer',
-                                    'd3m.primitives.feature_extraction.resnet50_image_feature.DSBOX'}:
-                family = 'IMAGE_FEATURIZER'
-
-            elif primitive_name in {'d3m.primitives.feature_extraction.audio_transfer.DistilAudioTransfer'}:
-                family = 'AUDIO_FEATURIZER'
-
-            elif primitive_name in {'d3m.primitives.feature_extraction.resnext101_kinetics_video_features.VideoFeaturizer'}:
-                family = 'VIDEO_FEATURIZER'
-
-            elif primitive_name in {'d3m.primitives.feature_extraction.random_projection_timeseries_featurization.DSBOX'}:
-                family = 'TIME_SERIES_FEATURIZER'
-
-            elif primitive_name in {'d3m.primitives.data_transformation.time_series_to_list.DSBOX'}:
-                family = 'TIME_SERIES_READER'
-
-            elif primitive_name in {'d3m.primitives.data_transformation.grouping_field_compose.Common'}:
-                family = 'TIME_SERIES_GROUPER'
-
-            if family == 'ENCODE_ONE_HOT':
-                family = 'CATEGORICAL_ENCODER'
-
-            if family not in primitives:
-                primitives[family] = []
-            primitives[family].append(primitive_name)
+            if primitive_type not in primitives:
+                primitives[primitive_type] = []
+            primitives[primitive_type].append(primitive_name)
 
     # Duplicate TEXT_ENCODER primitives for TEXT_FEATURIZER family
     primitives['TEXT_FEATURIZER'] = primitives['TEXT_ENCODER'] + primitives['TEXT_FEATURIZER']
 
-    with open(PRIMITIVES_BY_TYPE_PATH, 'w') as fout:
+    with open(PRIMITIVES_HIERARCHY_PATH, 'w') as fout:
         json.dump(OrderedDict(sorted(primitives.items())), fout, indent=4)
     logger.info('Loading primitives info from D3M index')
 
     return primitives
 
 
-def get_primitives_by_name():
-    if os.path.isfile(PRIMITIVES_BY_NAME_PATH):
-        with open(PRIMITIVES_BY_NAME_PATH) as fin:
+def load_primitives_list():
+    if isfile(PRIMITIVES_LIST_PATH):
+        with open(PRIMITIVES_LIST_PATH) as fin:
             primitives = json.load(fin)
         logger.info('Loading primitives info from file')
 
         return primitives
 
     primitives = []
-
     for primitive_name in INSTALLED_PRIMITIVES:
         if primitive_name not in BLACK_LIST:
             try:
@@ -233,7 +237,7 @@ def get_primitives_by_name():
                 continue
             primitives.append(primitive_info)
 
-    with open(PRIMITIVES_BY_NAME_PATH, 'w') as fout:
+    with open(PRIMITIVES_LIST_PATH, 'w') as fout:
         json.dump(primitives, fout, indent=4)
     logger.info('Loading primitives info from D3M index')
 

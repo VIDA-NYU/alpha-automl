@@ -9,7 +9,7 @@ from os.path import join
 from alphaAutoMLEdit.Coach import Coach
 from alphaAutoMLEdit.pipeline.PipelineGame import PipelineGame
 from alphaAutoMLEdit.pipeline.NNet import NNetWrapper
-from alphad3m.primitive_loader import get_primitives_by_type
+from alphad3m.primitive_loader import load_primitives_hierarchy
 from alphad3m.grammar_loader import create_game_grammar
 from alphad3m.data_ingestion.data_profiler import get_privileged_data, select_encoders
 from alphad3m.search.d3mpipeline_builder import *
@@ -164,7 +164,7 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
 
     signal.signal(signal.SIGTERM, signal_handler)
 
-    primitives = get_primitives_by_type()
+    primitives = load_primitives_hierarchy()
     config_updated = update_config(primitives, task_name)
 
     ############
