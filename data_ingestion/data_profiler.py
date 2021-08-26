@@ -173,7 +173,7 @@ def get_privileged_data(problem, task_keywords):
 def select_encoders(feature_types):
     encoders = []
     mapping_feature_types = {'https://metadata.datadrivendiscovery.org/types/CategoricalData': 'CATEGORICAL_ENCODER',
-                             'http://schema.org/Text': 'TEXT_ENCODER', 'http://schema.org/DateTime': 'DATETIME_ENCODER'}
+                             'http://schema.org/Text': 'TEXT_FEATURIZER', 'http://schema.org/DateTime': 'DATETIME_ENCODER'}
 
     for features_type in feature_types:
         if features_type in mapping_feature_types:

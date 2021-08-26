@@ -257,7 +257,7 @@ def merge_patterns(grammar_patterns):
 
 
 def combine_type_encoders(primitive_types):
-    encoders = ['TEXT_ENCODER', 'DATETIME_ENCODER', 'CATEGORICAL_ENCODER', 'TEXT_FEATURIZER']
+    encoders = ['DATETIME_ENCODER', 'CATEGORICAL_ENCODER', 'TEXT_FEATURIZER']
     encoder_group = 'ENCODERS'
     new_primitive_types = []
 
@@ -370,7 +370,7 @@ def load_primitives_by_type():
 
 if __name__ == '__main__':
     task_name = 'CLASSIFICATION_TASK'
-    task_keywords = ['CLASSIFICATION', 'TABULAR']
+    task_keywords = ['CLASSIFICATION', 'TABULAR', 'MULTICLASS']
     #pipelines_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/pipelines-1583354358.json'
     #pipeline_runs_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/pipeline_runs-1583354387.json'
     #problems_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/problems-1583354357.json'

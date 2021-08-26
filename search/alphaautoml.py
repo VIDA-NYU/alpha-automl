@@ -9,7 +9,6 @@ from os.path import join
 from alphaAutoMLEdit.Coach import Coach
 from alphaAutoMLEdit.pipeline.PipelineGame import PipelineGame
 from alphaAutoMLEdit.pipeline.NNet import NNetWrapper
-from alphad3m.primitive_loader import load_primitives_hierarchy
 from alphad3m.grammar_loader import load_manual_grammar, load_automatic_grammar
 from alphad3m.data_ingestion.data_profiler import get_privileged_data, select_encoders
 from alphad3m.search.d3mpipeline_builder import *
@@ -145,19 +144,23 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
 
     encoders = select_encoders(metadata['only_attribute_types'])
     use_imputer = metadata['missing_values']
+    use_automatic_grammar = False
 
-    def update_config(primitives, task_name):
-        metafeatures_extractor = ComputeMetafeatures(dataset, targets, features, DBSession)
-        task_name_id = task_name + '_TASK'
-        task_keyword_ids = [t.value for t in task_keywords]
-        #config['GRAMMAR'] = load_automatic_grammar(task_name_id, task_keyword_ids, encoders, use_imputer)
-        config['GRAMMAR'] = load_manual_grammar(task_name_id, primitives, encoders, use_imputer)
+    def update_config(task_name):
         config['PROBLEM'] = task_name
         config['DATA_TYPE'] = 'TABULAR'
         config['METRIC'] = metrics[0]['metric'].name
-        config['DATASET_METAFEATURES'] = [0] * 50 #metafeatures_extractor.compute_metafeatures('AlphaD3M_compute_metafeatures')
         config['DATASET'] = problem['inputs'][0]['dataset_id']
         config['ARGS']['stepsfile'] = join(os.environ.get('D3MOUTPUTDIR'), 'temp', config['DATASET'] + '_pipeline_steps.txt')
+
+        task_name_id = task_name + '_TASK'
+        task_keyword_ids = [t.value for t in task_keywords]
+        if use_automatic_grammar:
+            config['GRAMMAR'] = load_automatic_grammar(task_name_id, task_keyword_ids, encoders, use_imputer)
+        else:
+            config['GRAMMAR'] = load_manual_grammar(task_name_id, task_keyword_ids, encoders, use_imputer)
+        metafeatures_extractor = ComputeMetafeatures(dataset, targets, features, DBSession)
+        config['DATASET_METAFEATURES'] = [0] * 50 #metafeatures_extractor.compute_metafeatures('AlphaD3M_compute_metafeatures')
 
         return config
 
@@ -167,8 +170,7 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
 
     signal.signal(signal.SIGTERM, signal_handler)
 
-    primitives = load_primitives_hierarchy()
-    config_updated = update_config(primitives, task_name)
+    config_updated = update_config(task_name)
 
     ############
     '''metalearning_pipelines = create_vectors_from_metalearningdb(task_name, config_updated['GRAMMAR'])

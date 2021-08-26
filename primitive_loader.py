@@ -153,12 +153,10 @@ def get_primitive_type(primitive_name):
 
     elif primitive_name in {'d3m.primitives.feature_construction.corex_text.DSBOX',
                             'd3m.primitives.data_transformation.encoder.DistilTextEncoder',
-                            'd3m.primitives.feature_extraction.tfidf_vectorizer.SKlearn'}:
-        primitive_type = 'TEXT_ENCODER'
-
-    elif primitive_name in {'d3m.primitives.feature_extraction.boc.UBC',
-                            'd3m.primitives.feature_extraction.bow.UBC',
+                            'd3m.primitives.feature_extraction.tfidf_vectorizer.SKlearn',
                             'd3m.primitives.feature_extraction.count_vectorizer.SKlearn',
+                            'd3m.primitives.feature_extraction.boc.UBC',
+                            'd3m.primitives.feature_extraction.bow.UBC',
                             'd3m.primitives.feature_extraction.nk_sent2vec.Sent2Vec',
                             'd3m.primitives.feature_extraction.tfidf_vectorizer.BBNTfidfTransformer'}:
         primitive_type = 'TEXT_FEATURIZER'
@@ -208,9 +206,6 @@ def load_primitives_hierarchy():
             if primitive_type not in primitives:
                 primitives[primitive_type] = []
             primitives[primitive_type].append(primitive_name)
-
-    # Duplicate TEXT_ENCODER primitives for TEXT_FEATURIZER family
-    primitives['TEXT_FEATURIZER'] = primitives['TEXT_ENCODER'] + primitives['TEXT_FEATURIZER']
 
     with open(PRIMITIVES_HIERARCHY_PATH, 'w') as fout:
         json.dump(OrderedDict(sorted(primitives.items())), fout, indent=4)

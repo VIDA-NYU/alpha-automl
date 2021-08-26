@@ -2,6 +2,7 @@ import os
 import logging
 import itertools
 from nltk.grammar import Production, Nonterminal, CFG, is_terminal, is_nonterminal
+from alphad3m.primitive_loader import load_primitives_hierarchy
 from alphad3m.metafeature.metalearningdb_miner import create_grammar_from_metalearningdb
 
 logger = logging.getLogger(__name__)
@@ -110,10 +111,11 @@ def create_game_grammar(grammar):
     return game_grammar
 
 
-def load_manual_grammar(task, primitives, encoders, use_imputer):
+def load_manual_grammar(task, task_keywords, encoders, use_imputer):
     with open(BASE_GRAMMAR_PATH) as fin:
         grammar_string = fin.read()
-
+    primitives = load_primitives_hierarchy()
+    # TODO: Use task_keywords to remove some TEXT_FEATURIZER primitives when working with tabular problems
     base_grammar = load_grammar(grammar_string, encoders, use_imputer)
     global_grammar = create_global_grammar(base_grammar, primitives)
     task_grammar = create_task_grammar(global_grammar, task)
