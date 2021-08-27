@@ -109,9 +109,8 @@ def load_metalearningdb(task_keywords):
     return task_pipelines
 
 
-def create_grammar_from_metalearningdb(task_name, task_keywords):
+def create_grammar_from_metalearningdb(task_name, task_keywords, combine_encoders=True):
     pipelines = load_metalearningdb(task_keywords)
-    combine_encoders = 'TEXT' not in task_keywords
     patterns, hierarchy_primitives = extract_patterns(pipelines, combine_encoders)
     patterns, empty_elements = merge_patterns(patterns)
     grammar = format_grammar(task_name, patterns, empty_elements)

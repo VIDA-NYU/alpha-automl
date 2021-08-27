@@ -114,8 +114,15 @@ def create_game_grammar(grammar):
 def load_manual_grammar(task, task_keywords, encoders, use_imputer):
     with open(BASE_GRAMMAR_PATH) as fin:
         grammar_string = fin.read()
+
     primitives = load_primitives_hierarchy()
-    # TODO: Use task_keywords to remove some TEXT_FEATURIZER primitives when working with tabular problems
+    if 'TEXT' not in task_keywords:
+        ignore_primitives = {'d3m.primitives.feature_extraction.count_vectorizer.SKlearn',
+                             'd3m.primitives.feature_extraction.boc.UBC', 'd3m.primitives.feature_extraction.bow.UBC',
+                             'd3m.primitives.feature_extraction.nk_sent2vec.Sent2Vec',
+                             'd3m.primitives.feature_extraction.tfidf_vectorizer.BBNTfidfTransformer'}
+        primitives['TEXT_FEATURIZER'] = [p for p in primitives['TEXT_FEATURIZER'] if p not in ignore_primitives]
+
     base_grammar = load_grammar(grammar_string, encoders, use_imputer)
     global_grammar = create_global_grammar(base_grammar, primitives)
     task_grammar = create_task_grammar(global_grammar, task)
@@ -125,7 +132,8 @@ def load_manual_grammar(task, task_keywords, encoders, use_imputer):
 
 
 def load_automatic_grammar(task, task_keywords, encoders, use_imputer):
-    grammar_string, primitives = create_grammar_from_metalearningdb(task, task_keywords)
+    combine_encoders = 'TEXT' not in task_keywords
+    grammar_string, primitives = create_grammar_from_metalearningdb(task, task_keywords, combine_encoders)
     base_grammar = load_grammar(grammar_string, encoders, use_imputer)
     global_grammar = create_global_grammar(base_grammar, primitives)
     task_grammar = create_task_grammar(global_grammar, task)
