@@ -11,25 +11,8 @@ COMPLETE_GRAMMAR_PATH = os.path.join(os.environ.get('D3MOUTPUTDIR'), 'temp', 'co
 TASK_GRAMMAR_PATH = os.path.join(os.environ.get('D3MOUTPUTDIR'), 'temp', 'task_grammar.bnf')
 
 
-def load_grammar(grammar_string, encoders, use_imputer):
-    production_rules = []
-
-    for production_rule in grammar_string.split('\n'):
-        if production_rule.startswith('ENCODERS -> '):
-            if len(encoders) > 0:
-                production_rule = 'ENCODERS -> %s' % ' '.join(encoders)
-            else:
-                production_rule = "ENCODERS -> 'E'"
-        elif production_rule.startswith('IMPUTATION -> '):
-            if not use_imputer:
-                production_rule = "IMPUTATION -> 'E'"
-        production_rules.append(production_rule.strip())
-
-    grammar_string = '\n'.join(production_rules)
-    return CFG.fromstring(grammar_string)
-
-
-def create_global_grammar(base_grammar, primitives):
+def create_global_grammar(grammar_string, primitives):
+    base_grammar = CFG.fromstring(grammar_string)
     new_productions = []
 
     for production in base_grammar.productions():
@@ -111,10 +94,25 @@ def create_game_grammar(grammar):
     return game_grammar
 
 
-def load_manual_grammar(task, task_keywords, encoders, use_imputer):
-    with open(BASE_GRAMMAR_PATH) as fin:
-        grammar_string = fin.read()
+def modify_manual_grammar(encoders, use_imputer):
+    new_grammar = ''
 
+    with open(BASE_GRAMMAR_PATH) as fin:
+        for production_rule in fin.readlines():
+            if production_rule.startswith('ENCODERS -> '):
+                if len(encoders) > 0:
+                    production_rule = 'ENCODERS -> %s\n' % ' '.join(encoders)
+                else:
+                    production_rule = "ENCODERS -> 'E'\n"
+            elif production_rule.startswith('IMPUTATION -> '):
+                if not use_imputer:
+                    production_rule = "IMPUTATION -> 'E'\n"
+            new_grammar += production_rule
+
+    return new_grammar
+
+
+def load_manual_grammar(task, task_keywords, encoders, use_imputer):
     primitives = load_primitives_hierarchy()
     if 'TEXT' not in task_keywords:
         ignore_primitives = {'d3m.primitives.feature_extraction.count_vectorizer.SKlearn',
@@ -123,19 +121,17 @@ def load_manual_grammar(task, task_keywords, encoders, use_imputer):
                              'd3m.primitives.feature_extraction.tfidf_vectorizer.BBNTfidfTransformer'}
         primitives['TEXT_FEATURIZER'] = [p for p in primitives['TEXT_FEATURIZER'] if p not in ignore_primitives]
 
-    base_grammar = load_grammar(grammar_string, encoders, use_imputer)
-    global_grammar = create_global_grammar(base_grammar, primitives)
+    grammar_string = modify_manual_grammar(encoders, use_imputer)
+    global_grammar = create_global_grammar(grammar_string, primitives)
     task_grammar = create_task_grammar(global_grammar, task)
     game_grammar = create_game_grammar(task_grammar)
 
     return game_grammar
 
 
-def load_automatic_grammar(task, task_keywords, encoders, use_imputer):
-    combine_encoders = 'TEXT' not in task_keywords
-    grammar_string, primitives = create_grammar_from_metalearningdb(task, task_keywords, combine_encoders)
-    base_grammar = load_grammar(grammar_string, encoders, use_imputer)
-    global_grammar = create_global_grammar(base_grammar, primitives)
+def load_automatic_grammar(task, task_keywords):
+    grammar_string, primitives = create_grammar_from_metalearningdb(task, task_keywords)
+    global_grammar = create_global_grammar(grammar_string, primitives)
     task_grammar = create_task_grammar(global_grammar, task)
     game_grammar = create_game_grammar(task_grammar)
 

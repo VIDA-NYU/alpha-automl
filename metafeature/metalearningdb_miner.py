@@ -16,6 +16,7 @@ IGNORE_PRIMITIVES = {'d3m.primitives.data_transformation.construct_predictions.C
                      'd3m.primitives.data_transformation.denormalize.Common',
                      'd3m.primitives.data_transformation.flatten.DataFrameCommon',
                      'd3m.primitives.data_transformation.column_parser.Common',
+                     'd3m.primitives.data_transformation.do_nothing.DSBOX',
                      'd3m.primitives.schema_discovery.profiler.DSBOX',
                      'd3m.primitives.data_cleaning.column_type_profiler.Simon',
                      'd3m.primitives.data_transformation.text_reader.Common',
@@ -90,7 +91,7 @@ def load_metalearningdb(task_keywords):
 
     for ignore_primitive in IGNORE_PRIMITIVES:
         if ignore_primitive in primitives_by_name:
-            ignore_primitives_ids.add(primitives_by_name[ignore_primitive])
+            ignore_primitives_ids.add(primitives_by_name[ignore_primitive]['id'])
 
     for pipeline_run in all_pipelines:
         pipeline_primitives = pipeline_run['steps']
@@ -109,9 +110,9 @@ def load_metalearningdb(task_keywords):
     return task_pipelines
 
 
-def create_grammar_from_metalearningdb(task_name, task_keywords, combine_encoders=True):
+def create_grammar_from_metalearningdb(task_name, task_keywords):
     pipelines = load_metalearningdb(task_keywords)
-    patterns, hierarchy_primitives = extract_patterns(pipelines, combine_encoders)
+    patterns, hierarchy_primitives = extract_patterns(pipelines)
     patterns, empty_elements = merge_patterns(patterns)
     grammar = format_grammar(task_name, patterns, empty_elements)
 
@@ -133,8 +134,8 @@ def format_grammar(task_name, patterns, empty_elements):
     return grammar
 
 
-def extract_patterns(pipelines, combine_encoders=True, min_frequency=5, avg_performance=0.5):
-    primitives_by_type = load_primitives_by_type()
+def extract_patterns(pipelines, combine_encoders=False, min_frequency=5, avg_performance=0.5):
+    available_primitives = load_primitives_by_name()
     pipelines = calculate_adtm(pipelines)
     patterns = {}
 
@@ -142,7 +143,7 @@ def extract_patterns(pipelines, combine_encoders=True, min_frequency=5, avg_perf
         if pipeline_data['adtm'] > avg_performance:
             continue
 
-        primitive_types = [primitives_by_type[p] for p in pipeline_data['pipeline']]
+        primitive_types = [available_primitives[p]['type'] for p in pipeline_data['pipeline']]
         if combine_encoders:
             primitive_types = combine_type_encoders(primitive_types)
         pattern_id = ' '.join(primitive_types)
@@ -151,20 +152,20 @@ def extract_patterns(pipelines, combine_encoders=True, min_frequency=5, avg_perf
         patterns[pattern_id]['primitives'].append(pipeline_data['pipeline'])
         patterns[pattern_id]['scores'].append(pipeline_data['score'])
         patterns[pattern_id]['frequency'] += 1
-
     logger.info('Found %d different patterns', len(patterns))
+    # TODO: Group these removing conditions into a single loop
     # Remove patterns with fewer elements than the minimum frequency
     patterns = {k: v for k, v in patterns.items() if v['frequency'] >= min_frequency}
     logger.info('Found %d different patterns, after removing uncommon patterns', len(patterns))
-
-    for pattern_id in patterns:
-        scores = patterns[pattern_id].pop('scores')
-        patterns[pattern_id]['average'] = statistics.mean(scores)
 
     # Remove patterns with low performances
     blacklist_primitive_types = {'OPERATOR', 'ARRAY_CONCATENATION'}
     patterns = {k: v for k, v in patterns.items() if not blacklist_primitive_types & set(v['structure'])}
     logger.info('Found %d different patterns, after blacklisting primitive types', len(patterns))
+
+    for pattern_id in patterns:
+        scores = patterns[pattern_id].pop('scores')
+        patterns[pattern_id]['average'] = statistics.mean(scores)
 
     # Remove patterns with low performances
     patterns = {k: v for k, v in patterns.items() if v['average'] >= avg_performance}
@@ -175,7 +176,7 @@ def extract_patterns(pipelines, combine_encoders=True, min_frequency=5, avg_perf
     for pattern in patterns.values():
         for pipeline in pattern['primitives']:
             for primitive in pipeline:
-                primitive_type = primitives_by_type[primitive]
+                primitive_type = available_primitives[primitive]['type']
                 if primitive_type not in hierarchy_primitives:
                     hierarchy_primitives[primitive_type] = set()
                 hierarchy_primitives[primitive_type].add(primitive)
@@ -271,7 +272,7 @@ def combine_type_encoders(primitive_types):
 
 
 def analyze_distribution(pipelines_metalearningdb):
-    primitives_by_type = load_primitives_by_type()
+    available_primitives = load_primitives_by_name()
     primitive_frequency = {}
     primitive_distribution = {}
     logger.info('Analyzing the distribution of primitives')
@@ -279,7 +280,7 @@ def analyze_distribution(pipelines_metalearningdb):
     for pipeline_data in pipelines_metalearningdb:
         for primitive_name in pipeline_data['pipeline']:
             print(primitive_name)
-            primitive_type = primitives_by_type[primitive_name]
+            primitive_type = available_primitives[primitive_name]['type']
             if primitive_type not in primitive_frequency:
                 primitive_frequency[primitive_type] = {'primitives': {}, 'total': 0}
             if primitive_name not in primitive_frequency[primitive_type]['primitives']:
@@ -340,7 +341,7 @@ def load_primitives_by_name():
     primitives = load_primitives_list()
 
     for primitive in primitives:
-        primitives_by_name[primitive['python_path']] = primitive['id']
+        primitives_by_name[primitive['python_path']] = {'id': primitive['id'], 'type': primitive['type']}
 
     return primitives_by_name
 
@@ -355,18 +356,6 @@ def load_primitives_by_id():
     return primitives_by_id
 
 
-def load_primitives_by_type():
-    primitives_by_type = {}
-    primitives = load_primitives_hierarchy()
-
-    for primitive_type in primitives:
-        primitive_names = primitives[primitive_type]
-        for primitive_name in primitive_names:
-            primitives_by_type[primitive_name] = primitive_type
-
-    return primitives_by_type
-
-
 if __name__ == '__main__':
     task_name = 'CLASSIFICATION_TASK'
     task_keywords = ['CLASSIFICATION', 'TABULAR', 'MULTICLASS']
@@ -374,5 +363,5 @@ if __name__ == '__main__':
     #pipeline_runs_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/pipeline_runs-1583354387.json'
     #problems_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/problems-1583354357.json'
     #merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file)
-    create_grammar_from_metalearningdb(task_name, task_keywords)
+    create_grammar_from_metalearningdb(task_name, task_keywords, True, True)
     #analyze_distribution(load_metalearningdb(task_keywords))

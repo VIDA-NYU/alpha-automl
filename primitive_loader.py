@@ -224,7 +224,6 @@ def load_primitives_list():
 
     primitives = []
     for primitive_name in INSTALLED_PRIMITIVES:
-        if primitive_name not in BLACK_LIST:
             try:
                 primitive_info = get_primitive_info(primitive_name)
             except:

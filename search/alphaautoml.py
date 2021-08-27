@@ -156,7 +156,7 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
         task_name_id = task_name + '_TASK'
         task_keyword_ids = [t.value for t in task_keywords]
         if use_automatic_grammar:
-            config['GRAMMAR'] = load_automatic_grammar(task_name_id, task_keyword_ids, encoders, use_imputer)
+            config['GRAMMAR'] = load_automatic_grammar(task_name_id, task_keyword_ids)
         else:
             config['GRAMMAR'] = load_manual_grammar(task_name_id, task_keyword_ids, encoders, use_imputer)
         metafeatures_extractor = ComputeMetafeatures(dataset, targets, features, DBSession)
