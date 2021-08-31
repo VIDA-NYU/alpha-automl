@@ -1,14 +1,12 @@
-import json
 import logging
-from os.path import join, dirname
 import statistics
 from collections import OrderedDict
 from alphad3m.primitive_loader import load_primitives_list
+from alphad3m.metalearning.database import load_metalearningdb
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
 
-METALEARNINGDB_PATH = join(dirname(__file__), '../../resource/metalearningdb.json')
 
 IGNORE_PRIMITIVES = {'d3m.primitives.data_transformation.construct_predictions.Common',
                      'd3m.primitives.data_transformation.extract_columns_by_semantic_types.Common',
@@ -26,68 +24,12 @@ IGNORE_PRIMITIVES = {'d3m.primitives.data_transformation.construct_predictions.C
                      }
 
 
-def merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file, n=-1, verbose=False):
-    logger.info('Adding pipelines to lookup table...')
-    pipelines = {}
-    with open(pipelines_file, 'r') as f:
-        for line in f:
-            pipeline = json.loads(line)
-            pipelines[pipeline['digest']] = pipeline
-
-    logger.info('Adding problems to lookup table...')
-    problems = {}
-    with open(problems_file, 'r') as f:
-        for line in f:
-            problem = json.loads(line)
-            problems[problem['digest']] = problem['problem']
-            problems[problem['digest']]['id'] = problem['id']
-
-    logger.info('Merging pipeline information with pipeline_runs_file (this might take a while)...')
-    merged = []
-    with open(pipeline_runs_file, 'r') as f:
-        for line in f:
-            if len(merged) == n:
-                break
-            try:
-                run = json.loads(line)
-                if run['run']['phase'] != 'PRODUCE':
-                    continue
-                pipeline = pipelines[run['pipeline']['digest']]
-                problem = problems[run['problem']['digest']]
-                data = {
-                    'pipeline_id': pipeline['id'],
-                    'pipeline_digest': pipeline['digest'],
-                    'pipeline_source': pipeline['source'],
-                    'inputs': pipeline['inputs'],
-                    'outputs': pipeline['outputs'],
-                    'problem': problem,
-                    'start': run['start'],
-                    'end': run['end'],
-                    'steps': pipeline['steps'],
-                    'scores': run['run']['results']['scores']
-                }
-                merged.append(json.dumps(data))
-            except Exception as e:
-                if (verbose):
-                    logger.error(problem['id'], repr(e))
-    logger.info('Done.')
-
-    with open(METALEARNINGDB_PATH, 'w') as fout:
-        fout.write('\n'.join(merged))
-
-
-def load_metalearningdb(task_keywords):
+def load_pipelines(task_keywords):
     primitives_by_id = load_primitives_by_id()
     primitives_by_name = load_primitives_by_name()
+    all_pipelines = load_metalearningdb()
     ignore_primitives_ids = set()
-    all_pipelines = []
     task_pipelines = []
-
-    logger.info('Loading pipelines from metalearning database...')
-
-    with open(METALEARNINGDB_PATH) as fin:
-        for line in fin:
-            all_pipelines.append(json.loads(line))
 
     for ignore_primitive in IGNORE_PRIMITIVES:
         if ignore_primitive in primitives_by_name:
@@ -111,7 +53,7 @@ def load_metalearningdb(task_keywords):
 
 
 def create_grammar_from_metalearningdb(task_name, task_keywords):
-    pipelines = load_metalearningdb(task_keywords)
+    pipelines = load_pipelines(task_keywords)
     patterns, hierarchy_primitives = extract_patterns(pipelines)
     patterns, empty_elements = merge_patterns(patterns)
     grammar = format_grammar(task_name, patterns, empty_elements)
@@ -279,7 +221,6 @@ def analyze_distribution(pipelines_metalearningdb):
 
     for pipeline_data in pipelines_metalearningdb:
         for primitive_name in pipeline_data['pipeline']:
-            print(primitive_name)
             primitive_type = available_primitives[primitive_name]['type']
             if primitive_type not in primitive_frequency:
                 primitive_frequency[primitive_type] = {'primitives': {}, 'total': 0}
@@ -359,9 +300,5 @@ def load_primitives_by_id():
 if __name__ == '__main__':
     task_name = 'CLASSIFICATION_TASK'
     task_keywords = ['CLASSIFICATION', 'TABULAR', 'MULTICLASS']
-    #pipelines_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/pipelines-1583354358.json'
-    #pipeline_runs_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/pipeline_runs-1583354387.json'
-    #problems_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/problems-1583354357.json'
-    #merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file)
     create_grammar_from_metalearningdb(task_name, task_keywords)
-    #analyze_distribution(load_metalearningdb(task_keywords))
+    #analyze_distribution(load_pipelines(task_keywords))
