@@ -3,7 +3,7 @@ import logging
 import itertools
 from nltk.grammar import Production, Nonterminal, CFG, is_terminal, is_nonterminal
 from alphad3m.primitive_loader import load_primitives_hierarchy
-from alphad3m.metafeature.metalearningdb_miner import create_grammar_from_metalearningdb
+from alphad3m.metalearning.grammar_builder import create_grammar_from_metalearningdb
 
 logger = logging.getLogger(__name__)
 BASE_GRAMMAR_PATH = os.path.join(os.path.dirname(__file__), '../resource/base_grammar.bnf')

@@ -3,7 +3,7 @@ import logging
 from os.path import join, dirname
 import statistics
 from collections import OrderedDict
-from alphad3m.primitive_loader import load_primitives_hierarchy, load_primitives_list
+from alphad3m.primitive_loader import load_primitives_list
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
@@ -320,7 +320,7 @@ def is_target_task(problem, task_keywords):
     if 'SEMISUPERVISED' in problem_task_keywords and 'SEMISUPERVISED' not in task_keywords:
         return False
 
-    if all(t in problem_task_keywords for t in task_keywords):
+    if all(t in problem_task_keywords for t in task_keywords) and 'baseball' in problem['id']:
         return True
 
     return False
@@ -363,5 +363,5 @@ if __name__ == '__main__':
     #pipeline_runs_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/pipeline_runs-1583354387.json'
     #problems_file = '/Users/rlopez/Downloads/metalearningdb_dump_20200304/problems-1583354357.json'
     #merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file)
-    create_grammar_from_metalearningdb(task_name, task_keywords, True, True)
+    create_grammar_from_metalearningdb(task_name, task_keywords)
     #analyze_distribution(load_metalearningdb(task_keywords))
