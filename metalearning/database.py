@@ -59,12 +59,13 @@ def merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file, n=-1
 
 
 def load_metalearningdb():
-    logger.info('Loading pipelines from metalearning database...')
     all_pipelines = []
 
     with open(METALEARNINGDB_PATH) as fin:
         for line in fin:
             all_pipelines.append(json.loads(line))
+
+    logger.info('Pipelines from metalearning database loaded')
 
     return all_pipelines
 

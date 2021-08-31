@@ -4,7 +4,6 @@ from collections import OrderedDict
 from alphad3m.primitive_loader import load_primitives_list
 from alphad3m.metalearning.database import load_metalearningdb
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
 
 
