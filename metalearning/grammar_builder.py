@@ -320,7 +320,7 @@ def is_target_task(problem, task_keywords):
     if 'SEMISUPERVISED' in problem_task_keywords and 'SEMISUPERVISED' not in task_keywords:
         return False
 
-    if all(t in problem_task_keywords for t in task_keywords) and 'baseball' in problem['id']:
+    if all(t in problem_task_keywords for t in task_keywords):
         return True
 
     return False
