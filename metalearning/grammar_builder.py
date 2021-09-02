@@ -3,6 +3,7 @@ import statistics
 from collections import OrderedDict
 from alphad3m.primitive_loader import load_primitives_list
 from alphad3m.metalearning.database import load_metalearningdb
+from alphad3m.metalearning.dataset_miner import get_similar_datasets, get_dataset_id
 
 logger = logging.getLogger(__name__)
 
@@ -23,10 +24,11 @@ IGNORE_PRIMITIVES = {'d3m.primitives.data_transformation.construct_predictions.C
                      }
 
 
-def load_pipelines(task_keywords):
+def load_pipelines(task_keywords, dataset_folder):
     primitives_by_id = load_primitives_by_id()
     primitives_by_name = load_primitives_by_name()
     all_pipelines = load_metalearningdb()
+    similar_datasets = get_similar_datasets(dataset_folder)
     ignore_primitives_ids = set()
     task_pipelines = []
 
@@ -35,6 +37,10 @@ def load_pipelines(task_keywords):
             ignore_primitives_ids.add(primitives_by_name[ignore_primitive]['id'])
 
     for pipeline_run in all_pipelines:
+        dataset_id_db = get_dataset_id(pipeline_run['problem']['id'])
+        if dataset_id_db not in similar_datasets:
+            # Skip datasets that are not similar to the target dataset
+            continue
         pipeline_primitives = pipeline_run['steps']
         if is_target_task(pipeline_run['problem'], task_keywords) and is_available_primitive(pipeline_primitives, primitives_by_id):
             primitives = filter_primitives(pipeline_primitives, ignore_primitives_ids)
@@ -51,8 +57,8 @@ def load_pipelines(task_keywords):
     return task_pipelines
 
 
-def create_grammar_from_metalearningdb(task_name, task_keywords):
-    pipelines = load_pipelines(task_keywords)
+def create_grammar_from_metalearningdb(task_name, task_keywords, dataset_folder):
+    pipelines = load_pipelines(task_keywords, dataset_folder)
     patterns, hierarchy_primitives = extract_patterns(pipelines)
     patterns, empty_elements = merge_patterns(patterns)
     grammar = format_grammar(task_name, patterns, empty_elements)
@@ -75,13 +81,14 @@ def format_grammar(task_name, patterns, empty_elements):
     return grammar
 
 
-def extract_patterns(pipelines, combine_encoders=False, min_frequency=5, avg_performance=0.5):
+def extract_patterns(pipelines, combine_encoders=False, min_frequency=5, adtm_threshold=0.3, mean_score_threshold=0.7):
     available_primitives = load_primitives_by_name()
     pipelines = calculate_adtm(pipelines)
     patterns = {}
 
     for pipeline_data in pipelines:
-        if pipeline_data['adtm'] > avg_performance:
+        if pipeline_data['adtm'] > adtm_threshold:
+            # Skip pipelines with average distance to the minimum higher than the threshold
             continue
 
         primitive_types = [available_primitives[p]['type'] for p in pipeline_data['pipeline']]
@@ -89,7 +96,7 @@ def extract_patterns(pipelines, combine_encoders=False, min_frequency=5, avg_per
             primitive_types = combine_type_encoders(primitive_types)
         pattern_id = ' '.join(primitive_types)
         if pattern_id not in patterns:
-            patterns[pattern_id] = {'structure': primitive_types, 'primitives': [], 'scores': [], 'frequency': 0}
+            patterns[pattern_id] = {'structure': primitive_types, 'primitives': [], 'scores': [], 'frequency': 0, 'adtm': pipeline_data['adtm']}
         patterns[pattern_id]['primitives'].append(pipeline_data['pipeline'])
         patterns[pattern_id]['scores'].append(pipeline_data['score'])
         patterns[pattern_id]['frequency'] += 1
@@ -106,24 +113,24 @@ def extract_patterns(pipelines, combine_encoders=False, min_frequency=5, avg_per
 
     for pattern_id in patterns:
         scores = patterns[pattern_id].pop('scores')
-        patterns[pattern_id]['average'] = statistics.mean(scores)
+        patterns[pattern_id]['mean_score'] = statistics.mean(scores)
 
     # Remove patterns with low performances
-    patterns = {k: v for k, v in patterns.items() if v['average'] >= avg_performance}
+    patterns = {k: v for k, v in patterns.items() if v['mean_score'] >= mean_score_threshold}
     logger.info('Found %d different patterns, after removing low-performance patterns', len(patterns))
 
     hierarchy_primitives = {}
 
     for pattern in patterns.values():
-        for pipeline in pattern['primitives']:
+        for pipeline in pattern.pop('primitives'):
             for primitive in pipeline:
                 primitive_type = available_primitives[primitive]['type']
                 if primitive_type not in hierarchy_primitives:
                     hierarchy_primitives[primitive_type] = set()
                 hierarchy_primitives[primitive_type].add(primitive)
 
-    patterns = sorted(patterns.values(), key=lambda x: x['average'], reverse=True)
-    logger.info('Patterns:\n%s', '\n'.join(['structure: %s, frequency: %d' % (str(x['structure']), x['frequency']) for x in patterns]))
+    patterns = sorted(patterns.values(), key=lambda x: x['mean_score'], reverse=True)
+    logger.info('Patterns:\n%s', '\n'.join([str(x) for x in patterns]))
     patterns = [p['structure'] for p in patterns]
 
     return patterns, hierarchy_primitives
@@ -299,5 +306,6 @@ def load_primitives_by_id():
 if __name__ == '__main__':
     task_name = 'CLASSIFICATION_TASK'
     task_keywords = ['CLASSIFICATION', 'TABULAR', 'MULTICLASS']
-    create_grammar_from_metalearningdb(task_name, task_keywords)
+    dataset_folder = '/Users/rlopez/D3M/datasets/seed_datasets_current/185_baseball'
+    create_grammar_from_metalearningdb(task_name, task_keywords, dataset_folder)
     #analyze_distribution(load_pipelines(task_keywords))

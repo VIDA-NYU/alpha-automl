@@ -1,10 +1,13 @@
 import re
 import json
 import logging
+import math
+import hashlib
 import pandas as pd
 from os.path import join, dirname, exists
 from metalearn import Metafeatures
 from alphad3m.metalearning.database import load_metalearningdb
+from sklearn.metrics.pairwise import cosine_similarity
 
 logger = logging.getLogger(__name__)
 
@@ -12,15 +15,21 @@ DATASETS_FOLDER_PATH = '/Users/rlopez/D3M/datasets/seed_datasets_current/'
 PRECALCULATED_METAFEATURES_PATH = join(dirname(__file__), '../../resource/precalculated_metafeatures.json')
 
 
-def get_unique_datasets(remove_suffix=True):
+def load_precalculated_metafeatures():
+    if exists(PRECALCULATED_METAFEATURES_PATH):
+        with open(PRECALCULATED_METAFEATURES_PATH) as fin:
+            return json.load(fin)
+
+    return {}
+
+
+def get_unique_datasets():
     pipeline_runs = load_metalearningdb()
     datasets = set()
 
     for pipeline_run in pipeline_runs:
-        dataset_id = pipeline_run['problem']['id']
-        if remove_suffix:
-            dataset_id = re.sub('_TRAIN$', '', dataset_id)
-            dataset_id = re.sub('_problem$', '', dataset_id)
+        problem_id = pipeline_run['problem']['id']
+        dataset_id = get_dataset_id(problem_id)
         datasets.add(dataset_id)
 
     logger.info('Found %d unique datasets', len(datasets))
@@ -61,14 +70,6 @@ def load_dataset(dataset_id):
         return None
 
 
-def load_precalculated_metafeatures():
-    if exists(PRECALCULATED_METAFEATURES_PATH):
-        with open(PRECALCULATED_METAFEATURES_PATH) as fin:
-            return json.load(fin)
-
-    return {}
-
-
 def extract_metafeatures(X, Y):
     metafeatures = Metafeatures()
     mfs = None
@@ -80,7 +81,22 @@ def extract_metafeatures(X, Y):
     return mfs
 
 
-def extract_metafeatures_all():
+def create_metafeatures_vector(metafeatures):
+    metafeatures_ids = Metafeatures.list_metafeatures(group='all')
+    vector = []
+
+    for metafeatures_id in metafeatures_ids:
+        value = metafeatures[metafeatures_id]['value']
+        if isinstance(value, str):
+            value = int(hashlib.sha256(value.encode('utf-8')).hexdigest(), 16) % 256
+        elif math.isnan(value) or math.isinf(value):
+            value = 0
+        vector.append(value)
+
+    return vector
+
+
+def extract_metafeatures_metalearningdb():
     datasets = get_unique_datasets()
     metafeatures = load_precalculated_metafeatures()
 
@@ -101,4 +117,37 @@ def extract_metafeatures_all():
 
     return metafeatures
 
-extract_metafeatures_all()
+
+def create_metalearningdb_vectors():
+    vectors = {}
+    metafeature_datasets = load_precalculated_metafeatures()
+
+    for id_dataset, metafeatures in metafeature_datasets.items():
+        vector = create_metafeatures_vector(metafeatures)
+        vectors[id_dataset] = vector
+
+    return vectors
+
+
+def get_similar_datasets(dataset_folder, threshold=0.8):
+    X, Y = get_X_Y(dataset_folder)
+    mfs = extract_metafeatures(X, Y)
+    target_metafeatures_vector = create_metafeatures_vector(mfs)
+    metalearningdb_vectors = create_metalearningdb_vectors()
+    similar_datasets = {}
+
+    for id_dataset, vector in metalearningdb_vectors.items():
+        similarity = cosine_similarity([target_metafeatures_vector], [vector]).flat[0]
+        if similarity > threshold:
+            similar_datasets[id_dataset] = round(similarity, 5)
+    logger.info('Found %d similar datasets', len(similar_datasets))
+    logger.info('Similar datasets:\n%s', str(sorted(similar_datasets.items(), key=lambda x: x[1], reverse=True)))
+
+    return similar_datasets
+
+
+def get_dataset_id(problem_id):
+    dataset_id = re.sub('_TRAIN$', '', problem_id)
+    dataset_id = re.sub('_problem$', '', dataset_id)
+
+    return dataset_id
