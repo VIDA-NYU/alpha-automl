@@ -47,6 +47,7 @@ def get_X_Y(dataset_folder_path):
 
     data = pd.read_csv(csv_path)
     Y = data[target_name]
+    Y = pd.Series([str(i) for i in Y], name=target_name)  # Cast to string to get metalearn lib working correctly
     X = data.drop(columns=[target_name])
 
     return X, Y
@@ -109,11 +110,10 @@ def extract_metafeatures_metalearningdb():
                 if mfs:
                     metafeatures[dataset_id] = mfs
                     logger.info('Metafeatures successfully calculated')
+                    with open(PRECALCULATED_METAFEATURES_PATH, 'w') as fout:
+                        json.dump(metafeatures, fout, indent=4)
         else:
             logger.info('Using pre-calculated metafeatures')
-
-    with open(PRECALCULATED_METAFEATURES_PATH, 'w') as fout:
-        json.dump(metafeatures, fout, indent=4)
 
     return metafeatures
 
