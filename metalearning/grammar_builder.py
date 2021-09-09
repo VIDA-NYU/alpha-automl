@@ -24,11 +24,11 @@ IGNORE_PRIMITIVES = {'d3m.primitives.data_transformation.construct_predictions.C
                      }
 
 
-def load_pipelines(task_keywords, dataset_folder):
+def load_related_pipelines(task_keywords, dataset_folder):
     primitives_by_id = load_primitives_by_id()
     primitives_by_name = load_primitives_by_name()
     all_pipelines = load_metalearningdb()
-    similar_datasets = get_similar_datasets(dataset_folder)
+    similar_datasets = get_similar_datasets('dataprofiles', dataset_folder, task_keywords)
     ignore_primitives_ids = set()
     task_pipelines = []
 
@@ -42,7 +42,7 @@ def load_pipelines(task_keywords, dataset_folder):
             # Skip datasets that are not similar to the target dataset
             continue
         pipeline_primitives = pipeline_run['steps']
-        if is_target_task(pipeline_run['problem'], task_keywords) and is_available_primitive(pipeline_primitives, primitives_by_id):
+        if is_available_primitive(pipeline_primitives, primitives_by_id):
             primitives = filter_primitives(pipeline_primitives, ignore_primitives_ids)
             primitives = [primitives_by_id[p] for p in primitives]  # Use the current names of primitives
             if len(primitives) > 0:
@@ -58,7 +58,7 @@ def load_pipelines(task_keywords, dataset_folder):
 
 
 def create_grammar_from_metalearningdb(task_name, task_keywords, dataset_folder):
-    pipelines = load_pipelines(task_keywords, dataset_folder)
+    pipelines = load_related_pipelines(task_keywords, dataset_folder)
     patterns, hierarchy_primitives = extract_patterns(pipelines)
     patterns, empty_elements = merge_patterns(patterns)
     grammar = format_grammar(task_name, patterns, empty_elements)
@@ -256,23 +256,6 @@ def is_available_primitive(pipeline_primitives, current_primitives, verbose=Fals
     return True
 
 
-def is_target_task(problem, task_keywords):
-    problem_task_keywords = []
-    if 'task_type' in problem:  # For old versions of the problem's schema
-        problem_task_keywords = [problem['task_type']]
-    elif 'task_keywords' in problem:
-        problem_task_keywords = problem['task_keywords']
-
-    # Skip semisupervised pipelines when it's not in the target task
-    if 'SEMISUPERVISED' in problem_task_keywords and 'SEMISUPERVISED' not in task_keywords:
-        return False
-
-    if all(t in problem_task_keywords for t in task_keywords):
-        return True
-
-    return False
-
-
 def filter_primitives(pipeline_steps, ignore_primitives):
     primitives = []
 
@@ -305,7 +288,7 @@ def load_primitives_by_id():
 
 if __name__ == '__main__':
     task_name = 'CLASSIFICATION_TASK'
-    task_keywords = ['CLASSIFICATION', 'TABULAR', 'MULTICLASS']
+    task_keywords = ['classification', 'tabular', 'multiClass']
     dataset_folder = '/Users/rlopez/D3M/datasets/seed_datasets_current/185_baseball'
     create_grammar_from_metalearningdb(task_name, task_keywords, dataset_folder)
-    #analyze_distribution(load_pipelines(task_keywords))
+    #analyze_distribution(load_related_pipelines(task_keywords))

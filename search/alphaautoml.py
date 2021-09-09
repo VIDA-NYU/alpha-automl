@@ -14,7 +14,7 @@ from alphad3m.data_ingestion.data_profiler import get_privileged_data, select_en
 from alphad3m.search.d3mpipeline_builder import *
 from alphad3m.metafeature.metafeature_extractor import ComputeMetafeatures
 from alphad3m.utils import get_collection_type
-from d3m.metadata.problem import TaskKeyword
+from d3m.metadata.problem import TaskKeyword, TaskKeywordBase
 
 
 logger = logging.getLogger(__name__)
@@ -154,7 +154,8 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
         config['ARGS']['stepsfile'] = join(os.environ.get('D3MOUTPUTDIR'), 'temp', config['DATASET'] + '_pipeline_steps.txt')
 
         task_name_id = task_name + '_TASK'
-        task_keyword_ids = [t.value for t in task_keywords]
+        task_keywords_mapping = {v: k for k, v in TaskKeywordBase.get_map().items()}
+        task_keyword_ids = [task_keywords_mapping[t] for t in task_keywords]
         if use_automatic_grammar:
             config['GRAMMAR'] = load_automatic_grammar(task_name_id, task_keyword_ids)
         else:
