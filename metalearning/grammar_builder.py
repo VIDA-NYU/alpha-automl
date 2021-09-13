@@ -1,6 +1,5 @@
 import logging
 import statistics
-from collections import OrderedDict
 from alphad3m.primitive_loader import load_primitives_list
 from alphad3m.metalearning.database import load_metalearningdb
 from alphad3m.metalearning.dataset_miner import get_similar_datasets, get_dataset_id
@@ -81,7 +80,7 @@ def format_grammar(task_name, patterns, empty_elements):
     return grammar
 
 
-def extract_patterns(pipelines, combine_encoders=False, min_frequency=5, adtm_threshold=0.3, mean_score_threshold=0.7):
+def extract_patterns(pipelines, combine_encoders=False, min_frequency=5, adtm_threshold=0.3, mean_score_threshold=0.7, min_nro_datasets=2):
     available_primitives = load_primitives_by_name()
     pipelines = calculate_adtm(pipelines)
     patterns = {}
@@ -96,11 +95,14 @@ def extract_patterns(pipelines, combine_encoders=False, min_frequency=5, adtm_th
             primitive_types = combine_type_encoders(primitive_types)
         pattern_id = ' '.join(primitive_types)
         if pattern_id not in patterns:
-            patterns[pattern_id] = {'structure': primitive_types, 'primitives': [], 'scores': [], 'frequency': 0, 'adtm': pipeline_data['adtm']}
+            patterns[pattern_id] = {'structure': primitive_types, 'primitives': [], 'datasets': set(), 'scores': [], 'adtms': [], 'frequency': 0}
         patterns[pattern_id]['primitives'].append(pipeline_data['pipeline'])
+        patterns[pattern_id]['datasets'].add(pipeline_data['dataset'])
         patterns[pattern_id]['scores'].append(pipeline_data['score'])
+        patterns[pattern_id]['adtms'].append(pipeline_data['adtm'])
         patterns[pattern_id]['frequency'] += 1
-    logger.info('Found %d different patterns', len(patterns))
+
+    logger.info('Found %d different patterns, after creating the portfolio', len(patterns))
     # TODO: Group these removing conditions into a single loop
     # Remove patterns with fewer elements than the minimum frequency
     patterns = {k: v for k, v in patterns.items() if v['frequency'] >= min_frequency}
@@ -113,15 +115,22 @@ def extract_patterns(pipelines, combine_encoders=False, min_frequency=5, adtm_th
 
     for pattern_id in patterns:
         scores = patterns[pattern_id].pop('scores')
+        adtms = patterns[pattern_id].pop('adtms')
         patterns[pattern_id]['mean_score'] = statistics.mean(scores)
+        patterns[pattern_id]['mean_adtm'] = statistics.mean(adtms)
 
     # Remove patterns with low performances
     patterns = {k: v for k, v in patterns.items() if v['mean_score'] >= mean_score_threshold}
     logger.info('Found %d different patterns, after removing low-performance patterns', len(patterns))
 
+    # Remove patterns with low variability
+    patterns = {k: v for k, v in patterns.items() if len(set(v['datasets'])) >= min_nro_datasets}
+    logger.info('Found %d different patterns, after removing low-variability patterns', len(patterns))
+
     hierarchy_primitives = {}
 
     for pattern in patterns.values():
+        pattern.pop('datasets')  # Just remove the dataset list
         for pipeline in pattern.pop('primitives'):
             for primitive in pipeline:
                 primitive_type = available_primitives[primitive]['type']
@@ -237,13 +246,12 @@ def analyze_distribution(pipelines_metalearningdb):
 
     for primitive_type, primitives_info in primitive_frequency.items():
         if primitive_type not in primitive_distribution:
-            primitive_distribution[primitive_type] = OrderedDict()
+            primitive_distribution[primitive_type] = []
         for primitive, frequency in sorted(primitives_info['primitives'].items(), key=lambda x: x[1], reverse=True):
-            distribution = float(frequency) / primitives_info['total']
-            primitive_distribution[primitive_type][primitive] = distribution
-        print(primitive_type)
-        print(['%s %s' % (k, round(v, 4)) for k, v in primitive_distribution[primitive_type].items()])
+            distribution = round(float(frequency) / primitives_info['total'], 4)
+            primitive_distribution[primitive_type].append((primitive, distribution))
 
+    logger.info('Distribution:\n%s' % '\n'.join(['%s\n%s' % (k, str(v)) for k, v in primitive_distribution.items()]))
     return primitive_distribution
 
 
@@ -286,9 +294,19 @@ def load_primitives_by_id():
     return primitives_by_id
 
 
+def test_dataset(dataset_id, task_name='TASK'):
+    from os.path import join
+    import json
+    dataset_folder_path = join('/Users/rlopez/D3M/datasets/seed_datasets_current/', dataset_id)
+    problem_path = join(dataset_folder_path, 'TRAIN/problem_TRAIN/problemDoc.json')
+    with open(problem_path) as fin:
+        problem_doc = json.load(fin)
+        task_keywords = problem_doc['about']['taskKeywords']
+
+    logger.info('Evaluating dataset %s with task keywords=%s' % (dataset_id, str(task_keywords)))
+    create_grammar_from_metalearningdb(task_name, task_keywords, dataset_folder_path)
+    #analyze_distribution(load_related_pipelines(task_keywords, dataset_folder_path))
+
+
 if __name__ == '__main__':
-    task_name = 'CLASSIFICATION_TASK'
-    task_keywords = ['classification', 'tabular', 'multiClass']
-    dataset_folder = '/Users/rlopez/D3M/datasets/seed_datasets_current/185_baseball'
-    create_grammar_from_metalearningdb(task_name, task_keywords, dataset_folder)
-    #analyze_distribution(load_related_pipelines(task_keywords))
+    test_dataset('185_baseball_MIN_METADATA')
