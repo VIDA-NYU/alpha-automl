@@ -1,11 +1,12 @@
 import json
+import pickle
 import logging
 from os.path import join, dirname
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
 
-METALEARNINGDB_PATH = join(dirname(__file__), '../../resource/metalearningdb.json')
+METALEARNINGDB_PATH = join(dirname(__file__), '../../resource/metalearningdb.pkl')
 
 
 def merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file, n=-1, verbose=False):
@@ -54,18 +55,18 @@ def merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file, n=-1
                     logger.error(problem['id'], repr(e))
     logger.info('Done.')
 
-    with open(METALEARNINGDB_PATH, 'w') as fout:
-        fout.write('\n'.join(merged))
+    with open(METALEARNINGDB_PATH, 'wb') as f:
+        pickle.dump(merged, f)
 
 
 def load_metalearningdb():
     all_pipelines = []
 
-    with open(METALEARNINGDB_PATH) as fin:
-        for line in fin:
-            all_pipelines.append(json.loads(line))
+    with open(METALEARNINGDB_PATH, 'rb') as fin:
+        # Use pickle instead of json because it was faster in our experiments
+        all_pipelines = pickle.load(fin)
 
-    logger.info('Pipelines from metalearning database loaded')
+    logger.info('Found %d pipelines in metalearning database' % len(all_pipelines))
 
     return all_pipelines
 
