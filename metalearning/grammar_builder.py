@@ -14,6 +14,7 @@ IGNORE_PRIMITIVES = {'d3m.primitives.data_transformation.construct_predictions.C
                      'd3m.primitives.data_transformation.flatten.DataFrameCommon',
                      'd3m.primitives.data_transformation.column_parser.Common',
                      'd3m.primitives.data_transformation.do_nothing.DSBOX',
+                     'd3m.primitives.schema_discovery.profiler.Common',
                      'd3m.primitives.schema_discovery.profiler.DSBOX',
                      'd3m.primitives.data_cleaning.column_type_profiler.Simon',
                      'd3m.primitives.data_transformation.text_reader.Common',
@@ -80,7 +81,7 @@ def format_grammar(task_name, patterns, empty_elements):
     return grammar
 
 
-def extract_patterns(pipelines, combine_encoders=False, min_frequency=5, adtm_threshold=0.3, mean_score_threshold=0.7, min_nro_datasets=2):
+def extract_patterns(pipelines, combine_encoders=False, min_frequency=5, adtm_threshold=0.3, mean_score_threshold=0.5, min_nro_datasets=2):
     available_primitives = load_primitives_by_name()
     pipelines = calculate_adtm(pipelines)
     patterns = {}
@@ -139,7 +140,7 @@ def extract_patterns(pipelines, combine_encoders=False, min_frequency=5, adtm_th
                 hierarchy_primitives[primitive_type].add(primitive)
 
     patterns = sorted(patterns.values(), key=lambda x: x['mean_score'], reverse=True)
-    logger.info('Patterns:\n%s', '\n'.join([str(x) for x in patterns]))
+    logger.info('Patterns:\n%s', patterns_repr(patterns))
     patterns = [p['structure'] for p in patterns]
 
     return patterns, hierarchy_primitives
@@ -292,6 +293,22 @@ def load_primitives_by_id():
         primitives_by_id[primitive['id']] = primitive['python_path']
 
     return primitives_by_id
+
+
+def patterns_repr(patterns):
+    patterns_string = []
+
+    for pattern in patterns:
+        pretty_string = ''
+        pretty_string += 'structure: [%s]' % ', '.join([i for i in pattern['structure']])
+        pretty_string += ', frequency: %d' % pattern['frequency']
+        if 'mean_score' in pattern:
+            pretty_string += ', mean_score: %.3f' % pattern['mean_score']
+        if 'mean_adtm' in pattern:
+            pretty_string += ', mean_adtm: %.3f' % pattern['mean_adtm']
+        patterns_string.append(pretty_string)
+
+    return '\n'.join(patterns_string)
 
 
 def test_dataset(dataset_id, task_name='TASK'):
