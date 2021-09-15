@@ -61,7 +61,7 @@ def merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file, n=-1
 
 def load_metalearningdb():
     all_pipelines = []
-
+    logger.info('Loading pipelines from metalearning database...')
     with open(METALEARNINGDB_PATH, 'rb') as fin:
         # Use pickle instead of json because it was faster in our experiments
         all_pipelines = pickle.load(fin)
