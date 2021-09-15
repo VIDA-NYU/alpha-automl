@@ -115,7 +115,8 @@ def modify_manual_grammar(encoders, use_imputer):
 
 def load_manual_grammar(task, task_keywords, encoders, use_imputer):
     primitives = load_primitives_hierarchy()
-    if 'TEXT' not in task_keywords:
+    if 'text' not in task_keywords:
+        # Ignore some text processing primitives for non-text tasks
         ignore_primitives = {'d3m.primitives.feature_extraction.count_vectorizer.SKlearn',
                              'd3m.primitives.feature_extraction.boc.UBC', 'd3m.primitives.feature_extraction.bow.UBC',
                              'd3m.primitives.feature_extraction.nk_sent2vec.Sent2Vec',
@@ -130,8 +131,8 @@ def load_manual_grammar(task, task_keywords, encoders, use_imputer):
     return game_grammar
 
 
-def load_automatic_grammar(task, task_keywords):
-    grammar_string, primitives = create_grammar_from_metalearningdb(task, task_keywords)
+def load_automatic_grammar(task, dataset_path, target_column, task_keywords):
+    grammar_string, primitives = create_grammar_from_metalearningdb(task, dataset_path, target_column, task_keywords)
     global_grammar = create_global_grammar(grammar_string, primitives)
     task_grammar = create_task_grammar(global_grammar, task)
     game_grammar = create_game_grammar(task_grammar)

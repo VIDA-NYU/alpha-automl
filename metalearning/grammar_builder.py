@@ -24,11 +24,11 @@ IGNORE_PRIMITIVES = {'d3m.primitives.data_transformation.construct_predictions.C
                      }
 
 
-def load_related_pipelines(task_keywords, dataset_folder):
+def load_related_pipelines(dataset_path, target_column, task_keywords):
     primitives_by_id = load_primitives_by_id()
     primitives_by_name = load_primitives_by_name()
     all_pipelines = load_metalearningdb()
-    similar_datasets = get_similar_datasets('dataprofiles', dataset_folder, task_keywords)
+    similar_datasets = get_similar_datasets('dataprofiles', dataset_path, target_column, task_keywords)
     ignore_primitives_ids = set()
     task_pipelines = []
 
@@ -57,8 +57,8 @@ def load_related_pipelines(task_keywords, dataset_folder):
     return task_pipelines
 
 
-def create_grammar_from_metalearningdb(task_name, task_keywords, dataset_folder):
-    pipelines = load_related_pipelines(task_keywords, dataset_folder)
+def create_grammar_from_metalearningdb(task_name, dataset_path, target_column, task_keywords):
+    pipelines = load_related_pipelines(dataset_path, target_column, task_keywords)
     patterns, hierarchy_primitives = extract_patterns(pipelines)
     patterns, empty_elements = merge_patterns(patterns)
     grammar = format_grammar(task_name, patterns, empty_elements)
@@ -315,14 +315,16 @@ def test_dataset(dataset_id, task_name='TASK'):
     from os.path import join
     import json
     dataset_folder_path = join('/Users/rlopez/D3M/datasets/seed_datasets_current/', dataset_id)
+    dataset_path = join(dataset_folder_path, 'TRAIN/dataset_TRAIN/tables/learningData.csv')
     problem_path = join(dataset_folder_path, 'TRAIN/problem_TRAIN/problemDoc.json')
+
     with open(problem_path) as fin:
         problem_doc = json.load(fin)
         task_keywords = problem_doc['about']['taskKeywords']
-
+        target_column = problem_doc['inputs']['data'][0]['targets'][0]['colName']
     logger.info('Evaluating dataset %s with task keywords=%s' % (dataset_id, str(task_keywords)))
-    create_grammar_from_metalearningdb(task_name, task_keywords, dataset_folder_path)
-    #analyze_distribution(load_related_pipelines(task_keywords, dataset_folder_path))
+    create_grammar_from_metalearningdb(task_name, dataset_path, target_column, task_keywords)
+    #analyze_distribution(load_related_pipelines(dataset_path, target_column, task_keywordsn))
 
 
 if __name__ == '__main__':

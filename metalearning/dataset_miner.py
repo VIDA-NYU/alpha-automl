@@ -51,96 +51,61 @@ def get_unique_datasets():
 
 
 def get_dataset_id(problem_id):
+    # Remove suffixes 'TRAIN' and 'problem' from the dataset name
     dataset_id = re.sub('_TRAIN$', '', problem_id)
     dataset_id = re.sub('_problem$', '', dataset_id)
 
     return dataset_id
 
 
-def get_X_Y(dataset_folder_path):
+def load_task_info(dataset_id):
+    possible_names = [join(DATASETS_FOLDER_PATH, dataset_id), join(DATASETS_FOLDER_PATH, dataset_id + '_MIN_METADATA'),
+                      join(DATASETS_FOLDER_PATH, dataset_id.replace('_MIN_METADATA', ''))]
+    # All possible names of the datasets on disk, with/without the suffix 'MIN_METADATA'
+
+    for dataset_folder_path in possible_names:
+        if exists(dataset_folder_path):
+            break
+    else:
+        raise FileNotFoundError('Dataset %s not found' % dataset_id)
+
+    dataset_path = join(dataset_folder_path, 'TRAIN/dataset_TRAIN/tables/learningData.csv')
     problem_path = join(dataset_folder_path, 'TRAIN/problem_TRAIN/problemDoc.json')
-    csv_path = join(dataset_folder_path, 'TRAIN/dataset_TRAIN/tables/learningData.csv')
 
     with open(problem_path) as fin:
         problem_doc = json.load(fin)
-        target_name = problem_doc['inputs']['data'][0]['targets'][0]['colName']
+        task_keywords = problem_doc['about']['taskKeywords']
+        target_column = problem_doc['inputs']['data'][0]['targets'][0]['colName']
 
-    data = pd.read_csv(csv_path)
-    Y = data[target_name]
-    Y = pd.Series([str(i) for i in Y], name=target_name)  # Cast to string to get metalearn lib working correctly
-    X = data.drop(columns=[target_name])
-
-    return X, Y
+    return dataset_path, target_column, task_keywords
 
 
-def load_dataset(dataset_id):
-    dataset_folder_path = join(DATASETS_FOLDER_PATH, dataset_id)
-
-    if not exists(dataset_folder_path):
-        # Add the suffix '_MIN_METADATA' to the name of the dataset
-        dataset_folder_path = join(DATASETS_FOLDER_PATH, dataset_id + '_MIN_METADATA')
-        if not exists(dataset_folder_path):
-            logger.error('Dataset %s not found', dataset_id)
-            return None
-
-    try:
-        X, Y = get_X_Y(dataset_folder_path)
-        return {'X': X, 'Y': Y}
-    except:
-        logger.error('Reading dataset %s', dataset_id)
-        return None
-
-
-def load_task_keywords(dataset_id):
-    dataset_folder_path = join(DATASETS_FOLDER_PATH, dataset_id)
-
-    if not exists(dataset_folder_path):
-        # Add the suffix '_MIN_METADATA' to the name of the dataset
-        dataset_folder_path = join(DATASETS_FOLDER_PATH, dataset_id + '_MIN_METADATA')
-        if not exists(dataset_folder_path):
-            logger.error('Dataset %s not found', dataset_id)
-            return None
-
-    try:
-        problem_path = join(dataset_folder_path, 'TRAIN/problem_TRAIN/problemDoc.json')
-        with open(problem_path) as fin:
-            problem_doc = json.load(fin)
-            task_keywords = problem_doc['about']['taskKeywords']
-
-            return {'task_keywords': task_keywords}
-    except:
-        logger.error('Reading dataset %s', dataset_id)
-        return None
-
-
-def extract_metafeatures(X, Y):
+def extract_metafeatures(dataset_path, target_column):
+    data = pd.read_csv(dataset_path)
+    Y = data[target_column]
+    Y = pd.Series([str(i) for i in Y], name=target_column)  # Cast to string to get metalearn lib working correctly
+    X = data.drop(columns=[target_column])
     metafeatures = Metafeatures()
-    mfs = None
-    try:
-        mfs = metafeatures.compute(X, Y, seed=0, timeout=300)
-    except:
-        logger.error('Calculating metafeatures')
+    mfs = metafeatures.compute(X, Y, seed=0, timeout=300)
 
     return mfs
 
 
-def extract_dataprofiles(X):
-    dps = None
-    try:
-        metadata = datamart_profiler.process_dataset(X, coverage=False)
-        feature_types = set()
-        missing_values = False
-        for item in metadata['columns']:
-            identified_types = item['semantic_types'] if len(item['semantic_types']) > 0 else [item['structural_type']]
-            for feature_type in identified_types:
-                feature_types.add(feature_type)
+def extract_dataprofiles(dataset_path, target_column, ignore_target_column=False):
+    metadata = datamart_profiler.process_dataset(dataset_path, coverage=False)
+    feature_types = set()
+    missing_values = False
+    for item in metadata['columns']:
+        if ignore_target_column and item['name'] == target_column:
+            continue
+        identified_types = item['semantic_types'] if len(item['semantic_types']) > 0 else [item['structural_type']]
+        for feature_type in identified_types:
+            feature_types.add(feature_type)
 
-            if 'missing_values_ratio' in item:
-                missing_values = True
+        if 'missing_values_ratio' in item and item['name'] != target_column:
+            missing_values = True
 
-        dps = {'feature_types': sorted(feature_types), 'missing_values': missing_values}
-    except:
-        logger.error('Calculating data profiles')
+    dps = {'feature_types': sorted(feature_types), 'missing_values': missing_values}
 
     return dps
 
@@ -152,16 +117,17 @@ def extract_metafeatures_mldb():
     for dataset_id in datasets:
         logger.info('Calculating metafeatures for dataset %s...', dataset_id)
         if dataset_id not in metafeatures:
-            dataset = load_dataset(dataset_id)
-            if dataset:
-                mfs = extract_metafeatures(dataset['X'], dataset['Y'])
-                if mfs:
-                    metafeatures[dataset_id] = mfs
-                    logger.info('Metafeatures successfully calculated')
-                    with open(PRECALCULATED_METAFEATURES_PATH, 'w') as fout:
-                        json.dump(metafeatures, fout, indent=4)
+            try:
+                dataset_path, target_column, _ = load_task_info(dataset_id)
+                mfs = extract_metafeatures(dataset_path, target_column)
+                metafeatures[dataset_id] = mfs
+                logger.info('Metafeatures successfully calculated for dataset %s', dataset_id)
+                with open(PRECALCULATED_METAFEATURES_PATH, 'w') as fout:
+                    json.dump(metafeatures, fout, indent=4)
+            except Exception as e:
+                logger.error(str(e))
         else:
-            logger.info('Using pre-calculated metafeatures')
+            logger.info('Using pre-calculated metafeatures for dataset %s', dataset_id)
 
     return metafeatures
 
@@ -173,16 +139,17 @@ def extract_dataprofiles_mldb():
     for dataset_id in datasets:
         logger.info('Calculating data profiles for dataset %s...', dataset_id)
         if dataset_id not in dataprofiles:
-            dataset = load_dataset(dataset_id)
-            if dataset:
-                dps = extract_dataprofiles(dataset['X'])
-                if dps:
-                    dataprofiles[dataset_id] = dps
-                    logger.info('Data profiles successfully calculated')
-                    with open(PRECALCULATED_DATAPROFILES_PATH, 'w') as fout:
-                        json.dump(dataprofiles, fout, indent=4)
+            try:
+                dataset_path, target_column, _ = load_task_info(dataset_id)
+                dps = extract_dataprofiles(dataset_path, target_column)
+                dataprofiles[dataset_id] = dps
+                logger.info('Data profiles successfully calculated for dataset %s', dataset_id)
+                with open(PRECALCULATED_DATAPROFILES_PATH, 'w') as fout:
+                    json.dump(dataprofiles, fout, indent=4)
+            except Exception as e:
+                logger.error(str(e))
         else:
-            logger.info('Using pre-calculated data profiles')
+            logger.info('Using pre-calculated data profiles for dataset %s', dataset_id)
 
     return dataprofiles
 
@@ -194,14 +161,16 @@ def extract_taskkeywords_mldb():
     for dataset_id in datasets:
         logger.info('Calculating task keywords for dataset %s...', dataset_id)
         if dataset_id not in task_keywords:
-            keywords = load_task_keywords(dataset_id)
-            if keywords:
-                task_keywords[dataset_id] = keywords
-                logger.info('Task keywords successfully calculated')
+            try:
+                _, _, keywords = load_task_info(dataset_id)
+                task_keywords[dataset_id] = {'task_keywords': keywords}
+                logger.info('Task keywords successfully calculated for dataset %s', dataset_id)
                 with open(PRECALCULATED_TASKKEYWORDS_PATH, 'w') as fout:
                     json.dump(task_keywords, fout, indent=4)
+            except Exception as e:
+                logger.error(str(e))
         else:
-            logger.info('Using pre-calculated task keywords')
+            logger.info('Using pre-calculated task keywords for dataset %s', dataset_id)
 
     return task_keywords
 
@@ -282,9 +251,8 @@ def create_taskkeywords_vectors_mldb(taskkeyword_indices):
     return vectors
 
 
-def load_metafeatures_vectors(dataset_folder):
-    X, Y = get_X_Y(dataset_folder)
-    mfs = extract_metafeatures(X, Y)
+def load_metafeatures_vectors(dataset_path, target_column):
+    mfs = extract_metafeatures(dataset_path, target_column)
     metafeature_indices = Metafeatures.list_metafeatures(group='all')
     target_metafeatures_vector = create_metafeatures_vector(mfs, metafeature_indices)
     metalearningdb_vectors = create_metafeatures_vectors_mldb(metafeature_indices)
@@ -292,9 +260,8 @@ def load_metafeatures_vectors(dataset_folder):
     return metalearningdb_vectors, target_metafeatures_vector
 
 
-def load_profiles_vectors(dataset_folder):
-    X, _ = get_X_Y(dataset_folder)
-    dps = extract_dataprofiles(X)
+def load_profiles_vectors(dataset_path, target_column):
+    dps = extract_dataprofiles(dataset_path, target_column)
     dataprofile_indices = [v for k, v in datamart_profiler.types.__dict__.items() if not k.startswith('_')]
     target_dataprofile_vector = create_dataprofiles_vector(dps, dataprofile_indices)
     metalearningdb_vectors = create_dataprofiles_vectors_mldb(dataprofile_indices)
@@ -310,11 +277,11 @@ def load_taskkeyword_vectors(task_keywords):
     return metalearningdb_vectors, target_dataprofile_vector
 
 
-def get_similar_datasets(mode, dataset_folder, task_keywords=None, threshold=0.8):
+def get_similar_datasets(mode, dataset_path, target_column, task_keywords=None, threshold=0.8):
     if mode == 'metafeatures':
-        metalearningdb_vectors, target_vector = load_metafeatures_vectors(dataset_folder)
+        metalearningdb_vectors, target_vector = load_metafeatures_vectors(dataset_path, target_column)
     elif mode == 'dataprofiles':
-        metalearningdb_vectors, target_vector = load_profiles_vectors(dataset_folder)
+        metalearningdb_vectors, target_vector = load_profiles_vectors(dataset_path, target_column)
     else:
         raise ValueError('Unknown mode "%s" to load data' % mode)
 
