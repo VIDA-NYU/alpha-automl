@@ -14,6 +14,7 @@ IGNORE_PRIMITIVES = {'d3m.primitives.data_transformation.construct_predictions.C
                      'd3m.primitives.data_transformation.flatten.DataFrameCommon',
                      'd3m.primitives.data_transformation.column_parser.Common',
                      'd3m.primitives.data_transformation.do_nothing.DSBOX',
+                     'd3m.primitives.data_transformation.add_semantic_types.Common',
                      'd3m.primitives.schema_discovery.profiler.Common',
                      'd3m.primitives.schema_discovery.profiler.DSBOX',
                      'd3m.primitives.data_cleaning.column_type_profiler.Simon',
@@ -52,7 +53,7 @@ def load_related_pipelines(dataset_path, target_column, task_keywords):
                 task_pipelines.append({'pipeline': primitives, 'score': score, 'metric': metric, 'dataset': dataset,
                                        'pipeline_repr': '_'.join(primitives)})
 
-    logger.info('Found %d pipelines for task %s', len(task_pipelines), '_'.join(task_keywords))
+    logger.info('Found %d related pipelines', len(task_pipelines))
 
     return task_pipelines
 
@@ -81,7 +82,7 @@ def format_grammar(task_name, patterns, empty_elements):
     return grammar
 
 
-def extract_patterns(pipelines, combine_encoders=False, min_frequency=5, adtm_threshold=0.3, mean_score_threshold=0.5, min_nro_datasets=2):
+def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.2, mean_score_threshold=0.5, ratio_datasets=0.2):
     available_primitives = load_primitives_by_name()
     pipelines = calculate_adtm(pipelines)
     patterns = {}
@@ -92,12 +93,10 @@ def extract_patterns(pipelines, combine_encoders=False, min_frequency=5, adtm_th
             continue
 
         primitive_types = [available_primitives[p]['type'] for p in pipeline_data['pipeline']]
-        if combine_encoders:
-            primitive_types = combine_type_encoders(primitive_types)
         pattern_id = ' '.join(primitive_types)
         if pattern_id not in patterns:
-            patterns[pattern_id] = {'structure': primitive_types, 'primitives': [], 'datasets': set(), 'scores': [], 'adtms': [], 'frequency': 0}
-        patterns[pattern_id]['primitives'].append(pipeline_data['pipeline'])
+            patterns[pattern_id] = {'structure': primitive_types, 'primitives': set(), 'datasets': set(), 'scores': [], 'adtms': [], 'frequency': 0}
+        patterns[pattern_id]['primitives'].update(pipeline_data['pipeline'])
         patterns[pattern_id]['datasets'].add(pipeline_data['dataset'])
         patterns[pattern_id]['scores'].append(pipeline_data['score'])
         patterns[pattern_id]['adtms'].append(pipeline_data['adtm'])
@@ -109,38 +108,46 @@ def extract_patterns(pipelines, combine_encoders=False, min_frequency=5, adtm_th
     patterns = {k: v for k, v in patterns.items() if v['frequency'] >= min_frequency}
     logger.info('Found %d different patterns, after removing uncommon patterns', len(patterns))
 
-    # Remove patterns with low performances
-    blacklist_primitive_types = {'OPERATOR', 'ARRAY_CONCATENATION'}
-    patterns = {k: v for k, v in patterns.items() if not blacklist_primitive_types & set(v['structure'])}
-    logger.info('Found %d different patterns, after blacklisting primitive types', len(patterns))
-
+    # Remove patterns with undesirable primitives
+    blacklist_primitives = {'d3m.primitives.data_transformation.dataframe_to_ndarray.Common',
+                            'd3m.primitives.data_transformation.list_to_dataframe.DistilListEncoder',
+                            'd3m.primitives.data_transformation.ndarray_to_dataframe.Common',
+                            'd3m.primitives.data_transformation.horizontal_concat.DSBOX',
+                            'd3m.primitives.data_transformation.horizontal_concat.DataFrameCommon',
+                            'd3m.primitives.data_transformation.multi_horizontal_concat.Common',
+                            'd3m.primitives.data_transformation.conditioner.Conditioner',
+                            'd3m.primitives.data_transformation.remove_semantic_types.Common',
+                            'd3m.primitives.data_transformation.replace_semantic_types.Common'}
+    patterns = {k: v for k, v in patterns.items() if not blacklist_primitives & set(v['primitives'])}
+    logger.info('Found %d different patterns, after blacklisting primitives', len(patterns))
+    unique_datasets = set()
     for pattern_id in patterns:
-        scores = patterns[pattern_id].pop('scores')
-        adtms = patterns[pattern_id].pop('adtms')
+        scores = patterns[pattern_id]['scores']
+        adtms = patterns[pattern_id]['adtms']
         patterns[pattern_id]['mean_score'] = statistics.mean(scores)
         patterns[pattern_id]['mean_adtm'] = statistics.mean(adtms)
+        unique_datasets.update(patterns[pattern_id]['datasets'])
 
     # Remove patterns with low performances
     patterns = {k: v for k, v in patterns.items() if v['mean_score'] >= mean_score_threshold}
     logger.info('Found %d different patterns, after removing low-performance patterns', len(patterns))
 
     # Remove patterns with low variability
-    patterns = {k: v for k, v in patterns.items() if len(set(v['datasets'])) >= min_nro_datasets}
+    patterns = {k: v for k, v in patterns.items() if len(v['datasets']) >= len(unique_datasets) * ratio_datasets}
     logger.info('Found %d different patterns, after removing low-variability patterns', len(patterns))
 
     hierarchy_primitives = {}
 
     for pattern in patterns.values():
-        pattern.pop('datasets')  # Just remove the dataset list
-        for pipeline in pattern.pop('primitives'):
-            for primitive in pipeline:
-                primitive_type = available_primitives[primitive]['type']
-                if primitive_type not in hierarchy_primitives:
-                    hierarchy_primitives[primitive_type] = set()
-                hierarchy_primitives[primitive_type].add(primitive)
+        for primitive in pattern['primitives']:
+            primitive_type = available_primitives[primitive]['type']
+            if primitive_type not in hierarchy_primitives:
+                hierarchy_primitives[primitive_type] = set()
+            hierarchy_primitives[primitive_type].add(primitive)
 
     patterns = sorted(patterns.values(), key=lambda x: x['mean_score'], reverse=True)
     logger.info('Patterns:\n%s', patterns_repr(patterns))
+    logger.info('Hierarchy:\n%s', '\n'.join(['%s:\n%s' % (k, ', '.join(v)) for k, v in hierarchy_primitives.items()]))
     patterns = [p['structure'] for p in patterns]
 
     return patterns, hierarchy_primitives
