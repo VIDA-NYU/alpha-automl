@@ -4,7 +4,7 @@ import itertools
 from os.path import join, dirname
 from nltk.grammar import Production, Nonterminal, CFG, is_terminal, is_nonterminal
 from alphad3m.primitive_loader import load_primitives_hierarchy
-from alphad3m.metalearning.grammar_builder import create_grammar_from_metalearningdb
+from alphad3m.metalearning.grammar_builder import create_metalearningdb_grammar
 
 logger = logging.getLogger(__name__)
 BASE_GRAMMAR_PATH = join(dirname(__file__), '../resource/base_grammar.bnf')
@@ -132,7 +132,7 @@ def load_manual_grammar(task, task_keywords, encoders, use_imputer):
 
 
 def load_automatic_grammar(task, dataset_path, target_column, task_keywords):
-    grammar_string, primitives = create_grammar_from_metalearningdb(task, dataset_path, target_column, task_keywords)
+    grammar_string, primitives, _ = create_metalearningdb_grammar(task, dataset_path, target_column, task_keywords)
     global_grammar = create_global_grammar(grammar_string, primitives)
     task_grammar = create_task_grammar(global_grammar, task)
     game_grammar = create_game_grammar(task_grammar)

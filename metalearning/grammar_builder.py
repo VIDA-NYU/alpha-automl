@@ -58,13 +58,13 @@ def load_related_pipelines(dataset_path, target_column, task_keywords):
     return task_pipelines
 
 
-def create_grammar_from_metalearningdb(task_name, dataset_path, target_column, task_keywords):
+def create_metalearningdb_grammar(task_name, dataset_path, target_column, task_keywords):
     pipelines = load_related_pipelines(dataset_path, target_column, task_keywords)
     patterns, hierarchy_primitives = extract_patterns(pipelines)
-    patterns, empty_elements = merge_patterns(patterns)
-    grammar = format_grammar(task_name, patterns, empty_elements)
+    merged_patterns, empty_elements = merge_patterns(patterns)
+    grammar = format_grammar(task_name, merged_patterns, empty_elements)
 
-    return grammar, hierarchy_primitives
+    return grammar, hierarchy_primitives, patterns
 
 
 def format_grammar(task_name, patterns, empty_elements):
@@ -330,7 +330,7 @@ def test_dataset(dataset_id, task_name='TASK'):
         task_keywords = problem_doc['about']['taskKeywords']
         target_column = problem_doc['inputs']['data'][0]['targets'][0]['colName']
     logger.info('Evaluating dataset %s with task keywords=%s' % (dataset_id, str(task_keywords)))
-    create_grammar_from_metalearningdb(task_name, dataset_path, target_column, task_keywords)
+    create_metalearningdb_grammar(task_name, dataset_path, target_column, task_keywords)
     #analyze_distribution(load_related_pipelines(dataset_path, target_column, task_keywordsn))
 
 
