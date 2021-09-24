@@ -1,5 +1,6 @@
 import logging
-import statistics
+import numpy as np
+from scipy import stats
 from alphad3m.primitive_loader import load_primitives_list
 from alphad3m.metalearning.database import load_metalearningdb
 from alphad3m.metalearning.dataset_miner import get_similar_datasets, get_dataset_id
@@ -82,7 +83,7 @@ def format_grammar(task_name, patterns, empty_elements):
     return grammar
 
 
-def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.2, mean_score_threshold=0.5, ratio_datasets=0.2):
+def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.3, mean_score_threshold=0.5, ratio_datasets=0.2):
     available_primitives = load_primitives_by_name()
     pipelines = calculate_adtm(pipelines)
     patterns = {}
@@ -95,9 +96,10 @@ def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.2, mean_score_
         primitive_types = [available_primitives[p]['type'] for p in pipeline_data['pipeline']]
         pattern_id = ' '.join(primitive_types)
         if pattern_id not in patterns:
-            patterns[pattern_id] = {'structure': primitive_types, 'primitives': set(), 'datasets': set(), 'scores': [], 'adtms': [], 'frequency': 0}
+            patterns[pattern_id] = {'structure': primitive_types, 'primitives': set(), 'datasets': set(), 'pipelines':[], 'scores': [], 'adtms': [], 'frequency': 0}
         patterns[pattern_id]['primitives'].update(pipeline_data['pipeline'])
         patterns[pattern_id]['datasets'].add(pipeline_data['dataset'])
+        patterns[pattern_id]['pipelines'].append(pipeline_data['pipeline'])
         patterns[pattern_id]['scores'].append(pipeline_data['score'])
         patterns[pattern_id]['adtms'].append(pipeline_data['adtm'])
         patterns[pattern_id]['frequency'] += 1
@@ -124,8 +126,8 @@ def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.2, mean_score_
     for pattern_id in patterns:
         scores = patterns[pattern_id]['scores']
         adtms = patterns[pattern_id]['adtms']
-        patterns[pattern_id]['mean_score'] = statistics.mean(scores)
-        patterns[pattern_id]['mean_adtm'] = statistics.mean(adtms)
+        patterns[pattern_id]['mean_score'] = np.mean(scores)
+        patterns[pattern_id]['mean_adtm'] = np.mean(adtms)
         unique_datasets.update(patterns[pattern_id]['datasets'])
 
     # Remove patterns with low performances
@@ -148,9 +150,32 @@ def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.2, mean_score_
     patterns = sorted(patterns.values(), key=lambda x: x['mean_score'], reverse=True)
     logger.info('Patterns:\n%s', patterns_repr(patterns))
     logger.info('Hierarchy:\n%s', '\n'.join(['%s:\n%s' % (k, ', '.join(v)) for k, v in hierarchy_primitives.items()]))
+
+    for pattern in patterns:
+        print(pattern['structure'], len(pattern['pipelines']), pattern['mean_adtm'])
+        calulate_correlations(sorted(pattern['primitives']), pattern['pipelines'], [1 - x for x in pattern['adtms']])
+
     patterns = [p['structure'] for p in patterns]
 
     return patterns, hierarchy_primitives
+
+
+def calulate_correlations(primitives, pipelines, scores, normalize=True):
+    correlations = {}
+
+    for primitive in primitives:
+        occurrences = [1 if primitive in pipeline else 0 for pipeline in pipelines]
+        correlation_coefficient, p_value = stats.pointbiserialr(occurrences, scores)
+        if np.isnan(correlation_coefficient):  # Assign a negative correlation (-1) to NaN values
+            correlation_coefficient = -1
+        if normalize:  # Normalize the Pearson values, from [-1, 1] to [0, 1] range
+            correlation_coefficient = (correlation_coefficient - (-1)) / 2  # xi − min(x) / max(x) − min(x)
+        correlations[primitive] = round(correlation_coefficient, 4)
+
+    for primitive, correlation in sorted(correlations.items(), key=lambda x: x[1], reverse=True):
+            print(primitive, correlation)
+
+    return correlations
 
 
 def calculate_adtm(pipelines):
@@ -219,21 +244,6 @@ def merge_patterns(grammar_patterns):
             patterns.remove(skip_pattern)
 
     return patterns, empty_elements
-
-
-def combine_type_encoders(primitive_types):
-    encoders = ['DATETIME_ENCODER', 'CATEGORICAL_ENCODER', 'TEXT_FEATURIZER']
-    encoder_group = 'ENCODERS'
-    new_primitive_types = []
-
-    for primitive_type in primitive_types:
-        if primitive_type in encoders:
-            if encoder_group not in new_primitive_types:
-                new_primitive_types.append(encoder_group)
-        else:
-            new_primitive_types.append(primitive_type)
-
-    return new_primitive_types
 
 
 def analyze_distribution(pipelines_metalearningdb):
