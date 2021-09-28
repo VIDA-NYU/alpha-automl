@@ -1,6 +1,7 @@
 import logging
 import numpy as np
 from scipy import stats
+from collections import OrderedDict
 from alphad3m.primitive_loader import load_primitives_list
 from alphad3m.metalearning.database import load_metalearningdb
 from alphad3m.metalearning.dataset_miner import get_similar_datasets, get_dataset_id
@@ -61,18 +62,22 @@ def load_related_pipelines(dataset_path, target_column, task_keywords):
 
 def create_metalearningdb_grammar(task_name, dataset_path, target_column, task_keywords):
     pipelines = load_related_pipelines(dataset_path, target_column, task_keywords)
-    patterns, hierarchy_primitives = extract_patterns(pipelines)
+    patterns, primitives = extract_patterns(pipelines)
     merged_patterns, empty_elements = merge_patterns(patterns)
     grammar = format_grammar(task_name, merged_patterns, empty_elements)
 
-    return grammar, hierarchy_primitives, patterns
+    return grammar, primitives
 
 
 def format_grammar(task_name, patterns, empty_elements):
+    if len(patterns) == 0:
+        logger.info('Empty patterns, no grammar have been generated')
+        return None
+
     grammar = 'S -> %s\n' % task_name
     grammar += task_name + ' -> ' + ' | '.join([' '.join(p) for p in patterns])
 
-    for element in set([item for sublist in patterns for item in sublist]):
+    for element in sorted(set([e for sublist in patterns for e in sublist])):  # Sort to have a deterministic grammar
         production_rule = element + " -> 'primitive_terminal'"
         if element in empty_elements:
             production_rule += " | 'E'"
@@ -122,6 +127,7 @@ def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.3, mean_score_
                             'd3m.primitives.data_transformation.replace_semantic_types.Common'}
     patterns = {k: v for k, v in patterns.items() if not blacklist_primitives & set(v['primitives'])}
     logger.info('Found %d different patterns, after blacklisting primitives', len(patterns))
+
     unique_datasets = set()
     for pattern_id in patterns:
         scores = patterns[pattern_id]['scores']
@@ -129,7 +135,6 @@ def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.3, mean_score_
         patterns[pattern_id]['mean_score'] = np.mean(scores)
         patterns[pattern_id]['mean_adtm'] = np.mean(adtms)
         unique_datasets.update(patterns[pattern_id]['datasets'])
-
     # Remove patterns with low performances
     patterns = {k: v for k, v in patterns.items() if v['mean_score'] >= mean_score_threshold}
     logger.info('Found %d different patterns, after removing low-performance patterns', len(patterns))
@@ -138,29 +143,40 @@ def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.3, mean_score_
     patterns = {k: v for k, v in patterns.items() if len(v['datasets']) >= len(unique_datasets) * ratio_datasets}
     logger.info('Found %d different patterns, after removing low-variability patterns', len(patterns))
 
-    hierarchy_primitives = {}
-
-    for pattern in patterns.values():
+    primitive_hierarchy = {}
+    all_pipelines = []
+    all_performances = []
+    all_primitives = []
+    for pattern_id, pattern in patterns.items():
         for primitive in pattern['primitives']:
             primitive_type = available_primitives[primitive]['type']
-            if primitive_type not in hierarchy_primitives:
-                hierarchy_primitives[primitive_type] = set()
-            hierarchy_primitives[primitive_type].add(primitive)
+            if primitive_type not in primitive_hierarchy:
+                primitive_hierarchy[primitive_type] = set()
+            primitive_hierarchy[primitive_type].add(primitive)
+        all_pipelines += pattern['pipelines']
+        all_primitives += pattern['primitives']
+        all_performances += [1 - x for x in pattern['adtms']]
 
+    correlations = calculate_correlations(set(all_primitives), all_pipelines, all_performances)
+    primitive_probabilities = {}
+    for primitive, correlation in correlations.items():
+        primitive_type = available_primitives[primitive]['type']
+        if primitive_type not in primitive_probabilities:
+            primitive_probabilities[primitive_type] = {}
+        primitive_probabilities[primitive_type][primitive] = correlation
+
+    # Make deterministic the order of the patterns and hierarchy
     patterns = sorted(patterns.values(), key=lambda x: x['mean_score'], reverse=True)
+    primitive_hierarchy = OrderedDict({k: sorted(v) for k, v in sorted(primitive_hierarchy.items(), key=lambda x: x[0])})
     logger.info('Patterns:\n%s', patterns_repr(patterns))
-    logger.info('Hierarchy:\n%s', '\n'.join(['%s:\n%s' % (k, ', '.join(v)) for k, v in hierarchy_primitives.items()]))
-
-    for pattern in patterns:
-        print(pattern['structure'], len(pattern['pipelines']), pattern['mean_adtm'])
-        calulate_correlations(sorted(pattern['primitives']), pattern['pipelines'], [1 - x for x in pattern['adtms']])
-
+    logger.info('Hierarchy:\n%s', '\n'.join(['%s:\n%s' % (k, ', '.join(v)) for k, v in primitive_hierarchy.items()]))
     patterns = [p['structure'] for p in patterns]
+    primitive_info = {'hierarchy': primitive_hierarchy, 'probabilities': primitive_probabilities}
 
-    return patterns, hierarchy_primitives
+    return patterns, primitive_info
 
 
-def calulate_correlations(primitives, pipelines, scores, normalize=True):
+def calculate_correlations(primitives, pipelines, scores, normalize=True):
     correlations = {}
 
     for primitive in primitives:
@@ -171,9 +187,6 @@ def calulate_correlations(primitives, pipelines, scores, normalize=True):
         if normalize:  # Normalize the Pearson values, from [-1, 1] to [0, 1] range
             correlation_coefficient = (correlation_coefficient - (-1)) / 2  # xi − min(x) / max(x) − min(x)
         correlations[primitive] = round(correlation_coefficient, 4)
-
-    for primitive, correlation in sorted(correlations.items(), key=lambda x: x[1], reverse=True):
-            print(primitive, correlation)
 
     return correlations
 

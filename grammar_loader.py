@@ -68,7 +68,7 @@ def create_task_grammar(global_grammar, task):
 def create_game_grammar(grammar):
     # Convert a context-free grammar to the game format
     start_symbol = grammar.start().symbol()
-    game_grammar = {'START': start_symbol, 'NON_TERMINALS': {}, 'TERMINALS': {}, 'RULES': {}, 'RULES_LOOKUP': {}}
+    game_grammar = {'START': start_symbol, 'NON_TERMINALS': {}, 'TERMINALS': {}, 'RULES': {}, 'RULES_LOOKUP': {}, 'RULES_PROBA':{}}
     terminals = []
 
     logger.info('Creating game grammar')
@@ -91,6 +91,16 @@ def create_game_grammar(grammar):
 
     game_grammar['TERMINALS'] = {t: i+len(game_grammar['NON_TERMINALS']) for i, t in enumerate(terminals, 1)}
     game_grammar['TERMINALS']['E'] = 0  # Special case for the empty symbol
+
+    return game_grammar
+
+
+def add_probabilities(game_grammar, probabilities):
+    for primitive_type, primitive_probabilities in probabilities.items():
+        for primitive, probability in primitive_probabilities.items():
+            id_rule_str = '%s -> %s' % (primitive_type, primitive)
+            id_rule_int = game_grammar['RULES'][id_rule_str]
+            game_grammar['RULES_PROBA'][id_rule_int] = (id_rule_str, probability)
 
     return game_grammar
 
@@ -132,9 +142,12 @@ def load_manual_grammar(task, task_keywords, encoders, use_imputer):
 
 
 def load_automatic_grammar(task, dataset_path, target_column, task_keywords):
-    grammar_string, primitives, _ = create_metalearningdb_grammar(task, dataset_path, target_column, task_keywords)
-    global_grammar = create_global_grammar(grammar_string, primitives)
+    grammar_string, primitives = create_metalearningdb_grammar(task, dataset_path, target_column, task_keywords)
+    if grammar_string is None:
+        return None
+    global_grammar = create_global_grammar(grammar_string, primitives['hierarchy'])
     task_grammar = create_task_grammar(global_grammar, task)
     game_grammar = create_game_grammar(task_grammar)
+    game_grammar = add_probabilities(game_grammar, primitives['probabilities'])
 
     return game_grammar

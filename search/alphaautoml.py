@@ -154,14 +154,18 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
         task_name_id = task_name + '_TASK'
         task_keywords_mapping = {v: k for k, v in TaskKeywordBase.get_map().items()}
         task_keyword_ids = [task_keywords_mapping[t] for t in task_keywords]
+        grammar = None
+
         if use_automatic_grammar:
             dataset_path = join(dirname(dataset[7:]), 'tables', 'learningData.csv')
             target_column = problem['inputs'][0]['targets'][0]['column_name']
-            config['GRAMMAR'] = load_automatic_grammar(task_name_id, dataset_path, target_column, task_keyword_ids)
-        else:
+            grammar = load_automatic_grammar(task_name_id, dataset_path, target_column, task_keyword_ids)
+
+        if grammar is None:
             encoders = select_encoders(metadata['only_attribute_types'])
             use_imputer = metadata['missing_values']
-            config['GRAMMAR'] = load_manual_grammar(task_name_id, task_keyword_ids, encoders, use_imputer)
+            grammar = load_manual_grammar(task_name_id, task_keyword_ids, encoders, use_imputer)
+        config['GRAMMAR'] = grammar
         metafeatures_extractor = ComputeMetafeatures(dataset, targets, features, DBSession)
         config['DATASET_METAFEATURES'] = [0] * 50 #metafeatures_extractor.compute_metafeatures('AlphaD3M_compute_metafeatures')
 
