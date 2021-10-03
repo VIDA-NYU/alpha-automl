@@ -121,6 +121,8 @@ def change_default_hyperparams(db, pipeline, primitive_name, primitive, index_le
         set_hyperparams(db, pipeline, primitive, replace=True)
     elif primitive_name == 'd3m.primitives.data_transformation.encoder.DSBOX':
         set_hyperparams(db, pipeline, primitive, n_limit=50)
+    elif primitive_name == 'd3m.primitives.data_transformation.encoder.DistilTextEncoder':
+        set_hyperparams(db, pipeline, primitive, encoder_type='tfidf')
     elif primitive_name == 'd3m.primitives.classification.text_classifier.DistilTextClassifier':
         set_hyperparams(db, pipeline, primitive, metric='accuracy')
     elif primitive_name == 'd3m.primitives.clustering.k_means.DistilKMeans':
