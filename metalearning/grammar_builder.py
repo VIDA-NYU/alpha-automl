@@ -125,7 +125,7 @@ def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.3, mean_score_
                             'd3m.primitives.data_transformation.conditioner.Conditioner',
                             'd3m.primitives.data_transformation.remove_semantic_types.Common',
                             'd3m.primitives.data_transformation.replace_semantic_types.Common'}
-    patterns = {k: v for k, v in patterns.items() if not blacklist_primitives & set(v['primitives'])}
+    patterns = {k: v for k, v in patterns.items() if not blacklist_primitives & v['primitives']}
     logger.info('Found %d different patterns, after blacklisting primitives', len(patterns))
 
     unique_datasets = set()
@@ -147,23 +147,32 @@ def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.3, mean_score_
     all_pipelines = []
     all_performances = []
     all_primitives = []
+    local_probabilities = {}
     for pattern_id, pattern in patterns.items():
         for primitive in pattern['primitives']:
             primitive_type = available_primitives[primitive]['type']
             if primitive_type not in primitive_hierarchy:
                 primitive_hierarchy[primitive_type] = set()
             primitive_hierarchy[primitive_type].add(primitive)
+        performances = [1 - x for x in pattern['adtms']]  # Use adtms as performances because their are scaled
         all_pipelines += pattern['pipelines']
         all_primitives += pattern['primitives']
-        all_performances += [1 - x for x in pattern['adtms']]
+        all_performances += performances
+        correlations = calculate_correlations(pattern['primitives'], pattern['pipelines'], performances)
+        local_probabilities[pattern_id] = {}
+        for primitive, correlation in correlations.items():
+            primitive_type = available_primitives[primitive]['type']
+            if primitive_type not in local_probabilities[pattern_id]:
+                local_probabilities[pattern_id][primitive_type] = {}
+            local_probabilities[pattern_id][primitive_type][primitive] = correlation
 
     correlations = calculate_correlations(set(all_primitives), all_pipelines, all_performances)
-    primitive_probabilities = {}
+    global_probabilities = {}
     for primitive, correlation in correlations.items():
         primitive_type = available_primitives[primitive]['type']
-        if primitive_type not in primitive_probabilities:
-            primitive_probabilities[primitive_type] = {}
-        primitive_probabilities[primitive_type][primitive] = correlation
+        if primitive_type not in global_probabilities:
+            global_probabilities[primitive_type] = {}
+        global_probabilities[primitive_type][primitive] = correlation
 
     # Make deterministic the order of the patterns and hierarchy
     patterns = sorted(patterns.values(), key=lambda x: x['mean_score'], reverse=True)
@@ -171,6 +180,7 @@ def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.3, mean_score_
     logger.info('Patterns:\n%s', patterns_repr(patterns))
     logger.info('Hierarchy:\n%s', '\n'.join(['%s:\n%s' % (k, ', '.join(v)) for k, v in primitive_hierarchy.items()]))
     patterns = [p['structure'] for p in patterns]
+    primitive_probabilities = {'global': global_probabilities, 'local': local_probabilities, 'types': available_primitives}
     primitive_info = {'hierarchy': primitive_hierarchy, 'probabilities': primitive_probabilities}
 
     return patterns, primitive_info
@@ -182,8 +192,8 @@ def calculate_correlations(primitives, pipelines, scores, normalize=True):
     for primitive in primitives:
         occurrences = [1 if primitive in pipeline else 0 for pipeline in pipelines]
         correlation_coefficient, p_value = stats.pointbiserialr(occurrences, scores)
-        if np.isnan(correlation_coefficient):  # Assign a negative correlation (-1) to NaN values
-            correlation_coefficient = -1
+        if np.isnan(correlation_coefficient):  # Assign a positive correlation (1) to NaN values
+            correlation_coefficient = 1
         if normalize:  # Normalize the Pearson values, from [-1, 1] to [0, 1] range
             correlation_coefficient = (correlation_coefficient - (-1)) / 2  # xi − min(x) / max(x) − min(x)
         correlations[primitive] = round(correlation_coefficient, 4)

@@ -68,7 +68,8 @@ def create_task_grammar(global_grammar, task):
 def create_game_grammar(grammar):
     # Convert a context-free grammar to the game format
     start_symbol = grammar.start().symbol()
-    game_grammar = {'START': start_symbol, 'NON_TERMINALS': {}, 'TERMINALS': {}, 'RULES': {}, 'RULES_LOOKUP': {}, 'RULES_PROBA':{}}
+    game_grammar = {'START': start_symbol, 'NON_TERMINALS': {}, 'TERMINALS': {}, 'RULES': {}, 'RULES_LOOKUP': {},
+                    'RULES_PROBA': {'GLOBAL': {}, 'LOCAL': {}, 'TYPES': {}}}
     terminals = []
 
     logger.info('Creating game grammar')
@@ -96,11 +97,20 @@ def create_game_grammar(grammar):
 
 
 def add_probabilities(game_grammar, probabilities):
-    for primitive_type, primitive_probabilities in probabilities.items():
+    for primitive_type, primitive_probabilities in probabilities['global'].items():
         for primitive, probability in primitive_probabilities.items():
             id_rule_str = '%s -> %s' % (primitive_type, primitive)
             id_rule_int = game_grammar['RULES'][id_rule_str]
-            game_grammar['RULES_PROBA'][id_rule_int] = (id_rule_str, probability)
+            game_grammar['RULES_PROBA']['GLOBAL'][id_rule_int] = (id_rule_str, probability)
+
+    for pattern, pattern_probabilities in probabilities['local'].items():
+        game_grammar['RULES_PROBA']['LOCAL'][pattern] = {}
+        for primitive_type, primitive_probabilities in pattern_probabilities.items():
+            for primitive, probability in primitive_probabilities.items():
+                id_rule_str = '%s -> %s' % (primitive_type, primitive)
+                id_rule_int = game_grammar['RULES'][id_rule_str]
+                game_grammar['RULES_PROBA']['LOCAL'][pattern][id_rule_int] = (id_rule_str, probability)
+    game_grammar['RULES_PROBA']['TYPES'] = probabilities['types']
 
     return game_grammar
 
