@@ -87,10 +87,12 @@ def select_identified_feature_types(metadata, unkown_feature_types, target_names
 def get_extra_metadata(metadata, exclude_columns):
     extra_metadata = {'missing_values': False, 'large_rows': False, 'large_columns': False, 'exclude_columns': []}
 
-    for item in metadata['columns']:
+    for index, item in enumerate(metadata['columns']):
         if 'missing_values_ratio' in item and item['name'] not in exclude_columns:
             extra_metadata['missing_values'] = True
-            break
+
+        if 'structural_type' in item and 'https://metadata.datadrivendiscovery.org/types/MissingData' in item['structural_type']:
+            extra_metadata['exclude_columns'].append(index)
 
     if 'nb_rows' in metadata and metadata['nb_rows'] > 1000000:
         extra_metadata['large_rows'] = True
