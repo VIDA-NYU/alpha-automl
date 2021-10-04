@@ -35,8 +35,7 @@ IGNORE_PRIMITIVES = {
     'd3m.primitives.data_transformation.load_single_graph.DistilSingleGraphLoader',
     'd3m.primitives.data_transformation.load_graphs.JHU',
     'd3m.primitives.data_preprocessing.largest_connected_component.JHU',
-    'd3m.primitives.data_transformation.adjacency_spectral_embedding.JHU',
-    'd3m.primitives.data_transformation.audio_reader.DistilAudioDatasetLoader'
+    'd3m.primitives.data_transformation.adjacency_spectral_embedding.JHU'
 }
 
 
@@ -101,7 +100,7 @@ def format_grammar(task_name, patterns, empty_elements):
     return grammar
 
 
-def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.5, mean_score_threshold=0.5, ratio_datasets=0.2):
+def extract_patterns(pipelines, min_frequency=3, adtm_threshold=0.5, mean_score_threshold=0.5, ratio_datasets=0.2):
     available_primitives = load_primitives_by_name()
     pipelines = calculate_adtm(pipelines)
     patterns = {}
@@ -139,7 +138,8 @@ def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.5, mean_score_
                             'd3m.primitives.data_transformation.remove_semantic_types.Common',
                             'd3m.primitives.data_transformation.replace_semantic_types.Common',
                             'd3m.primitives.data_transformation.remove_columns.Common',
-                            'd3m.primitives.operator.dataset_map.DataFrameCommon'}
+                            'd3m.primitives.operator.dataset_map.DataFrameCommon',
+                            'd3m.primitives.data_transformation.i_vector_extractor.IVectorExtractor'}
     patterns = {k: v for k, v in patterns.items() if not blacklist_primitives & v['primitives']}
     logger.info('Found %d different patterns, after blacklisting primitives', len(patterns))
 
