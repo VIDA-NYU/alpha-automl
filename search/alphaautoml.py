@@ -142,7 +142,7 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
         task_name = 'NA'
         builder = BaseBuilder()
 
-    use_automatic_grammar = False
+    use_automatic_grammar = True
 
     def update_config(task_name):
         config['PROBLEM'] = task_name
