@@ -168,6 +168,9 @@ def get_primitive_type(primitive_name):
     elif primitive_name in {'d3m.primitives.feature_extraction.audio_transfer.DistilAudioTransfer'}:
         primitive_type = 'AUDIO_FEATURIZER'
 
+    elif primitive_name in {'d3m.primitives.data_transformation.audio_reader.DistilAudioDatasetLoader'}:
+        primitive_type = 'AUDIO_READER'
+
     elif primitive_name in {'d3m.primitives.feature_extraction.resnext101_kinetics_video_features.VideoFeaturizer'}:
         primitive_type = 'VIDEO_FEATURIZER'
 

@@ -71,6 +71,9 @@ def connect(db, pipeline, from_module, to_module, from_output='produce', to_inpu
         if to_input not in arguments:
              raise NameError('Argument %s not found in %s' % (to_input, to_module.name))
 
+        if to_module.name == 'd3m.primitives.feature_extraction.audio_transfer.DistilAudioTransfer':
+            from_output = 'produce_collection'
+
         if from_module_output != to_module_input and \
                 from_module.name != 'd3m.primitives.data_transformation.audio_reader.DistilAudioDatasetLoader':
             #  DistilAudioDatasetLoader primitive has multiple outputs, so skip it
@@ -125,6 +128,8 @@ def change_default_hyperparams(db, pipeline, primitive_name, primitive, index_le
         set_hyperparams(db, pipeline, primitive, encoder_type='tfidf')
     elif primitive_name == 'd3m.primitives.classification.text_classifier.DistilTextClassifier':
         set_hyperparams(db, pipeline, primitive, metric='accuracy')
+    elif primitive_name == 'd3m.primitives.data_transformation.satellite_image_loader.DistilSatelliteImageLoader':
+        set_hyperparams(db, pipeline, primitive, return_result='replace')
     elif primitive_name == 'd3m.primitives.clustering.k_means.DistilKMeans':
         set_hyperparams(db, pipeline, primitive, cluster_col_name='Class')
     elif primitive_name == 'd3m.primitives.semisupervised_classification.iterative_labeling.AutonBox':
@@ -706,11 +711,18 @@ class AudioBuilder(BaseBuilder):
         origin_name = '%s (%s)' % (origin, ', '.join([p.replace('d3m.primitives.', '') for p in primitives]))
         pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
         count_steps = 0
+        need_entire_dataset = ['d3m.primitives.data_transformation.audio_reader.DistilAudioDatasetLoader']
         try:
             input_data = make_data_module(db, pipeline, targets, features)
 
-            step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.audio_reader.DistilAudioDatasetLoader')
+            step0 = make_pipeline_module(db, pipeline, primitives[0])
             connect(db, pipeline, input_data, step0, from_output='dataset')
+            primitives = primitives[1:]
+            if primitives[0] in need_entire_dataset:
+                stepx = make_pipeline_module(db, pipeline, primitives[0])
+                connect(db, pipeline, step0, stepx)
+                step0 = stepx
+                primitives = primitives[1:]
 
             step1 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.column_parser.Common')
             set_hyperparams(db, pipeline, step1, parse_semantic_types=[
@@ -728,12 +740,8 @@ class AudioBuilder(BaseBuilder):
             connect(db, pipeline, step0, step2)
             count_steps += 1
 
-            step3 = make_pipeline_module(db, pipeline, primitives[0])
-            connect(db, pipeline, step0, step3, from_output='produce_collection')
-            count_steps += 1
-
-            current_step = prev_step = step3
-            for primitive in primitives[1:]:
+            current_step = prev_step = step0
+            for primitive in primitives:
                 current_step = make_pipeline_module(db, pipeline, primitive)
                 change_default_hyperparams(db, pipeline, primitive, current_step)
                 connect(db, pipeline, prev_step, current_step)
