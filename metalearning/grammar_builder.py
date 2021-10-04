@@ -9,22 +9,35 @@ from alphad3m.metalearning.dataset_miner import get_similar_datasets, get_datase
 logger = logging.getLogger(__name__)
 
 
-IGNORE_PRIMITIVES = {'d3m.primitives.data_transformation.construct_predictions.Common',
-                     'd3m.primitives.data_transformation.extract_columns_by_semantic_types.Common',
-                     'd3m.primitives.data_transformation.dataset_to_dataframe.Common',
-                     'd3m.primitives.data_transformation.denormalize.Common',
-                     'd3m.primitives.data_transformation.flatten.DataFrameCommon',
-                     'd3m.primitives.data_transformation.column_parser.Common',
-                     'd3m.primitives.data_transformation.do_nothing.DSBOX',
-                     'd3m.primitives.data_transformation.add_semantic_types.Common',
-                     'd3m.primitives.schema_discovery.profiler.Common',
-                     'd3m.primitives.schema_discovery.profiler.DSBOX',
-                     'd3m.primitives.data_cleaning.column_type_profiler.Simon',
-                     'd3m.primitives.data_transformation.text_reader.Common',
-                     'd3m.primitives.data_transformation.image_reader.Common',
-                     'd3m.primitives.data_transformation.audio_reader.Common',
-                     'd3m.primitives.data_transformation.dataframe_to_tensor.DSBOX'
-                     }
+IGNORE_PRIMITIVES = {
+    # These primitives are static elements in the pipelines
+    'd3m.primitives.data_transformation.construct_predictions.Common',
+    'd3m.primitives.data_transformation.extract_columns_by_semantic_types.Common',
+    'd3m.primitives.data_transformation.dataset_to_dataframe.Common',
+    'd3m.primitives.data_transformation.denormalize.Common',
+    'd3m.primitives.data_transformation.flatten.DataFrameCommon',
+    'd3m.primitives.data_transformation.column_parser.Common',
+    'd3m.primitives.data_transformation.simple_column_parser.DataFrameCommon',
+    'd3m.primitives.data_transformation.do_nothing.DSBOX',
+    'd3m.primitives.data_transformation.do_nothing_for_dataset.DSBOX',
+    'd3m.primitives.data_transformation.add_semantic_types.Common',
+    'd3m.primitives.schema_discovery.profiler.Common',
+    'd3m.primitives.schema_discovery.profiler.DSBOX',
+    'd3m.primitives.data_cleaning.column_type_profiler.Simon',
+    'd3m.primitives.operator.compute_unique_values.Common',
+    'd3m.primitives.data_transformation.construct_confidence.Common',
+    # We add these primitives internally because they require special connections
+    'd3m.primitives.data_transformation.text_reader.Common',
+    'd3m.primitives.data_transformation.image_reader.Common',
+    'd3m.primitives.data_transformation.audio_reader.Common',
+    'd3m.primitives.data_transformation.dataframe_to_tensor.DSBOX',
+    'd3m.primitives.data_transformation.time_series_formatter.DistilTimeSeriesFormatter',
+    'd3m.primitives.data_transformation.load_single_graph.DistilSingleGraphLoader',
+    'd3m.primitives.data_transformation.load_graphs.JHU',
+    'd3m.primitives.data_preprocessing.largest_connected_component.JHU',
+    'd3m.primitives.data_transformation.adjacency_spectral_embedding.JHU',
+    'd3m.primitives.data_transformation.audio_reader.DistilAudioDatasetLoader'
+}
 
 
 def load_related_pipelines(dataset_path, target_column, task_keywords):
@@ -49,7 +62,7 @@ def load_related_pipelines(dataset_path, target_column, task_keywords):
             primitives = filter_primitives(pipeline_primitives, ignore_primitives_ids)
             primitives = [primitives_by_id[p] for p in primitives]  # Use the current names of primitives
             if len(primitives) > 0:
-                score = pipeline_run['scores'][0]['value']
+                score = pipeline_run['scores'][0]['normalized']
                 metric = pipeline_run['scores'][0]['metric']['metric']
                 dataset = pipeline_run['problem']['id']
                 task_pipelines.append({'pipeline': primitives, 'score': score, 'metric': metric, 'dataset': dataset,
@@ -88,7 +101,7 @@ def format_grammar(task_name, patterns, empty_elements):
     return grammar
 
 
-def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.3, mean_score_threshold=0.5, ratio_datasets=0.2):
+def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.5, mean_score_threshold=0.5, ratio_datasets=0.2):
     available_primitives = load_primitives_by_name()
     pipelines = calculate_adtm(pipelines)
     patterns = {}
@@ -115,7 +128,7 @@ def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.3, mean_score_
     patterns = {k: v for k, v in patterns.items() if v['frequency'] >= min_frequency}
     logger.info('Found %d different patterns, after removing uncommon patterns', len(patterns))
 
-    # Remove patterns with undesirable primitives
+    # Remove patterns with undesirable primitives (AlphaD3M doesn't have support to handle some of these primitives)
     blacklist_primitives = {'d3m.primitives.data_transformation.dataframe_to_ndarray.Common',
                             'd3m.primitives.data_transformation.list_to_dataframe.DistilListEncoder',
                             'd3m.primitives.data_transformation.ndarray_to_dataframe.Common',
@@ -124,7 +137,9 @@ def extract_patterns(pipelines, min_frequency=5, adtm_threshold=0.3, mean_score_
                             'd3m.primitives.data_transformation.multi_horizontal_concat.Common',
                             'd3m.primitives.data_transformation.conditioner.Conditioner',
                             'd3m.primitives.data_transformation.remove_semantic_types.Common',
-                            'd3m.primitives.data_transformation.replace_semantic_types.Common'}
+                            'd3m.primitives.data_transformation.replace_semantic_types.Common',
+                            'd3m.primitives.data_transformation.remove_columns.Common',
+                            'd3m.primitives.operator.dataset_map.DataFrameCommon'}
     patterns = {k: v for k, v in patterns.items() if not blacklist_primitives & v['primitives']}
     logger.info('Found %d different patterns, after blacklisting primitives', len(patterns))
 
@@ -206,10 +221,11 @@ def calculate_adtm(pipelines):
     pipeline_performances = {}
 
     for pipeline_data in pipelines:
+        # Even the same dataset can be run under different metrics. So, use the metric to create the id of the dataset
         id_dataset = pipeline_data['dataset'] + '_' + pipeline_data['metric']
 
         if id_dataset not in dataset_performaces:
-            dataset_performaces[id_dataset] = {'min': float('inf'), 'max': 0}
+            dataset_performaces[id_dataset] = {'min': float('inf'), 'max': float('-inf')}
         performance = pipeline_data['score']
 
         if performance > dataset_performaces[id_dataset]['max']:
@@ -235,14 +251,18 @@ def calculate_adtm(pipelines):
         id_dataset_pipeline = pipeline_data['dataset'] + '_' + pipeline_data['metric']
         dtm = 0
 
-        for id_dataset in pipeline_performances[id_pipeline]:
+        for id_dataset in pipeline_performances[id_pipeline]:  # Iterate over the datasets where the pipeline was used
             minimum = dataset_performaces[id_dataset]['min']
             maximum = dataset_performaces[id_dataset]['max']
+
             if id_dataset_pipeline == id_dataset:
                 score = pipeline_data['score']
             else:
                 score = pipeline_performances[id_pipeline][id_dataset]
-            dtm += (maximum - score) / (maximum - minimum)
+
+            if minimum != maximum:
+                dtm += (maximum - score) / (maximum - minimum)
+
         adtm = dtm / len(pipeline_performances[id_pipeline])
         pipeline_data['adtm'] = adtm
 
