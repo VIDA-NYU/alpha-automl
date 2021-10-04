@@ -77,11 +77,12 @@ class HyperparameterTuning(object):
                              })
         smac = SMAC4AC(scenario=scenario, rng=np.random.RandomState(0), tae_runner=runner)
         best_configuration = smac.optimize()
-        min_cost = 100
+        min_cost = float('inf')
         best_scores = {}
 
         for _, run_data in smac.get_runhistory().data.items():
             if run_data.cost < min_cost:
+                min_cost = run_data.cost
                 best_scores = run_data.additional_info
 
         return best_configuration, best_scores
