@@ -100,7 +100,7 @@ def format_grammar(task_name, patterns, empty_elements):
     return grammar
 
 
-def extract_patterns(pipelines, min_frequency=3, adtm_threshold=0.5, mean_score_threshold=0.5, ratio_datasets=0.2):
+def extract_patterns(pipelines, max_nro_patterns=15, min_frequency=3, adtm_threshold=0.5, mean_score_threshold=0.5, ratio_datasets=0.2):
     available_primitives = load_primitives_by_name()
     pipelines = calculate_adtm(pipelines)
     patterns = {}
@@ -157,6 +157,11 @@ def extract_patterns(pipelines, min_frequency=3, adtm_threshold=0.5, mean_score_
     # Remove patterns with low variability
     patterns = {k: v for k, v in patterns.items() if len(v['datasets']) >= len(unique_datasets) * ratio_datasets}
     logger.info('Found %d different patterns, after removing low-variability patterns', len(patterns))
+
+    if len(patterns) > max_nro_patterns:
+        logger.info('Found many patterns, selecting top %d (max_nro_patterns)' % max_nro_patterns)
+        sorted_patterns = sorted(patterns.items(), key=lambda x: x[1]['mean_score'], reverse=True)
+        patterns = {k: v for k, v in sorted_patterns[:max_nro_patterns]}
 
     primitive_hierarchy = {}
     all_pipelines = []
