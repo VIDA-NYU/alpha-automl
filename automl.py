@@ -39,7 +39,7 @@ from d3m.metadata import pipeline as pipeline_module
 
 PIPELINES_TO_TUNE = 5  # Number of pipelines (top k) to be tuned.
 TIME_TO_TUNE = 0.15  # The ratio of the time to be used for the tuning phase.
-TIME_TO_SCORE = 10  # In minutes. Internal time to score a pipeline during the searching phase.
+TIME_TO_SCORE = 5  # In minutes. Internal time to score a pipeline during the searching phase.
 MAX_RUNNING_TIME = 43800  # In minutes. If time is not provided for the searching either scoring, run it for 1 month.
 MAX_RUNNING_PROCESSES = 6
 SEARCH_STRATEGIES = ['TEMPLATES', 'ALPHA_AUTOML']
@@ -578,6 +578,9 @@ class AutoML(Observable):
 
         if timeout_run is None:
             timeout_run = TIME_TO_SCORE
+
+        if any(tk in [TaskKeyword.VIDEO, TaskKeyword.IMAGE, TaskKeyword.AUDIO] for tk in task_keywords):
+            timeout_run = timeout_run * 2
 
         timeout_run = timeout_run * 60  # Minutes to seconds
 

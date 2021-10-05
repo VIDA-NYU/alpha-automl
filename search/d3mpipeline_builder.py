@@ -124,6 +124,8 @@ def change_default_hyperparams(db, pipeline, primitive_name, primitive, index_le
         set_hyperparams(db, pipeline, primitive, replace=True)
     elif primitive_name == 'd3m.primitives.data_transformation.encoder.DSBOX':
         set_hyperparams(db, pipeline, primitive, n_limit=50)
+    elif primitive_name == 'd3m.primitives.data_transformation.splitter.DSBOX':
+        set_hyperparams(db, pipeline, primitive, threshold_row_length=2000)
     elif primitive_name == 'd3m.primitives.data_transformation.encoder.DistilTextEncoder':
         set_hyperparams(db, pipeline, primitive, encoder_type='tfidf')
     elif primitive_name == 'd3m.primitives.classification.text_classifier.DistilTextClassifier':
@@ -716,6 +718,7 @@ class AudioBuilder(BaseBuilder):
             input_data = make_data_module(db, pipeline, targets, features)
 
             step0 = make_pipeline_module(db, pipeline, primitives[0])
+            change_default_hyperparams(db, pipeline, primitives[0], step0)
             connect(db, pipeline, input_data, step0, from_output='dataset')
             primitives = primitives[1:]
             if primitives[0] in need_entire_dataset:
@@ -723,6 +726,7 @@ class AudioBuilder(BaseBuilder):
                 connect(db, pipeline, step0, stepx)
                 step0 = stepx
                 primitives = primitives[1:]
+                count_steps += 1
 
             step1 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.column_parser.Common')
             set_hyperparams(db, pipeline, step1, parse_semantic_types=[
