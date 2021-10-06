@@ -578,9 +578,8 @@ class AutoML(Observable):
 
         if timeout_run is None:
             timeout_run = TIME_TO_SCORE
-
-        if any(tk in [TaskKeyword.VIDEO, TaskKeyword.IMAGE, TaskKeyword.AUDIO] for tk in task_keywords):
-            timeout_run = timeout_run * 2
+            if any(tk in [TaskKeyword.VIDEO, TaskKeyword.IMAGE, TaskKeyword.AUDIO] for tk in task_keywords):
+                timeout_run = timeout_run * 2  # Increase the score timeout for video, image and audio datasets
 
         timeout_run = timeout_run * 60  # Minutes to seconds
 
