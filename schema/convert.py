@@ -48,7 +48,7 @@ def _add_step(steps, modules, params, module_to_step, mod):
             else:
                 inputs[conn.to_input_name] = '%s.%s' % (step, conn.from_output_name)
 
-    outputs = set([c.from_output_name for c in mod.connections_from if c.from_output_name != 'index'])
+    outputs = sorted(set([c.from_output_name for c in mod.connections_from if c.from_output_name != 'index']))
     if len(outputs) == 0:  # Add 'produce' output for the last step of the pipeline
         outputs = {'produce'}
 
