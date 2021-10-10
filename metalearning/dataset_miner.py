@@ -277,27 +277,40 @@ def load_taskkeyword_vectors(task_keywords):
     return metalearningdb_vectors, target_dataprofile_vector
 
 
-def get_similar_datasets(mode, dataset_path, target_column, task_keywords=None, threshold=0.8):
-    if mode == 'metafeatures':
-        metalearningdb_vectors, target_vector = load_metafeatures_vectors(dataset_path, target_column)
-    elif mode == 'dataprofiles':
-        metalearningdb_vectors, target_vector = load_profiles_vectors(dataset_path, target_column)
-    else:
-        raise ValueError('Unknown mode "%s" to load data' % mode)
-
-    if task_keywords:
-        # Concatenate the vectors of the task keywords
-        vectors_taskkeywords, target_vector_taskkeywords = load_taskkeyword_vectors(task_keywords)
-        for id_dataset in metalearningdb_vectors:
-            metalearningdb_vectors[id_dataset] += vectors_taskkeywords[id_dataset]
-        target_vector += target_vector_taskkeywords
-
+def calculate_similarity(metalearningdb_vectors, target_vector, threshold):
     similar_datasets = {}
     for id_dataset, vector in metalearningdb_vectors.items():
         similarity = cosine_similarity([target_vector], [vector]).flat[0]
         if similarity > threshold:
             similar_datasets[id_dataset] = round(similarity, 5)
-    logger.info('Found %d similar datasets', len(similar_datasets))
-    logger.info('Similar datasets:\n%s', str(sorted(similar_datasets.items(), key=lambda x: x[1], reverse=True)))
+
+    return similar_datasets
+
+
+def similarity_repr(dataset_similarities):
+    similarity_string = []
+
+    for dataset_similarity in sorted(dataset_similarities.items(), key=lambda x: x[1], reverse=True):
+        pretty_string = '%s=%.2f' % dataset_similarity
+        similarity_string.append(pretty_string)
+
+    return ', '.join(similarity_string)
+
+
+def get_similar_datasets(mode, dataset_path, target_column, task_keywords, threshold=0.8):
+    vectors_taskkeywords, target_vector_taskkeywords = load_taskkeyword_vectors(task_keywords)
+
+    if mode == 'metafeatures':
+        vectors_dataset, target_vector_dataset = load_metafeatures_vectors(dataset_path, target_column)
+    elif mode == 'dataprofiles':
+        vectors_dataset, target_vector_dataset = load_profiles_vectors(dataset_path, target_column)
+    else:
+        raise ValueError('Unknown mode "%s" to load data' % mode)
+
+    similar_datasets = calculate_similarity(vectors_taskkeywords, target_vector_taskkeywords, threshold)
+    logger.info('Similar datasets found using task_keywords features:\n%s', similarity_repr(similar_datasets))
+    vectors_dataset = {k: vectors_dataset[k] for k in similar_datasets}  # Use only the similar datasets
+    similar_datasets = calculate_similarity(vectors_dataset, target_vector_dataset, threshold)
+    logger.info('Similar datasets found using %s features:\n%s', mode, similarity_repr(similar_datasets))
 
     return similar_datasets
