@@ -123,7 +123,7 @@ def extract_metafeatures_mldb():
                 metafeatures[dataset_id] = mfs
                 logger.info('Metafeatures successfully calculated for dataset %s', dataset_id)
                 with open(PRECALCULATED_METAFEATURES_PATH, 'w') as fout:
-                    json.dump(metafeatures, fout, indent=4)
+                    json.dump(metafeatures, fout, indent=4, sort_keys=True)
             except Exception as e:
                 logger.error(str(e))
         else:
@@ -145,7 +145,7 @@ def extract_dataprofiles_mldb():
                 dataprofiles[dataset_id] = dps
                 logger.info('Data profiles successfully calculated for dataset %s', dataset_id)
                 with open(PRECALCULATED_DATAPROFILES_PATH, 'w') as fout:
-                    json.dump(dataprofiles, fout, indent=4)
+                    json.dump(dataprofiles, fout, indent=4, sort_keys=True)
             except Exception as e:
                 logger.error(str(e))
         else:
@@ -166,7 +166,7 @@ def extract_taskkeywords_mldb():
                 task_keywords[dataset_id] = {'task_keywords': keywords}
                 logger.info('Task keywords successfully calculated for dataset %s', dataset_id)
                 with open(PRECALCULATED_TASKKEYWORDS_PATH, 'w') as fout:
-                    json.dump(task_keywords, fout, indent=4)
+                    json.dump(task_keywords, fout, indent=4, sort_keys=True)
             except Exception as e:
                 logger.error(str(e))
         else:
