@@ -125,6 +125,7 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
         builder = BaseBuilder()
     elif get_collection_type(dataset[7:]) == 'image' or TaskKeyword.IMAGE in task_keywords and (
             TaskKeyword.REGRESSION in task_keywords or TaskKeyword.CLASSIFICATION in task_keywords):
+        if TaskKeyword.IMAGE not in task_keywords: task_keywords.append(TaskKeyword.IMAGE)
         task_name = 'IMAGE_' + task_name
         builder = BaseBuilder()
     elif TaskKeyword.AUDIO in task_keywords and (
