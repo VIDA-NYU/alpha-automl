@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 IGNORE_PRIMITIVES = {
-    # These primitives are static elements in the pipelines
+    # These primitives are static elements in the pipelines, not considered as part of the pattern
     'd3m.primitives.data_transformation.construct_predictions.Common',
     'd3m.primitives.data_transformation.extract_columns_by_semantic_types.Common',
     'd3m.primitives.data_transformation.dataset_to_dataframe.Common',
@@ -33,6 +33,7 @@ IGNORE_PRIMITIVES = {
     'd3m.primitives.data_transformation.dataframe_to_tensor.DSBOX',
     'd3m.primitives.data_transformation.time_series_formatter.DistilTimeSeriesFormatter',
     'd3m.primitives.data_transformation.load_single_graph.DistilSingleGraphLoader',
+    'd3m.primitives.data_transformation.load_graphs.DistilGraphLoader',
     'd3m.primitives.data_transformation.load_graphs.JHU',
     'd3m.primitives.data_preprocessing.largest_connected_component.JHU',
     'd3m.primitives.data_transformation.adjacency_spectral_embedding.JHU'
@@ -113,7 +114,7 @@ def extract_patterns(pipelines, max_nro_patterns=15, min_frequency=3, adtm_thres
         primitive_types = [available_primitives[p]['type'] for p in pipeline_data['pipeline']]
         pattern_id = ' '.join(primitive_types)
         if pattern_id not in patterns:
-            patterns[pattern_id] = {'structure': primitive_types, 'primitives': set(), 'datasets': set(), 'pipelines':[], 'scores': [], 'adtms': [], 'frequency': 0}
+            patterns[pattern_id] = {'structure': primitive_types, 'primitives': set(), 'datasets': set(), 'pipelines': [], 'scores': [], 'adtms': [], 'frequency': 0}
         patterns[pattern_id]['primitives'].update(pipeline_data['pipeline'])
         patterns[pattern_id]['datasets'].add(pipeline_data['dataset'])
         patterns[pattern_id]['pipelines'].append(pipeline_data['pipeline'])
@@ -336,6 +337,10 @@ def filter_primitives(pipeline_steps, ignore_primitives):
     for pipeline_step in pipeline_steps:
         if pipeline_step['primitive']['id'] not in ignore_primitives:
                 primitives.append(pipeline_step['primitive']['id'])
+
+    if len(primitives) > 0 and primitives[0] == '7ddf2fd8-2f7f-4e53-96a7-0d9f5aeecf93':  # Primitive to_numeric.DSBOX
+        # This primitive should not be first because it only takes the numeric features, ignoring the remaining ones
+        primitives = primitives[1:]
 
     return primitives
 
