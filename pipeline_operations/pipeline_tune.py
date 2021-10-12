@@ -24,6 +24,7 @@ def tune(pipeline_id, dataset_uri, sample_dataset_uri, metrics, problem, scoring
                  joinedload(database.Pipeline.connections))
     ).one()
 
+    timeout_tuning = timeout_tuning - 90  # Reduce 1.5 minutes to finish safely the tuning process
     logger.info('About to tune pipeline, id=%s, timeout=%d secs', pipeline_id, timeout_tuning)
     tunable_primitives = {}
 

@@ -470,9 +470,10 @@ class AutoML(Observable):
 
         now = time.time()
         expected_search_end = now + timeout_search
-        # TODO: sampling and data profiling consume time, we should reduce it from the search time-bound
         sample_dataset_uri = self._get_sample_uri(dataset_uri, session.problem)
         metadata = profile_data(dataset_uri, session.targets)
+        time_already_used = time.time() - now  # Time already used for sampling and profiling
+        timeout_search_internal = timeout_search_internal - time_already_used
         session.dataset_uri = dataset_uri
         session.sample_dataset_uri = sample_dataset_uri
         session.report_rank = report_rank
@@ -1251,7 +1252,7 @@ class TuneHyperparamsJob(Job):
                             job_id=id(self))
 
     def poll(self):
-        if self.started + self.timeout_tuning + 60 < time.time():  # Give 1 extra minute to finish the tuning process
+        if self.started + self.timeout_tuning < time.time():
             logger.error("Tunning process is stuck, terminating after %d seconds", time.time() - self.started)
             self.proc.terminate()
             try:
