@@ -112,7 +112,7 @@ def set_hyperparams(db, pipeline, module, **hyperparams):
     ))
 
 
-def change_default_hyperparams(db, pipeline, primitive_name, primitive, index_learner=0):
+def change_default_hyperparams(db, pipeline, primitive_name, primitive, learner_index=None):
     if primitive_name == 'd3m.primitives.data_transformation.one_hot_encoder.SKlearn':
         set_hyperparams(db, pipeline, primitive, use_semantic_types=True, return_result='replace', handle_unknown='ignore')
     elif primitive_name == 'd3m.primitives.data_cleaning.imputer.SKlearn':
@@ -135,7 +135,8 @@ def change_default_hyperparams(db, pipeline, primitive_name, primitive, index_le
     elif primitive_name == 'd3m.primitives.clustering.k_means.DistilKMeans':
         set_hyperparams(db, pipeline, primitive, cluster_col_name='Class')
     elif primitive_name == 'd3m.primitives.semisupervised_classification.iterative_labeling.AutonBox':
-        set_hyperparams(db, pipeline, primitive,  blackbox={'type': 'PRIMITIVE', 'data': index_learner})
+        if learner_index is not None:
+            set_hyperparams(db, pipeline, primitive,  blackbox={'type': 'PRIMITIVE', 'data': learner_index})
 
 
 def need_entire_dataframe(primitives):
@@ -155,6 +156,12 @@ def need_parsed_targets(primitives):
                          'd3m.primitives.time_series_forecasting.nbeats.DeepNeuralNetwork',
                          'd3m.primitives.time_series_forecasting.vector_autoregression.VAR'}:
             return True
+    return False
+
+
+def is_learner(primitive):
+    if primitive.startswith('d3m.primitives.classification.'):
+        return True
     return False
 
 
@@ -286,6 +293,7 @@ class BaseBuilder:
         origin_name = '%s (%s)' % (origin, ', '.join([p.replace('d3m.primitives.', '') for p in primitives]))
         pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
         count_steps = 0
+        learner_index = None
         try:
             input_data = make_data_module(db, pipeline, targets, features)
             step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.denormalize.Common')
@@ -350,7 +358,7 @@ class BaseBuilder:
             current_step = prev_step = preprev_step = step3
             for primitive in primitives:
                 current_step = make_pipeline_module(db, pipeline, primitive)
-                change_default_hyperparams(db, pipeline, primitive, current_step, count_steps)
+                change_default_hyperparams(db, pipeline, primitive, current_step, learner_index)
 
                 if 'semisupervised_classification' in primitive:
                     connect(db, pipeline, preprev_step, current_step)
@@ -364,6 +372,8 @@ class BaseBuilder:
                 preprev_step = prev_step
                 prev_step = current_step
                 count_steps += 1
+                if is_learner(primitive):
+                    learner_index = count_steps
 
             if 'ROC_AUC' in metrics[0]['metric'].name:
                 add_rocauc_primitives(pipeline, current_step, preprev_step, step4, dataframe_step, count_steps, db)
