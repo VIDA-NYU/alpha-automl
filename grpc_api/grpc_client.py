@@ -1,6 +1,7 @@
 import grpc
 import json
 import logging
+import os
 import sys
 import pickle
 import datetime
@@ -200,7 +201,7 @@ def main():
         level=logging.INFO,
         format="%(asctime)s %(message)s")
 
-    channel = grpc.insecure_channel('localhost:45042')
+    channel = grpc.insecure_channel('localhost:{0}'.format(os.environ.get('D3MPORT', 45042)))
     core = LoggingStub(pb_core_grpc.CoreStub(channel), logger)
     train_dataset_path = '/input/TRAIN/dataset_TRAIN/datasetDoc.json'
     test_dataset_path = '/input/TEST/dataset_TEST/datasetDoc.json'
