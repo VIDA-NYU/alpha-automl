@@ -297,7 +297,7 @@ def similarity_repr(dataset_similarities):
     return ', '.join(similarity_string)
 
 
-def get_similar_datasets(mode, dataset_path, target_column, task_keywords, threshold=0.8):
+def get_similar_datasets(mode, dataset_path, target_column, task_keywords, threshold=0.8, combined=False):
     vectors_taskkeywords, target_vector_taskkeywords = load_taskkeyword_vectors(task_keywords)
 
     if mode == 'metafeatures':
@@ -307,10 +307,18 @@ def get_similar_datasets(mode, dataset_path, target_column, task_keywords, thres
     else:
         raise ValueError('Unknown mode "%s" to load data' % mode)
 
-    similar_datasets = calculate_similarity(vectors_taskkeywords, target_vector_taskkeywords, threshold)
-    logger.info('Similar datasets found using task_keywords features:\n%s', similarity_repr(similar_datasets))
-    vectors_dataset = {k: vectors_dataset[k] for k in similar_datasets}  # Use only the similar datasets
-    similar_datasets = calculate_similarity(vectors_dataset, target_vector_dataset, threshold)
-    logger.info('Similar datasets found using %s features:\n%s', mode, similarity_repr(similar_datasets))
+    if combined:
+        # Concatenate the vectors of the dataset and task keywords
+        for id_dataset in vectors_dataset:
+            vectors_dataset[id_dataset] += vectors_taskkeywords[id_dataset]
+        target_vector_dataset += target_vector_taskkeywords
+        similar_datasets = calculate_similarity(vectors_dataset, target_vector_dataset, threshold)
+        logger.info('Similar datasets found using both information:\n%s', similarity_repr(similar_datasets))
+    else:
+        similar_datasets = calculate_similarity(vectors_taskkeywords, target_vector_taskkeywords, threshold)
+        logger.info('Similar datasets found using task_keywords features:\n%s', similarity_repr(similar_datasets))
+        vectors_dataset = {k: vectors_dataset[k] for k in similar_datasets}  # Use only the similar datasets
+        similar_datasets = calculate_similarity(vectors_dataset, target_vector_dataset, threshold)
+        logger.info('Similar datasets found using %s features:\n%s', mode, similarity_repr(similar_datasets))
 
     return similar_datasets
