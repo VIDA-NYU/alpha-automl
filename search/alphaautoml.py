@@ -103,10 +103,10 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
         builder = BaseBuilder()
     elif TaskKeyword.COMMUNITY_DETECTION in task_keywords:
         task_name = 'COMMUNITY_DETECTION'
-        builder = CommunityDetectionBuilder()
+        builder = BaseBuilder()
     elif TaskKeyword.LINK_PREDICTION in task_keywords:
         task_name = 'LINK_PREDICTION'
-        builder = LinkPredictionBuilder()
+        builder = BaseBuilder()
     elif TaskKeyword.OBJECT_DETECTION in task_keywords:
         task_name = 'OBJECT_DETECTION'
         builder = ObjectDetectionBuilder()
@@ -118,7 +118,7 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
         builder = TimeseriesClassificationBuilder()
     elif TaskKeyword.VERTEX_CLASSIFICATION in task_keywords or TaskKeyword.VERTEX_NOMINATION in task_keywords:
         task_name = 'VERTEX_CLASSIFICATION'
-        builder = VertexClassificationBuilder()
+        builder = BaseBuilder()
     elif get_collection_type(dataset[7:]) == 'text' or TaskKeyword.TEXT in task_keywords and (
             TaskKeyword.REGRESSION in task_keywords or TaskKeyword.CLASSIFICATION in task_keywords):
         task_name = 'TEXT_' + task_name

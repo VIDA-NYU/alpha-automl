@@ -148,6 +148,11 @@ def get_primitive_type(primitive_name):
     elif primitive_name in {'d3m.primitives.graph_clustering.gaussian_clustering.JHU'}:
         primitive_type = 'COMMUNITY_DETECTION'
 
+    elif primitive_name in {'d3m.primitives.data_transformation.load_single_graph.DistilSingleGraphLoader',
+                            'd3m.primitives.data_transformation.load_graphs.JHU',
+                            'd3m.primitives.data_transformation.load_edgelist.DistilEdgeListLoader'}:
+        primitive_type = 'GRAPH_LOADER'
+
     elif primitive_name in {'d3m.primitives.feature_extraction.yolo.DSBOX'}:
         primitive_type = 'OBJECT_DETECTION'
 

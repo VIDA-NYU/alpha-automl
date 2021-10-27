@@ -32,11 +32,7 @@ IGNORE_PRIMITIVES = {
     'd3m.primitives.data_transformation.audio_reader.Common',
     'd3m.primitives.data_transformation.dataframe_to_tensor.DSBOX',
     'd3m.primitives.data_transformation.time_series_formatter.DistilTimeSeriesFormatter',
-    'd3m.primitives.data_transformation.load_single_graph.DistilSingleGraphLoader',
     'd3m.primitives.data_transformation.load_graphs.DistilGraphLoader',
-    'd3m.primitives.data_transformation.load_graphs.JHU',
-    'd3m.primitives.data_preprocessing.largest_connected_component.JHU',
-    'd3m.primitives.data_transformation.adjacency_spectral_embedding.JHU'
 }
 
 

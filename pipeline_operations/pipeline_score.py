@@ -127,7 +127,8 @@ def save_scores(pipeline_id, scores, metrics, report_rank, db):
 
 
 def evaluate(pipeline, data_pipeline, dataset, metrics, problem, scoring_config, dataset_uri):
-    if is_collection(dataset_uri[7:]):
+    if is_collection(dataset_uri[7:]) or TaskKeyword.GRAPH in problem['problem']['task_keywords']:
+        # Sampling in memory
         dataset = get_dataset_sample(dataset, problem)
 
     json_pipeline = convert.to_d3m_json(pipeline)
@@ -136,24 +137,6 @@ def evaluate(pipeline, data_pipeline, dataset, metrics, problem, scoring_config,
                                                              for i, x in enumerate(json_pipeline['steps'])]))
 
     d3m_pipeline = Pipeline.from_json_structure(json_pipeline, )
-
-    if TaskKeyword.GRAPH in problem['problem']['task_keywords'] and json_pipeline['description'].startswith('MtLDB'):
-        # FIXME: Splitting primitive fails with some graph primitives, so score them using the predictions of fit
-        _, predictions, _ = d3m.runtime.fit(
-            pipeline=d3m_pipeline,
-            problem_description=problem,
-            inputs=[dataset],
-            data_params=scoring_config,
-            volumes_dir=os.environ.get('D3MSTATICDIR', None),
-            context=d3m.metadata.base.Context.TESTING,
-            random_seed=0
-        )
-        metric_class = class_map.get(metrics[0]['metric'])()
-        metric_name = metrics[0]['metric'].name
-        score = metric_class.score(predictions, predictions)
-        scores = {i: {metric_name: score} for i in range(int(scoring_config['number_of_folds']))}
-
-        return scores
 
     run_scores, run_results = d3m.runtime.evaluate(
         pipeline=d3m_pipeline,

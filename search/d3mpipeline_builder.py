@@ -134,6 +134,10 @@ def change_default_hyperparams(db, pipeline, primitive_name, primitive, learner_
         set_hyperparams(db, pipeline, primitive, return_result='replace')
     elif primitive_name == 'd3m.primitives.clustering.k_means.DistilKMeans':
         set_hyperparams(db, pipeline, primitive, cluster_col_name='Class')
+    elif primitive_name == 'd3m.primitives.data_transformation.adjacency_spectral_embedding.JHU':
+        set_hyperparams(db, pipeline, primitive, use_attributes=True, max_dimension=5)
+    elif primitive_name == 'd3m.primitives.graph_clustering.gaussian_clustering.JHU':
+        set_hyperparams(db, pipeline, primitive, max_clusters=10)
     elif primitive_name == 'd3m.primitives.semisupervised_classification.iterative_labeling.AutonBox':
         if learner_index is not None:
             set_hyperparams(db, pipeline, primitive,  blackbox={'type': 'PRIMITIVE', 'data': learner_index})
@@ -242,7 +246,7 @@ def add_file_readers(db, pipeline, prev_step, dataset_path):
     return last_step, count_steps
 
 
-def add_rocauc_primitives(pipeline, current_step, prev_step, target_step, dataframe_step, index_learner, db):
+def add_rocauc_primitives(pipeline, current_step, prev_step, target_step, dataframe_step, learner_index, db):
     horizontal_concat = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.horizontal_concat.DataFrameCommon')
     # 'index'  is an artificial connection, just to guarantee the order of the steps
     connect(db, pipeline, current_step, horizontal_concat, from_output='index', to_input='index')
@@ -253,7 +257,7 @@ def add_rocauc_primitives(pipeline, current_step, prev_step, target_step, datafr
     connect(db, pipeline, horizontal_concat, compute_values)
 
     construct_confidence = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.construct_confidence.Common')
-    set_hyperparams(db, pipeline, construct_confidence, primitive_learner={"type": "PRIMITIVE", "data": index_learner})
+    set_hyperparams(db, pipeline, construct_confidence, primitive_learner={"type": "PRIMITIVE", "data": learner_index})
     connect(db, pipeline, compute_values, construct_confidence)
     connect(db, pipeline, dataframe_step, construct_confidence, to_input='reference')
 
@@ -283,19 +287,33 @@ def select_parsed_semantic_types(primitives, pipeline, step, db):
                             )
 
 
+def is_linear_pipeline(primitives):
+    for primitive in primitives:
+        if primitive in {'d3m.primitives.data_transformation.load_single_graph.DistilSingleGraphLoader',
+                         'd3m.primitives.data_transformation.load_edgelist.DistilEdgeListLoader',
+                         'd3m.primitives.data_transformation.load_graphs.JHU'}:
+            return True
+
+    return False
+
+
 class BaseBuilder:
 
     def make_d3mpipeline(self, primitives, origin, dataset, pipeline_template, targets, features,
                          metadata, metrics=[], DBSession=None):
-        # TODO parameters 'features and 'targets' are not needed
+        # TODO: Remove parameters 'features' and 'targets' are not needed
         db = DBSession()
         dataset_path = dataset[7:]
         origin_name = '%s (%s)' % (origin, ', '.join([p.replace('d3m.primitives.', '') for p in primitives]))
         pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
         count_steps = 0
         learner_index = None
+
+        if is_linear_pipeline(primitives):
+            return self.make_linear_pipeline(primitives, dataset, targets, features, origin, db)
         try:
             input_data = make_data_module(db, pipeline, targets, features)
+
             step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.denormalize.Common')
 
             if metadata['large_rows']:
@@ -376,7 +394,7 @@ class BaseBuilder:
                     learner_index = count_steps
 
             if 'ROC_AUC' in metrics[0]['metric'].name:
-                add_rocauc_primitives(pipeline, current_step, preprev_step, step4, dataframe_step, count_steps, db)
+                add_rocauc_primitives(pipeline, current_step, preprev_step, step4, dataframe_step, learner_index, db)
             else:
                 step5 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.construct_predictions.Common')
                 connect(db, pipeline, current_step, step5)
@@ -386,6 +404,40 @@ class BaseBuilder:
             db.commit()
             logger.info('%s PIPELINE ID: %s', origin, pipeline.id)
             return pipeline.id
+        except:
+            logger.exception('Error creating pipeline id=%s, primitives=%s', pipeline.id, str(primitives))
+            return None
+        finally:
+            db.close()
+
+    def make_linear_pipeline(self, primitives, dataset, targets, features, origin, db):
+        origin_name = '%s (%s)' % (origin, ', '.join([p.replace('d3m.primitives.', '') for p in primitives]))
+        pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
+
+        try:
+            #if False and 'd3m.primitives.vertex_nomination.seeded_graph_matching.DistilVertexNomination' in primitives:
+            #    origin_name = 'MtLDB ' + origin_name
+            #    pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
+
+            input_data = make_data_module(db, pipeline, targets, features)
+            step0 = make_pipeline_module(db, pipeline, primitives[0])
+            connect(db, pipeline, input_data, step0, from_output='dataset')
+            primitives = primitives[1:]
+            prev_step = step0
+
+            for primitive in primitives:
+                current_step = make_pipeline_module(db, pipeline, primitive)
+                change_default_hyperparams(db, pipeline, primitive, current_step)
+                connect(db, pipeline, prev_step, current_step)
+                if 'outputs' in index.get_primitive(primitive).metadata.query()['primitive_code']['arguments']:
+                    connect(db, pipeline, prev_step, current_step, to_input='outputs', from_output='produce_target')
+                prev_step = current_step
+
+            db.add(pipeline)
+            db.commit()
+            logger.info('%s PIPELINE ID: %s', origin, pipeline.id)
+            return pipeline.id
+
         except:
             logger.exception('Error creating pipeline id=%s, primitives=%s', pipeline.id, str(primitives))
             return None
@@ -456,109 +508,14 @@ class TimeseriesClassificationBuilder(BaseBuilder):
             db.close()
 
 
-class CommunityDetectionBuilder(BaseBuilder):
-
-    def make_d3mpipeline(self, primitives, origin, dataset, pipeline_template, targets, features,
-                         metadata, metrics=[], DBSession=None):
-        db = DBSession()
-        origin_name = '%s (%s)' % (origin, ', '.join([p.replace('d3m.primitives.', '') for p in primitives]))
-        pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
-
-        try:
-            if len(primitives) == 1 and primitives[0] == 'd3m.primitives.community_detection.parser.DistilCommunityDetection':
-                input_data = make_data_module(db, pipeline, targets, features)
-
-                step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.load_single_graph.DistilSingleGraphLoader')
-                connect(db, pipeline, input_data, step0, from_output='dataset')
-
-                step1 = make_pipeline_module(db, pipeline, primitives[0])
-                connect(db, pipeline, step0, step1)
-                connect(db, pipeline, step0, step1, to_input='outputs', from_output='produce_target')
-
-                db.add(pipeline)
-                db.commit()
-                logger.info('%s PIPELINE ID: %s', origin, pipeline.id)
-                return pipeline.id
-            elif len(primitives) == 1 and primitives[0] == 'd3m.primitives.graph_clustering.gaussian_clustering.JHU':
-                origin_name = 'MtLDB ' + origin_name
-                pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
-                input_data = make_data_module(db, pipeline, targets, features)
-
-                step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.load_graphs.JHU')
-                connect(db, pipeline, input_data, step0, from_output='dataset')
-
-                step1 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_preprocessing.largest_connected_component.JHU')
-                connect(db, pipeline, step0, step1)
-
-                step2 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.adjacency_spectral_embedding.JHU')
-                set_hyperparams(db, pipeline, step2, use_attributes=True, max_dimension=5)
-                connect(db, pipeline, step1, step2)
-
-                step3 = make_pipeline_module(db, pipeline, primitives[0])
-                set_hyperparams(db, pipeline, step3, max_clusters=10)
-                connect(db, pipeline, step2, step3)
-
-                db.add(pipeline)
-                db.commit()
-                logger.info('%s PIPELINE ID: %s', origin, pipeline.id)
-                return pipeline.id
-            else:
-                pipeline_id = super().make_d3mpipeline(primitives, origin, dataset, pipeline_template, targets,
-                                                       features, metadata, metrics=metrics, DBSession=DBSession)
-                return pipeline_id
-        except:
-            logger.exception('Error creating pipeline id=%s, primitives=%s', pipeline.id, str(primitives))
-            return None
-        finally:
-            db.close()
-
-
-class LinkPredictionBuilder(BaseBuilder):
-    def make_d3mpipeline(self, primitives, origin, dataset, pipeline_template, targets, features,
-                         metadata, metrics=[], DBSession=None):
-        db = DBSession()
-        origin_name = '%s (%s)' % (origin, ', '.join([p.replace('d3m.primitives.', '') for p in primitives]))
-        pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
-
-        try:
-            if len(primitives) == 1:
-                input_data = make_data_module(db, pipeline, targets, features)
-
-                step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.'
-                                                           'load_single_graph.DistilSingleGraphLoader')
-                connect(db, pipeline, input_data, step0, from_output='dataset')
-
-                step1 = make_pipeline_module(db, pipeline, primitives[0])
-                set_hyperparams(db, pipeline, step1, metric='accuracy')
-
-                connect(db, pipeline, step0, step1)
-                connect(db, pipeline, step0, step1, to_input='outputs', from_output='produce_target')
-
-                db.add(pipeline)
-                db.commit()
-                logger.info('%s PIPELINE ID: %s', origin, pipeline.id)
-                return pipeline.id
-            else:
-                pipeline_id = super().make_d3mpipeline(primitives, origin, dataset, pipeline_template, targets,
-                                                       features, metadata, metrics=metrics, DBSession=DBSession)
-                return pipeline_id
-        except:
-            logger.exception('Error creating pipeline id=%s, primitives=%s', pipeline.id, str(primitives))
-            return None
-        finally:
-            db.close()
-
-
 class GraphMatchingBuilder(BaseBuilder):
     def make_d3mpipeline(self, primitives, origin, dataset, pipeline_template, targets, features,
                          metadata, metrics=[], DBSession=None):
         db = DBSession()
         origin_name = '%s (%s)' % (origin, ', '.join([p.replace('d3m.primitives.', '') for p in primitives]))
+        pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
         try:
             if len(primitives) == 1:
-                origin_name = 'MtLDB ' + origin_name
-                pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
-
                 input_data = make_data_module(db, pipeline, targets, features)
                 if primitives[0] == 'd3m.primitives.graph_matching.euclidean_nomination.JHU':
                     step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.dataset_to_dataframe.Common')
@@ -586,65 +543,6 @@ class GraphMatchingBuilder(BaseBuilder):
                 return pipeline.id
             else:
                 pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
-                pipeline_id = super().make_d3mpipeline(primitives, origin, dataset, pipeline_template, targets,
-                                                       features, metadata, metrics=metrics, DBSession=DBSession)
-                return pipeline_id
-        except:
-            logger.exception('Error creating pipeline id=%s, primitives=%s', pipeline.id, str(primitives))
-            return None
-        finally:
-            db.close()
-
-
-class VertexClassificationBuilder(BaseBuilder):
-    def make_d3mpipeline(self, primitives, origin, dataset, pipeline_template, targets, features,
-                         metadata, metrics=[], DBSession=None):
-        db = DBSession()
-        origin_name = '%s (%s)' % (origin, ', '.join([p.replace('d3m.primitives.', '') for p in primitives]))
-        pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
-
-        try:
-            if len(primitives) == 1 and primitives[0] == 'd3m.primitives.classification.gaussian_classification.JHU':
-                input_data = make_data_module(db, pipeline, targets, features)
-
-                step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.load_graphs.JHU')
-                connect(db, pipeline, input_data, step0, from_output='dataset')
-
-                step1 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_preprocessing.largest_connected_component.JHU')
-                connect(db, pipeline, step0, step1)
-
-                step2 = make_pipeline_module(db, pipeline,
-                                             'd3m.primitives.data_transformation.adjacency_spectral_embedding.JHU')
-                set_hyperparams(db, pipeline, step2, max_dimension=5, use_attributes=True)
-                connect(db, pipeline, step1, step2)
-
-                step3 = make_pipeline_module(db, pipeline,
-                                             'd3m.primitives.classification.gaussian_classification.JHU')
-                connect(db, pipeline, step2, step3)
-
-                db.add(pipeline)
-                db.commit()
-                logger.info('%s PIPELINE ID: %s', origin, pipeline.id)
-                return pipeline.id
-
-            elif len(primitives) == 1 and primitives[0] == 'd3m.primitives.vertex_nomination.seeded_graph_matching.DistilVertexNomination':
-                origin_name = 'MtLDB ' + origin_name
-                pipeline = database.Pipeline(origin=origin_name, dataset=dataset)
-                input_data = make_data_module(db, pipeline, targets, features)
-
-                step0 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.load_single_graph.DistilSingleGraphLoader')
-                connect(db, pipeline, input_data, step0, from_output='dataset')
-
-                step1 = make_pipeline_module(db, pipeline, primitives[0])
-                set_hyperparams(db, pipeline, step1, metric='accuracy')
-                connect(db, pipeline, step0, step1)
-                connect(db, pipeline, step0, step1, to_input='outputs', from_output='produce_target')
-
-                db.add(pipeline)
-                db.commit()
-                logger.info('%s PIPELINE ID: %s', origin, pipeline.id)
-                return pipeline.id
-            else:
                 pipeline_id = super().make_d3mpipeline(primitives, origin, dataset, pipeline_template, targets,
                                                        features, metadata, metrics=metrics, DBSession=DBSession)
                 return pipeline_id
