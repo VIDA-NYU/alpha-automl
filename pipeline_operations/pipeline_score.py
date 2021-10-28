@@ -99,8 +99,8 @@ def calculate_scores(pipeline, dataset_uri, sample_dataset_uri, metrics, problem
         logger.warning('Unknown evaluation method, using K_FOLD')
         pipeline_split = kfold_tabular_split
 
-    # FIXME: Splitting primitive fails when works with F1 and semisupervised task, so use F1_MACRO instead
-    # https://gitlab.com/datadrivendiscovery/common-primitives/-/issues/92#note_520784899
+    # FIXME: Splitting pipeline fails when works with F1 and semisupervised task, so use F1_MACRO instead
+    # See https://gitlab.com/datadrivendiscovery/common-primitives/-/issues/92#note_520784899
     if metrics[0]['metric'] == PerformanceMetric.F1 and TaskKeyword.SEMISUPERVISED in problem['problem']['task_keywords']:
         new_metrics = [{'metric': PerformanceMetric.F1_MACRO}]
         scores = evaluate(pipeline, pipeline_split, dataset, new_metrics, problem, scoring_config, dataset_uri)
@@ -153,7 +153,12 @@ def evaluate(pipeline, data_pipeline, dataset, metrics, problem, scoring_config,
 
     for result in run_results:
         if result.has_error():
-            raise RuntimeError(result.pipeline_run.status['message'])
+            if TaskKeyword.GRAPH in problem['problem']['task_keywords']:
+                # FIXME: Splitting pipeline fails for some graph datasets (e.g. 49_facebook). So, score the same dataset
+                logger.warning('Evaluation failed for graph dataset, trying to score over the whole input dataset')
+                return fit_score(d3m_pipeline, problem, dataset, dataset, metrics, scoring_config)
+            else:
+                raise RuntimeError(result.pipeline_run.status['message'])
 
     #save_pipeline_runs(run_results.pipeline_runs)
     combined_folds = d3m.runtime.combine_folds([fold for fold in run_scores])
@@ -207,3 +212,35 @@ def save_pipeline_runs(pipelines_runs):
 
         with open(save_run_path, 'w') as fin:
             pipeline_run.to_yaml(fin, indent=2)
+
+
+def fit_score(d3m_pipeline, problem, dataset_train, dataset_test, metrics, scoring_config):
+    fitted_pipeline, predictions, result = d3m.runtime.fit(
+        pipeline=d3m_pipeline,
+        problem_description=problem,
+        inputs=[dataset_train],
+        data_params=scoring_config,
+        volumes_dir=os.environ.get('D3MSTATICDIR', None),
+        context=d3m.metadata.base.Context.TESTING,
+        random_seed=0
+    )
+
+    if result.has_error():
+        raise RuntimeError(result.pipeline_run.status['message'])
+
+    run_scores, _ = d3m.runtime.score(
+        predictions, [dataset_test],
+        scoring_pipeline=scoring_pipeline,
+        problem_description=problem,
+        metrics=metrics,
+        predictions_random_seed=fitted_pipeline.random_seed,
+        volumes_dir=fitted_pipeline.volumes_dir,
+        scratch_dir=fitted_pipeline.scratch_dir,
+        context=d3m.metadata.base.Context.TESTING,
+        random_seed=0,
+    )
+    score = run_scores['value'][0]
+    metric = run_scores['metric'][0]
+    scores = {i: {metric: score} for i in range(int(scoring_config['number_of_folds']))}
+
+    return scores
