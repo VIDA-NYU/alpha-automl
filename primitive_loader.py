@@ -149,6 +149,7 @@ def get_primitive_type(primitive_name):
         primitive_type = 'COMMUNITY_DETECTION'
 
     elif primitive_name in {'d3m.primitives.data_transformation.load_single_graph.DistilSingleGraphLoader',
+                            'd3m.primitives.data_transformation.load_graphs.DistilGraphLoader',
                             'd3m.primitives.data_transformation.load_graphs.JHU',
                             'd3m.primitives.data_transformation.load_edgelist.DistilEdgeListLoader'}:
         primitive_type = 'GRAPH_LOADER'
@@ -187,6 +188,9 @@ def get_primitive_type(primitive_name):
 
     elif primitive_name in {'d3m.primitives.data_transformation.grouping_field_compose.Common'}:
         primitive_type = 'TIME_SERIES_GROUPER'
+
+    elif primitive_name in {'d3m.primitives.data_transformation.dataframe_to_tensor.DSBOX'}:
+        primitive_type = 'TO_TENSOR'
 
     if primitive_type == 'ENCODE_ONE_HOT':
         primitive_type = 'CATEGORICAL_ENCODER'
