@@ -133,6 +133,8 @@ def change_default_hyperparams(db, pipeline, primitive_name, primitive, learner_
         set_hyperparams(db, pipeline, primitive, max_clusters=10)
     elif primitive_name == 'd3m.primitives.time_series_classification.convolutional_neural_net.LSTM_FCN':
         set_hyperparams(db, pipeline, primitive, epochs=1)
+    elif primitive_name == 'd3m.primitives.time_series_forecasting.nbeats.DeepNeuralNetwork':
+        set_hyperparams(db, pipeline, primitive, window_sampling_limit_multiplier=200, batch_size=10)
     elif primitive_name == 'd3m.primitives.semisupervised_classification.iterative_labeling.AutonBox':
         if learner_index is not None:
             set_hyperparams(db, pipeline, primitive,  blackbox={'type': 'PRIMITIVE', 'data': learner_index})
@@ -294,6 +296,11 @@ def select_parsed_semantic_types(primitives, pipeline, step, db):
                             parse_semantic_types=['http://schema.org/Boolean', 'http://schema.org/Integer',
                                                   'http://schema.org/Float', 'http://schema.org/DateTime',
                                                   'https://metadata.datadrivendiscovery.org/types/FloatVector']
+                            )
+        elif primitive in {'d3m.primitives.time_series_forecasting.arima.DSBOX'}:
+            set_hyperparams(db, pipeline, step,
+                            parse_semantic_types=['http://schema.org/Boolean', 'http://schema.org/Integer',
+                                                  'http://schema.org/Float']
                             )
 
 
