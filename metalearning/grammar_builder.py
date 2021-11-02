@@ -28,9 +28,7 @@ IGNORE_PRIMITIVES = {
     'd3m.primitives.data_transformation.construct_confidence.Common',
     # We add these primitives internally because they require special connections
     'd3m.primitives.data_transformation.text_reader.Common',
-    'd3m.primitives.data_transformation.image_reader.Common',
-    'd3m.primitives.data_transformation.audio_reader.Common',
-    'd3m.primitives.data_transformation.time_series_formatter.DistilTimeSeriesFormatter'
+    'd3m.primitives.data_transformation.image_reader.Common'
 }
 
 

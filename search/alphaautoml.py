@@ -109,13 +109,13 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
         builder = BaseBuilder()
     elif TaskKeyword.OBJECT_DETECTION in task_keywords:
         task_name = 'OBJECT_DETECTION'
-        builder = ObjectDetectionBuilder()
+        builder = BaseBuilder()
     elif TaskKeyword.GRAPH_MATCHING in task_keywords:
         task_name = 'GRAPH_MATCHING'
         builder = BaseBuilder()
     elif TaskKeyword.TIME_SERIES in task_keywords and TaskKeyword.CLASSIFICATION in task_keywords:
         task_name = 'TIME_SERIES_CLASSIFICATION'
-        builder = TimeseriesClassificationBuilder()
+        builder = BaseBuilder()
     elif TaskKeyword.VERTEX_CLASSIFICATION in task_keywords or TaskKeyword.VERTEX_NOMINATION in task_keywords:
         task_name = 'VERTEX_CLASSIFICATION'
         builder = BaseBuilder()
