@@ -17,6 +17,7 @@ from sqlalchemy.orm import aliased, joinedload, lazyload
 from sqlalchemy.sql import func
 from os.path import join, exists
 import shutil
+import multiprocessing
 import subprocess
 import threading
 import time
@@ -41,7 +42,7 @@ PIPELINES_TO_TUNE = 5  # Number of pipelines (top k) to be tuned.
 TIME_TO_TUNE = 0.15  # The ratio of the time to be used for the tuning phase.
 TIME_TO_SCORE = 5  # In minutes. Internal time to score a pipeline during the searching phase.
 MAX_RUNNING_TIME = 43800  # In minutes. If time is not provided for the searching either scoring, run it for 1 month.
-MAX_RUNNING_PROCESSES = 6
+MAX_RUNNING_PROCESSES = int(os.environ.get('D3MCPU', multiprocessing.cpu_count()))
 SEARCH_STRATEGIES = ['TEMPLATES', 'ALPHA_AUTOML']
 
 if 'TA2_DEBUG_BE_FAST' in os.environ:
