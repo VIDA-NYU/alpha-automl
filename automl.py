@@ -191,7 +191,7 @@ class AutoML(Observable):
         if timeout_run is None:
             timeout_run = MAX_RUNNING_TIME
 
-        timeout_run = timeout_run * 60  # Minutes to seconds# Minutes to seconds
+        timeout_run = timeout_run * 60  # Minutes to seconds
 
         job = ScoreJob(self, pipeline_id, dataset_uri, metrics, problem, scoring_config, timeout_run)
         self._run_queue.put(job)
@@ -1075,6 +1075,7 @@ class ScoreJob(Job):
         self.problem = problem
         self.scoring_config = scoring_config
         self.timeout_run = timeout_run
+        self.expected_end = time.time() + timeout_run
         self.report_rank = report_rank
 
     def start(self, db_filename, **kwargs):
@@ -1088,14 +1089,14 @@ class ScoreJob(Job):
                                 scoring_config=self.scoring_config,
                                 report_rank=self.report_rank,
                                 db_filename=db_filename)
-        self.started = time.time()
+
         self.ta2.notify('scoring_start',
                         pipeline_id=self.pipeline_id,
                         job_id=id(self))
 
     def poll(self):
         timeout_reached = False
-        if self.started + self.timeout_run < time.time():
+        if time.time() > self.expected_end:
             timeout_reached = True
             logger.error('Reached timeout (%d seconds) to score a pipeline' % self.timeout_run)
             self.proc.terminate()
@@ -1228,6 +1229,7 @@ class TuneHyperparamsJob(Job):
         self.pipeline_id = pipeline_id
         self.problem = problem
         self.timeout_tuning = timeout_tuning
+        self.expected_end = time.time() + timeout_tuning
 
     def start(self, db_filename, **kwargs):
         logger.info("Running tuning for %s (session %s has %d pipelines left to tune)",
@@ -1247,14 +1249,14 @@ class TuneHyperparamsJob(Job):
                                 report_rank=self.session.report_rank,
                                 timeout_tuning=self.timeout_tuning,
                                 db_filename=db_filename)
-        self.started = time.time()
+
         self.session.notify('tuning_start',
                             pipeline_id=self.pipeline_id,
                             job_id=id(self))
 
     def poll(self):
-        if self.started + self.timeout_tuning < time.time():
-            logger.error("Tunning process is stuck, terminating after %d seconds", time.time() - self.started)
+        if time.time() > self.expected_end:
+            logger.error('Reached timeout (%d seconds) to tune a pipeline' % self.timeout_tuning)
             self.proc.terminate()
             try:
                 self.proc.wait(30)
