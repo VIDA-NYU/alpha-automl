@@ -507,44 +507,44 @@ class AutoML(Observable):
             features=session.features,
             metadata=metadata,
             pipeline_template=pipeline_template,
+            time_bound=timeout_search,
             db_filename=self.db_filename,
         )
 
         start = time.time()
-        stopped = False
+        stop = False
 
         # Now we wait for pipelines to be sent over the pipe
         while proc.poll() is None:
-            if not stopped:
+            if not stop:
                 if session.stop_requested:
                     logger.error("Session stop requested, sending SIGTERM to generator process")
-                    proc.terminate()
-                    stopped = True
+                    stop = True
 
                 if time.time() > start + timeout_search:
                     logger.error("Reached search timeout (%d > %d seconds), sending SIGTERM to generator process",
                                  time.time() - start, timeout_search)
-                    proc.terminate()
-                    stopped = True
+                    stop = True
 
+                if stop:
+                    proc.terminate()
+                    try:
+                        proc.wait(30)
+                    except subprocess.TimeoutExpired:
+                        proc.kill()
+                        proc.wait()
             try:
                 msg, *args = msg_queue.recv(3)
             except Empty:
                 continue
 
             if msg == 'eval':
-                if stopped:
-                    return
                 pipeline_id, = args
                 logger.info("Got pipeline %s from generator process", pipeline_id)
                 score = self.run_pipeline(session, dataset_uri, sample_dataset_uri, task_keywords, pipeline_id)
-
                 logger.info("Sending score to generator process")
-                try:  # Fixme, just to avoid Broken pipe error
+                if not stop:
                     msg_queue.send(score)
-                except:
-                    logger.error("Broken pipe")
-                    return
             else:
                 raise RuntimeError("Got unknown message from generator process: %r" % msg)
 
