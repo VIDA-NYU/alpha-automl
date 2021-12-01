@@ -2,6 +2,7 @@ import logging
 from d3m.metadata.problem import TaskKeyword
 from alphad3m.search.d3mpipeline_builder import BaseBuilder
 from alphad3m.data_ingestion.data_profiler import get_privileged_data
+from alphad3m.utils import load_primitives_types
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,7 @@ TEMPLATES = {
 }
 
 
-def generate_pipelines(task_keywords, dataset, problem, targets, features, metadata, metrics, DBSession):
+def generate_pipelines(task_keywords, dataset, problem, targets, features, hyperparameters, metadata, metrics, DBSession):
     # Primitives for LUPI problems are no longer available. So, just exclude privileged data
     privileged_data = get_privileged_data(problem, task_keywords)
     metadata['exclude_columns'] += privileged_data
@@ -58,28 +59,55 @@ def generate_pipelines(task_keywords, dataset, problem, targets, features, metad
         if task_keywords_set & {TaskKeyword.IMAGE, TaskKeyword.TEXT, TaskKeyword.AUDIO, TaskKeyword.VIDEO}:
             template_name = 'DEBUG_CLASSIFICATION'
 
-    logger.info("Creating pipelines from template %s" % template_name)
+    logger.info('Creating pipelines from template %s' % template_name)
 
     feature_types = metadata['only_attribute_types']
-    template_preprocessing = ['d3m.primitives.data_cleaning.imputer.SKlearn']
+    preprocessing_primitives = ['d3m.primitives.data_cleaning.imputer.SKlearn']
 
     if 'http://schema.org/Text' in feature_types:
-        template_preprocessing.append('d3m.primitives.data_transformation.encoder.DistilTextEncoder')
+        preprocessing_primitives.append('d3m.primitives.data_transformation.encoder.DistilTextEncoder')
     if 'http://schema.org/DateTime' in feature_types:
-        template_preprocessing.append('d3m.primitives.data_transformation.enrich_dates.DistilEnrichDates')
+        preprocessing_primitives.append('d3m.primitives.data_transformation.enrich_dates.DistilEnrichDates')
     if 'https://metadata.datadrivendiscovery.org/types/CategoricalData' in feature_types:
-        template_preprocessing.append('d3m.primitives.data_transformation.encoder.DSBOX')
-    if len(template_preprocessing) == 1:  # Encoders were not applied, so use to_numeric for all features
-        template_preprocessing.append('d3m.primitives.data_transformation.to_numeric.DSBOX')
+        preprocessing_primitives.append('d3m.primitives.data_transformation.encoder.DSBOX')
+    if len(preprocessing_primitives) == 1:  # Encoders were not applied, so use to_numeric for all features
+        preprocessing_primitives.append('d3m.primitives.data_transformation.to_numeric.DSBOX')
 
-    template_estimators = TEMPLATES.get(template_name, [])
+    estimator_primitives = TEMPLATES.get(template_name, [])
+    include_primitives = hyperparameters.get('include_primitives', []) or []  # Use empty list when the value is None
+    exclude_primitives = hyperparameters.get('exclude_primitives', []) or []  # Use empty list when the value is None
+    preprocessing_primitives, estimator_primitives = modify_search_space(preprocessing_primitives, estimator_primitives,
+                                                                         include_primitives, exclude_primitives)
+
     builder = BaseBuilder()
     pipeline_ids = []
 
-    for template_estimator in template_estimators:
-        template = template_preprocessing + [template_estimator]
+    for estimator_primitive in estimator_primitives:
+        template = preprocessing_primitives + [estimator_primitive]
         pipeline_id = builder.make_d3mpipeline(template, 'Template', dataset, None, targets, features, metadata,
                                                metrics, DBSession=DBSession)
         pipeline_ids.append(pipeline_id)
 
     return pipeline_ids
+
+
+def modify_search_space(preprocessing_primitives, estimator_primitives, include_primitives, exclude_primitives):
+    primitives_types = load_primitives_types()
+
+    for exclude_primitive in exclude_primitives:
+        primitive_type = primitives_types.get(exclude_primitive, None)
+        if primitive_type in {'CLASSIFICATION', 'REGRESSION'}:
+            estimator_primitives = [i for i in estimator_primitives if i != exclude_primitive]
+        elif primitive_type is not None:
+            preprocessing_primitives = [i for i in preprocessing_primitives if i != exclude_primitive]
+
+    for include_primitive in include_primitives:
+        primitive_type = primitives_types.get(include_primitive, None)
+        if primitive_type in {'CLASSIFICATION', 'REGRESSION'}:
+            if include_primitive not in estimator_primitives:
+                estimator_primitives.append(include_primitive)
+        elif primitive_type is not None:
+            if include_primitive not in preprocessing_primitives:
+                preprocessing_primitives.append(include_primitive)
+
+    return preprocessing_primitives, estimator_primitives

@@ -10,6 +10,7 @@ import threading
 import subprocess
 from d3m.metadata.problem import TaskKeyword
 from sklearn.model_selection import train_test_split
+from alphad3m.primitive_loader import load_primitives_list
 
 SAMPLE_SIZE = 2000
 RANDOM_SEED = 0
@@ -236,3 +237,13 @@ def read_streams(process):
         logger.error('Timeout error reading child process logs')
 
     return error_msg
+
+
+def load_primitives_types():
+    primitives_types = {}
+    primitives = load_primitives_list()
+
+    for primitive in primitives:
+        primitives_types[primitive['python_path']] = primitive['type']
+
+    return primitives_types

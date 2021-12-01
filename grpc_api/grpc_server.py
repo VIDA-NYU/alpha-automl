@@ -21,7 +21,7 @@ import d3m_automl_rpc.value_pb2 as pb_value
 import d3m_automl_rpc.pipeline_pb2 as pb_pipeline
 import d3m_automl_rpc.primitive_pb2 as pb_primitive
 from d3m_automl_rpc.utils import decode_pipeline_description, decode_problem_description, decode_performance_metric, \
-    encode_pipeline_description
+    encode_pipeline_description, decode_value
 from d3m.metadata import pipeline as pipeline_module
 from d3m.metadata.problem import Problem
 from google.protobuf.timestamp_pb2 import Timestamp
@@ -139,8 +139,13 @@ class CoreService(pb_core_grpc.CoreServicer):
         task_keywords = session.problem['problem']['task_keywords']
         metrics = session.metrics
 
-        self._ta2.build_pipelines(search_id, dataset, task_keywords, metrics, timeout_search, timeout_run, template,
-                                  report_rank=report_rank)
+        automl_hyperparameters = {}
+        if request.automl_hyperparameters:
+            for hp_name, hp_value in request.automl_hyperparameters.items():
+                automl_hyperparameters[hp_name] = decode_value(hp_value)['value']
+
+        self._ta2.build_pipelines(search_id, dataset, task_keywords, metrics, timeout_search, timeout_run,
+                                  automl_hyperparameters, template, report_rank=report_rank)
 
         return pb_core.SearchSolutionsResponse(
             search_id=str(search_id),

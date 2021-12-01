@@ -3,6 +3,7 @@ import logging
 import itertools
 from os.path import join, dirname
 from nltk.grammar import Production, Nonterminal, CFG, is_terminal, is_nonterminal
+from alphad3m.utils import load_primitives_types
 from alphad3m.primitive_loader import load_primitives_hierarchy
 from alphad3m.metalearning.grammar_builder import create_metalearningdb_grammar
 
@@ -100,16 +101,18 @@ def add_probabilities(game_grammar, probabilities):
     for primitive_type, primitive_probabilities in probabilities['global'].items():
         for primitive, probability in primitive_probabilities.items():
             id_rule_str = '%s -> %s' % (primitive_type, primitive)
-            id_rule_int = game_grammar['RULES'][id_rule_str]
-            game_grammar['RULES_PROBA']['GLOBAL'][id_rule_int] = (id_rule_str, probability)
+            if id_rule_str in game_grammar['RULES']:
+                id_rule_int = game_grammar['RULES'][id_rule_str]
+                game_grammar['RULES_PROBA']['GLOBAL'][id_rule_int] = (id_rule_str, probability)
 
     for pattern, pattern_probabilities in probabilities['local'].items():
         game_grammar['RULES_PROBA']['LOCAL'][pattern] = {}
         for primitive_type, primitive_probabilities in pattern_probabilities.items():
             for primitive, probability in primitive_probabilities.items():
                 id_rule_str = '%s -> %s' % (primitive_type, primitive)
-                id_rule_int = game_grammar['RULES'][id_rule_str]
-                game_grammar['RULES_PROBA']['LOCAL'][pattern][id_rule_int] = (id_rule_str, probability)
+                if id_rule_str in game_grammar['RULES']:
+                    id_rule_int = game_grammar['RULES'][id_rule_str]
+                    game_grammar['RULES_PROBA']['LOCAL'][pattern][id_rule_int] = (id_rule_str, probability)
     game_grammar['RULES_PROBA']['TYPES'] = probabilities['types']
 
     return game_grammar
@@ -133,8 +136,7 @@ def modify_manual_grammar(encoders, use_imputer):
     return new_grammar
 
 
-def load_manual_grammar(task, task_keywords, encoders, use_imputer):
-    primitives = load_primitives_hierarchy()
+def modify_text_primitives(primitives, task_keywords):
     if 'text' not in task_keywords:
         # Ignore some text processing primitives for non-text tasks
         ignore_primitives = {'d3m.primitives.feature_extraction.count_vectorizer.SKlearn',
@@ -143,6 +145,13 @@ def load_manual_grammar(task, task_keywords, encoders, use_imputer):
                              'd3m.primitives.feature_extraction.tfidf_vectorizer.BBNTfidfTransformer'}
         primitives['TEXT_FEATURIZER'] = [p for p in primitives['TEXT_FEATURIZER'] if p not in ignore_primitives]
 
+    return primitives
+
+
+def load_manual_grammar(task, task_keywords, encoders, use_imputer, include_primitives, exclude_primitives):
+    primitives = load_primitives_hierarchy()
+    primitives = modify_text_primitives(primitives, task_keywords)
+    primitives = modify_search_space(primitives, include_primitives, exclude_primitives)
     grammar_string = modify_manual_grammar(encoders, use_imputer)
     global_grammar = create_global_grammar(grammar_string, primitives)
     task_grammar = create_task_grammar(global_grammar, task)
@@ -151,13 +160,32 @@ def load_manual_grammar(task, task_keywords, encoders, use_imputer):
     return game_grammar
 
 
-def load_automatic_grammar(task, dataset_path, target_column, task_keywords):
+def load_automatic_grammar(task, dataset_path, target_column, task_keywords, include_primitives, exclude_primitives):
     grammar_string, primitives = create_metalearningdb_grammar(task, dataset_path, target_column, task_keywords)
     if grammar_string is None:
         return None
+
+    primitives['hierarchy'] = modify_search_space(primitives['hierarchy'], include_primitives, exclude_primitives)
     global_grammar = create_global_grammar(grammar_string, primitives['hierarchy'])
     task_grammar = create_task_grammar(global_grammar, task)
     game_grammar = create_game_grammar(task_grammar)
     game_grammar = add_probabilities(game_grammar, primitives['probabilities'])
 
     return game_grammar
+
+
+def modify_search_space(primitives, include_primitives, exclude_primitives):
+    primitives_types = load_primitives_types()
+
+    for exclude_primitive in exclude_primitives:
+        primitive_type = primitives_types.get(exclude_primitive, None)
+        if primitive_type in primitives:
+            primitives[primitive_type] = [i for i in primitives[primitive_type] if i != exclude_primitive]
+
+    for include_primitive in include_primitives:
+        primitive_type = primitives_types.get(include_primitive, None)
+        if primitive_type in primitives:
+            if include_primitive not in primitives[primitive_type]:
+                primitives[primitive_type].append(include_primitive)
+
+    return primitives

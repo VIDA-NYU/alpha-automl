@@ -99,7 +99,7 @@ class AutoML(Observable):
 
         # Create pipelines, NO TUNING
         with session.with_observer_queue() as queue:
-            self.build_pipelines(session.id, dataset_path, task_keywords, session.metrics, timeout, None,
+            self.build_pipelines(session.id, dataset_path, task_keywords, session.metrics, timeout, None, None,
                                  tune=PIPELINES_TO_TUNE)
 
             while queue.get(True)[0] != 'done_searching':
@@ -329,10 +329,10 @@ class AutoML(Observable):
 
         return None
 
-    def build_pipelines(self, session_id, dataset, task_keywords, metrics, timeout_search, timeout_run, template=None,
-                        targets=None, features=None, tune=None, report_rank=False):
-        self.executor.submit(self._build_pipelines, session_id, dataset, task_keywords, metrics, timeout_search, timeout_run,
-                             template, targets, features, tune, report_rank)
+    def build_pipelines(self, session_id, dataset, task_keywords, metrics, timeout_search, timeout_run, hyperparameters,
+                        template=None, targets=None, features=None, tune=None, report_rank=False):
+        self.executor.submit(self._build_pipelines, session_id, dataset, task_keywords, metrics, timeout_search,
+                             timeout_run, hyperparameters, template, targets, features, tune, report_rank)
 
     def build_fixed_pipeline(self, session_id, pipeline, dataset, targets=None, features=None):
         self.executor.submit(self._build_fixed_pipeline, session_id, pipeline, dataset, targets, features)
@@ -440,8 +440,8 @@ class AutoML(Observable):
             db.close()
 
     # Runs in a worker thread from executor
-    def _build_pipelines(self, session_id, dataset_uri, task_keywords, metrics, timeout_search, timeout_run, pipeline_template,
-                         targets, features, tune, report_rank):
+    def _build_pipelines(self, session_id, dataset_uri, task_keywords, metrics, timeout_search, timeout_run,
+                         hyperparameters, pipeline_template, targets, features, tune, report_rank):
         """Generates pipelines for the session.
         """
         session = self.sessions[session_id]
@@ -483,15 +483,15 @@ class AutoML(Observable):
 
         if 'TEMPLATES' in SEARCH_STRATEGIES:
             self._build_pipeline_from_template(session, task_keywords, dataset_uri, sample_dataset_uri, metrics,
-                                               metadata, timeout_search_internal)
+                                               hyperparameters, metadata, timeout_search_internal)
         if 'ALPHA_AUTOML' in SEARCH_STRATEGIES:
             self._build_pipelines_from_generator(session, task_keywords, dataset_uri, sample_dataset_uri, metrics,
-                                                 metadata, timeout_search_internal, pipeline_template)
+                                                 hyperparameters, metadata, timeout_search_internal, pipeline_template)
 
         session.tune_when_ready(tune)
 
     def _build_pipelines_from_generator(self, session, task_keywords, dataset_uri, sample_dataset_uri, metrics,
-                                        metadata, timeout_search, pipeline_template):
+                                        hyperparameters, metadata, timeout_search, pipeline_template):
 
         logger.info("Starting AlphaD3M process, timeout is %s", timeout_search)
         msg_queue = Receiver()
@@ -505,6 +505,7 @@ class AutoML(Observable):
             problem=session.problem,
             targets=session.targets,
             features=session.features,
+            hyperparameters=hyperparameters,
             metadata=metadata,
             pipeline_template=pipeline_template,
             time_bound=timeout_search,
@@ -551,10 +552,10 @@ class AutoML(Observable):
         logger.warning("Generator process exited with %r", proc.returncode)
 
     def _build_pipeline_from_template(self, session, task_keywords, dataset_uri, sample_dataset_uri, metrics,
-                                      metadata, timeout_search):
+                                      hyperparameters, metadata, timeout_search):
 
         pipeline_ids = generate_pipelines(task_keywords, dataset_uri, session.problem, session.targets, session.features,
-                                          metadata,  metrics, self.DBSession)
+                                          hyperparameters, metadata,  metrics, self.DBSession)
         for pipeline_id in pipeline_ids:
             try:
                 # Add it to the session

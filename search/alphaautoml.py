@@ -76,7 +76,8 @@ def signal_handler(signal_num, frame):
 
 
 @database.with_sessionmaker
-def generate_pipelines(task_keywords, dataset, metrics, problem, targets, features, metadata, pipeline_template, time_bound, msg_queue, DBSession):
+def generate_pipelines(task_keywords, dataset, metrics, problem, targets, features, hyperparameters, metadata,
+                       pipeline_template, time_bound, msg_queue, DBSession):
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGALRM, signal_handler)
     signal.alarm(int(time_bound))
@@ -152,6 +153,8 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
         builder = BaseBuilder()
 
     use_automatic_grammar = True
+    include_primitives = hyperparameters.get('include_primitives', []) or []  # Use empty list when the value is None
+    exclude_primitives = hyperparameters.get('exclude_primitives', []) or []  # Use empty list when the value is None
 
     def update_config(task_name):
         config['PROBLEM'] = task_name
@@ -168,12 +171,14 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
         if use_automatic_grammar:
             dataset_path = join(dirname(dataset[7:]), 'tables', 'learningData.csv')
             target_column = problem['inputs'][0]['targets'][0]['column_name']
-            grammar = load_automatic_grammar(task_name_id, dataset_path, target_column, task_keyword_ids)
+            grammar = load_automatic_grammar(task_name_id, dataset_path, target_column, task_keyword_ids,
+                                             include_primitives, exclude_primitives)
 
         if grammar is None:
             encoders = select_encoders(metadata['only_attribute_types'])
             use_imputer = metadata['missing_values']
-            grammar = load_manual_grammar(task_name_id, task_keyword_ids, encoders, use_imputer)
+            grammar = load_manual_grammar(task_name_id, task_keyword_ids, encoders, use_imputer, include_primitives,
+                                          exclude_primitives)
         config['GRAMMAR'] = grammar
         metafeatures_extractor = ComputeMetafeatures(dataset, targets, features, DBSession)
         config['DATASET_METAFEATURES'] = [0] * 50 #metafeatures_extractor.compute_metafeatures('AlphaD3M_compute_metafeatures')

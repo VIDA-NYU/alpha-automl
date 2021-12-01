@@ -9,7 +9,7 @@ from urllib import parse
 import d3m_automl_rpc.core_pb2 as pb_core
 import d3m_automl_rpc.core_pb2_grpc as pb_core_grpc
 import d3m_automl_rpc.value_pb2 as pb_value
-from d3m_automl_rpc.utils import encode_problem_description, encode_performance_metric
+from d3m_automl_rpc.utils import encode_problem_description, encode_performance_metric, encode_value
 from alphad3m.grpc_api.grpc_logger import LoggingStub
 
 
@@ -26,7 +26,10 @@ def do_listprimitives(core):
 
 def do_search(core, problem, dataset_path, time_bound=30.0, pipelines_limit=0, pipeline_template=None):
     version = pb_core.DESCRIPTOR.GetOptions().Extensions[pb_core.protocol_version]
-
+    automl_hyperparameters = {'exclude_primitives': None,
+                              'include_primitives': None}
+    automl_hyperparams_encoded = {k: encode_value({'type': 'object', 'value': v}, ['RAW'], '/tmp') for k, v in
+                                  automl_hyperparameters.items()}
     search = core.SearchSolutions(pb_core.SearchSolutionsRequest(
         user_agent='ta3_stub',
         version=version,
@@ -34,6 +37,7 @@ def do_search(core, problem, dataset_path, time_bound=30.0, pipelines_limit=0, p
         rank_solutions_limit=pipelines_limit,
         allowed_value_types=['CSV_URI'],
         problem=encode_problem_description(problem),
+        automl_hyperparameters=automl_hyperparams_encoded,
         template=pipeline_template,
         inputs=[pb_value.Value(
             dataset_uri='file://%s' % dataset_path,
