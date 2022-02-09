@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 @database.with_db
-def tune(pipeline_id, dataset_uri, sample_dataset_uri, metrics, problem, scoring_config, report_rank, timeout_tuning, msg_queue, db):
+def tune(pipeline_id, dataset_uri, sample_dataset_uri, storage_dir, metrics, problem, scoring_config, report_rank, timeout_tuning, msg_queue, db):
     # Load pipeline from database
     pipeline = (
         db.query(database.Pipeline)
@@ -69,7 +69,7 @@ def tune(pipeline_id, dataset_uri, sample_dataset_uri, metrics, problem, scoring
 
     # Run tuning, gets best configuration
     tuning = HyperparameterTuning(tunable_primitives.values())
-    output_directory = join(os.environ.get('D3MOUTPUTDIR'), 'temp', 'tuning', str(pipeline_id))
+    output_directory = join(storage_dir, 'tuning', str(pipeline_id))
     create_outputfolders(output_directory)
     best_configuration, best_scores = tuning.tune(evaluate_tune, timeout_tuning, output_directory)
 

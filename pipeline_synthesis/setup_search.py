@@ -6,12 +6,12 @@ import sys
 os.environ['MPLBACKEND'] = 'Agg'
 
 from os.path import join, dirname
-from alphaAutoMLEdit.Coach import Coach
-from alphaAutoMLEdit.pipeline.PipelineGame import PipelineGame
-from alphaAutoMLEdit.pipeline.NNet import NNetWrapper
+from alphad3m.pipeline_search.Coach import Coach
+from alphad3m.pipeline_search.pipeline.PipelineGame import PipelineGame
+from alphad3m.pipeline_search.pipeline.NNet import NNetWrapper
 from alphad3m.grammar_loader import load_manual_grammar, load_automatic_grammar
 from alphad3m.data_ingestion.data_profiler import get_privileged_data, select_encoders
-from alphad3m.search.d3mpipeline_builder import *
+from alphad3m.pipeline_synthesis.d3mpipeline_builder import *
 from alphad3m.metafeature.metafeature_extractor import ComputeMetafeatures
 from alphad3m.utils import get_collection_type
 from d3m.metadata.problem import TaskKeyword, TaskKeywordBase
