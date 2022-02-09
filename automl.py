@@ -27,7 +27,7 @@ from alphad3m import __version__
 from alphad3m.multiprocessing import Receiver, run_process
 from alphad3m.grpc_api import grpc_server
 from alphad3m.data_ingestion.data_profiler import profile_data
-from alphad3m.search.templates import generate_pipelines
+from alphad3m.pipeline_synthesis.templates import generate_pipelines
 from alphad3m.utils import Observable, ProgressStatus, is_collection, get_dataset_sample, create_outputfolders, \
     read_streams, get_internal_scoring_config
 from alphad3m.schema import database
@@ -45,11 +45,6 @@ MAX_RUNNING_TIME = 43800  # In minutes. If time is not provided for the searchin
 MAX_RUNNING_PROCESSES = int(os.environ.get('D3MCPU', multiprocessing.cpu_count()))  # Number of processes to be used
 SEARCH_STRATEGIES = ['TEMPLATES', 'ALPHA_AUTOML']
 
-if 'TA2_DEBUG_BE_FAST' in os.environ:
-    PIPELINES_TO_TUNE = 0
-    SEARCH_STRATEGIES.remove('ALPHA_AUTOML')
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -60,6 +55,7 @@ class AutoML(Observable):
         #  Internal folders
         self.internal_folder = os.path.join(self.output_folder, 'temp')
         self.runtime_folder = os.path.join(self.output_folder, 'temp', 'runtime_output')
+        # TODO: Remove the runtime_folder. Use internal_folder instead
         create_outputfolders(self.internal_folder)
         create_outputfolders(self.runtime_folder)
         self.db_filename = os.path.join(self.internal_folder, 'db.sqlite3')
@@ -119,6 +115,7 @@ class AutoML(Observable):
         This is called by the ``ta2_serve`` executable. It is part of the
         TA2+TA3 evaluation.
         """
+        os.environ['D3MOUTPUTDIR'] = self.output_folder
         if not port:
             port = 45042
         core_rpc = grpc_server.CoreService(self)
@@ -496,7 +493,7 @@ class AutoML(Observable):
         logger.info("Starting AlphaD3M process, timeout is %s", timeout_search)
         msg_queue = Receiver()
         proc = run_process(
-            'alphad3m.search.alphaautoml.generate_pipelines',
+            'alphad3m.pipeline_synthesis.setup_search.generate_pipelines',
             'generate',
             msg_queue,
             task_keywords=task_keywords,
@@ -905,7 +902,7 @@ class Session(Observable):
                         timeout_tuning = self.expected_search_end - time.time()
                         for pipeline_id in tune:
                             logger.info("    %s", pipeline_id)
-                            self._ta2._run_queue.put(TuneHyperparamsJob(self, pipeline_id, self.problem, timeout_tuning))
+                            self._ta2._run_queue.put(TuneHyperparamsJob(self._ta2, self, pipeline_id, self.problem, timeout_tuning))
                             self.pipelines_tuning.add(pipeline_id)
                         return
                     logger.info("Found no pipeline to tune")
@@ -1224,8 +1221,9 @@ class TestJob(Job):
 
 
 class TuneHyperparamsJob(Job):
-    def __init__(self, session, pipeline_id, problem, timeout_tuning):
+    def __init__(self, ta2, session, pipeline_id, problem, timeout_tuning):
         Job.__init__(self)
+        self.ta2 = ta2
         self.session = session
         self.pipeline_id = pipeline_id
         self.problem = problem
@@ -1242,6 +1240,7 @@ class TuneHyperparamsJob(Job):
         self.proc = run_process('alphad3m.pipeline_operations.pipeline_tune.tune',
                                 'tune', self.msg,
                                 pipeline_id=self.pipeline_id,
+                                storage_dir=self.ta2.internal_folder,
                                 dataset_uri=self.session.dataset_uri,
                                 sample_dataset_uri=self.session.sample_dataset_uri,
                                 metrics=self.session.metrics,
