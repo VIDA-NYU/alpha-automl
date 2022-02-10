@@ -19,39 +19,56 @@ def setup_logging():
         format='%(asctime)s:%(levelname)s:AlphaD3M:%(name)s:%(message)s')
 
 
-def main_search():
-    setup_logging()
-    timeout = None
-    output_folder = None
-
-    if 'D3MTIMEOUT' in os.environ:
-        timeout = int(os.environ.get('D3MTIMEOUT'))
-
-    if 'D3MOUTPUTDIR' in os.environ:
-        output_folder = os.environ['D3MOUTPUTDIR']
-
-    logger.info('Config loaded from environment variables D3MOUTPUTDIR=%r D3MTIMEOUT=%r',
-                os.environ['D3MOUTPUTDIR'], os.environ.get('D3MTIMEOUT'))
-
-    ta2 = AutoML(output_folder)
-    dataset = '/input/TRAIN/dataset_TRAIN/datasetDoc.json'
-    problem_path = '/input/TRAIN/problem_TRAIN/problemDoc.json'
-    ta2.run_search(dataset, problem_path=problem_path, timeout=timeout)
-
-
 def main_serve():
     setup_logging()
     port = None
     output_folder = None
 
+    if len(sys.argv) == 3:
+        output_folder = sys.argv[1]
+        port = int(sys.argv[2])
+
+    # TODO: We use env variables in the code of AlphaD3M. So, temporally, we need to setup them,
+    #  but we should get rid of them
+    os.environ['D3MOUTPUTDIR'] = output_folder
+
+    automl = AutoML(output_folder)
+    automl.run_server(port)
+
+
+def main_search():
+    setup_logging()
+    timeout = None
+    output_folder = None
+
+    if len(sys.argv) == 3:
+        output_folder = sys.argv[1]
+        timeout = int(sys.argv[2])
+
+    dataset = '/input/TRAIN/dataset_TRAIN/datasetDoc.json'
+    problem_path = '/input/TRAIN/problem_TRAIN/problemDoc.json'
+    automl = AutoML(output_folder)
+    automl.run_search(dataset, problem_path=problem_path, timeout=timeout)
+
+
+def main_serve_dmc():
+    setup_logging()
+    port = None
+    output_folder = None
+
     if len(sys.argv) == 2:
-        port = int(sys.argv[1])
+        port = int(sys.argv[1])  # TODO: Read the port from the env variable
 
     if 'D3MOUTPUTDIR' in os.environ:
         output_folder = os.environ['D3MOUTPUTDIR']
 
-    logger.info('Config loaded from environment variables D3MOUTPUTDIR=%r D3MTIMEOUT=%r',
-                os.environ['D3MOUTPUTDIR'], os.environ.get('D3MTIMEOUT'))
+    logger.info('Config loaded from environment variables D3MOUTPUTDIR=%r', os.environ['D3MOUTPUTDIR'])
 
-    ta2 = AutoML(output_folder)
-    ta2.run_server(port)
+    automl = AutoML(output_folder)
+    automl.run_server(port)
+
+
+
+
+
+
