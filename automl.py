@@ -115,7 +115,7 @@ class AutoML(Observable):
         This is called by the ``ta2_serve`` executable. It is part of the
         TA2+TA3 evaluation.
         """
-        os.environ['D3MOUTPUTDIR'] = self.output_folder
+
         if not port:
             port = 45042
         core_rpc = grpc_server.CoreService(self)
@@ -554,18 +554,20 @@ class AutoML(Observable):
         pipeline_ids = generate_pipelines(task_keywords, dataset_uri, session.problem, session.targets, session.features,
                                           hyperparameters, metadata,  metrics, self.DBSession)
         for pipeline_id in pipeline_ids:
-            try:
-                # Add it to the session
-                session.add_scoring_pipeline(pipeline_id)
-                logger.info('Created pipeline %s', pipeline_id)
-                scoring_config = get_internal_scoring_config(task_keywords)
+            if pipeline_id is not None:
+                try:
+                    # Add it to the session
+                    session.add_scoring_pipeline(pipeline_id)
+                    logger.info('Created pipeline %s', pipeline_id)
+                    scoring_config = get_internal_scoring_config(task_keywords)
 
-                self._run_queue.put(ScoreJob(self, pipeline_id, dataset_uri, session.metrics, session.problem,
-                                             scoring_config, timeout_search, session.report_rank, sample_dataset_uri))
+                    self._run_queue.put(ScoreJob(self, pipeline_id, dataset_uri, session.metrics, session.problem,
+                                                 scoring_config, timeout_search, session.report_rank,
+                                                 sample_dataset_uri))
 
-                session.notify('new_pipeline', pipeline_id=pipeline_id)
-            except Exception:
-                logger.exception('Error building pipeline from template')
+                    session.notify('new_pipeline', pipeline_id=pipeline_id)
+                except Exception:
+                    logger.exception('Error building pipeline from template')
 
     def run_pipeline(self, session, dataset_uri, sample_dataset_uri, task_keywords, pipeline_id):
 
