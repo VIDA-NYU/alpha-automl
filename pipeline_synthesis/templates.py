@@ -69,7 +69,7 @@ def generate_pipelines(task_keywords, dataset, problem, targets, features, hyper
     if 'http://schema.org/DateTime' in feature_types:
         preprocessing_primitives.append('d3m.primitives.data_transformation.enrich_dates.DistilEnrichDates')
     if 'https://metadata.datadrivendiscovery.org/types/CategoricalData' in feature_types:
-        preprocessing_primitives.append('d3m.primitives.data_transformation.one_hot_encoder.SKlearn')
+        preprocessing_primitives.append('d3m.primitives.data_transformation.encoder.DSBOX')
     if len(preprocessing_primitives) == 1:  # Encoders were not applied, so use to_numeric for all features
         preprocessing_primitives.append('d3m.primitives.data_transformation.to_numeric.DSBOX')
 
