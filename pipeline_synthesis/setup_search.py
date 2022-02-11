@@ -152,7 +152,7 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
         task_name = 'NA'
         builder = BaseBuilder()
 
-    use_automatic_grammar = True
+    use_automatic_grammar = False
     include_primitives = hyperparameters.get('include_primitives', []) or []  # Use empty list when the value is None
     exclude_primitives = hyperparameters.get('exclude_primitives', []) or []  # Use empty list when the value is None
 
