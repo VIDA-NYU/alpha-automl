@@ -1,0 +1,36 @@
+id: f596cd77-25f8-4d4c-a350-bb30ab1e58f6
+schema: https://metadata.datadrivendiscovery.org/schemas/v0/pipeline.json
+source:
+  name: Mitar
+created: "2018-07-27T18:04:43.650608Z"
+context: TESTING
+name: Scoring pipeline
+description: |
+  A general scoring pipeline.
+inputs:
+  - name: predictions
+  - name: score dataset
+outputs:
+  - name: scores
+    data: steps.0.produce
+steps:
+  # Step 0.
+  - type: PRIMITIVE
+    primitive:
+      id: 799802fb-2e11-4ab7-9c5e-dda09eb52a70
+      version: 0.3.0
+      python_path: d3m.primitives.evaluation.compute_scores.Core
+      name: Compute scores given the metrics to use
+    arguments:
+      inputs:
+        type: CONTAINER
+        data: inputs.0
+      score_dataset:
+        type: CONTAINER
+        data: inputs.1
+    outputs:
+      - id: produce
+    hyperparams:
+      add_normalized_scores:
+        type: VALUE
+        data: false

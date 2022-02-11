@@ -6,7 +6,7 @@ from os.path import join, dirname
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)
 
-METALEARNINGDB_PATH = join(dirname(__file__), '../../resource/metalearningdb.pkl')
+METALEARNINGDB_PATH = join(dirname(__file__), '../resource/metalearningdb.pkl')
 
 
 def merge_pipeline_files(pipelines_file, pipeline_runs_file, problems_file, n=-1, verbose=False):

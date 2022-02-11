@@ -6,8 +6,8 @@ from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
 
-PRIMITIVES_LIST_PATH = join(dirname(__file__), '../resource/primitives_list.json')
-PRIMITIVES_HIERARCHY_PATH = join(dirname(__file__), '../resource/primitives_hierarchy.json')
+PRIMITIVES_LIST_PATH = join(dirname(__file__), 'resource/primitives_list.json')
+PRIMITIVES_HIERARCHY_PATH = join(dirname(__file__), 'resource/primitives_hierarchy.json')
 INSTALLED_PRIMITIVES = sorted(index.search(), key=lambda x: x.endswith('SKlearn'), reverse=True)
 
 BLACK_LIST = {

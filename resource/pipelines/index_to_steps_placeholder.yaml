@@ -1,0 +1,298 @@
+id: 1b302a01-103d-4a06-af92-d504f9b229d3
+name: 1b302a01-103d-4a06-af92-d504f9b229d3
+description: Description
+schema: https://metadata.datadrivendiscovery.org/schemas/v0/pipeline.json
+created: "2019-07-16T17:29:53Z"
+context: TESTING
+inputs:
+  - name: input dataset
+outputs:
+  - data: steps.17.produce
+steps:
+  - type: PRIMITIVE
+    primitive:
+      id: f31f8c1f-d1c5-43e5-a4b2-2ae4a761ef2e
+      version: 0.2.0
+      python_path: d3m.primitives.data_transformation.denormalize.Common
+      name: Denormalize datasets
+      digest: 6a80776d244347f0d29f4358df1cd0286c25f67e03a7e2ee517c6e853e6a9d1f
+    arguments:
+      inputs:
+        type: CONTAINER
+        data: inputs.0
+    outputs:
+      - id: produce
+  - type: PRIMITIVE
+    primitive:
+      id: d510cb7a-1782-4f51-b44c-58f0236e47c7
+      version: 0.5.0
+      python_path: d3m.primitives.data_transformation.column_parser.Common
+      name: Parses strings into their types
+      digest: d95eb0ea8a5e6f9abc0965a97e9c4f5d8f74a3df591c11c4145faea3e581cd06
+    hyperparams:
+      parse_semantic_types:
+        type: VALUE
+        data:
+          - http://schema.org/Integer
+          - http://schema.org/Boolean
+          - http://schema.org/Float
+  - type: PRIMITIVE
+    primitive:
+      id: 5bef5738-1638-48d6-9935-72445f0eecdc
+      version: 0.1.0
+      python_path: d3m.primitives.operator.dataset_map.DataFrameCommon
+      name: Map DataFrame resources to new resources using provided primitive
+      digest: b602026372cab83090708ad7f1c8e8e9d48cd03b1841f59b52b59244727a4aa0
+    arguments:
+      inputs:
+        type: CONTAINER
+        data: steps.0.produce
+    outputs:
+      - id: produce
+    hyperparams:
+      primitive:
+        type: PRIMITIVE
+        data: 1
+  - type: PRIMITIVE
+    primitive:
+      id: fc6bf33a-f3e0-3496-aa47-9a40289661bc
+      version: 3.0.1
+      python_path: d3m.primitives.data_cleaning.data_cleaning.Datacleaning
+      name: Data cleaning
+      digest: 4b2ad84f9b1d4c906da37cd2c9ae5fc23c054a3e974be17ce6e75147d257cc3d
+  - type: PRIMITIVE
+    primitive:
+      id: 5bef5738-1638-48d6-9935-72445f0eecdc
+      version: 0.1.0
+      python_path: d3m.primitives.operator.dataset_map.DataFrameCommon
+      name: Map DataFrame resources to new resources using provided primitive
+      digest: b602026372cab83090708ad7f1c8e8e9d48cd03b1841f59b52b59244727a4aa0
+    arguments:
+      inputs:
+        type: CONTAINER
+        data: steps.2.produce
+    outputs:
+      - id: produce
+    hyperparams:
+      primitive:
+        type: PRIMITIVE
+        data: 3
+  - type: PRIMITIVE
+    primitive:
+      id: d7e14b12-abeb-42d8-942f-bdb077b4fd37
+      version: 0.1.0
+      python_path: d3m.primitives.data_transformation.add_semantic_types.Common
+      name: Add semantic types to columns
+      digest: f165abd067b013c18459729c20c082efe7f450d98775e4b1579716f4fd988e76
+    hyperparams:
+      columns::
+        type: VALUE
+        data:
+          - 2
+          - 5
+          - 8
+    hyperparams:
+      semantic_types:
+        type: VALUE
+        data:
+          - http://schema.org/Float
+  - type: PRIMITIVE
+    primitive:
+      id: 5bef5738-1638-48d6-9935-72445f0eecdc
+      version: 0.1.0
+      python_path: d3m.primitives.operator.dataset_map.DataFrameCommon
+      name: Map DataFrame resources to new resources using provided primitive
+      digest: b602026372cab83090708ad7f1c8e8e9d48cd03b1841f59b52b59244727a4aa0
+    arguments:
+      inputs:
+        type: CONTAINER
+        data: steps.4.produce
+    outputs:
+      - id: produce
+    hyperparams:
+      primitive:
+        type: PRIMITIVE
+        data: 5
+  - type: PRIMITIVE
+    primitive:
+      id: d7e14b12-abeb-42d8-942f-bdb077b4fd37
+      version: 0.1.0
+      python_path: d3m.primitives.data_transformation.add_semantic_types.Common
+      name: Add semantic types to columns
+      digest: f165abd067b013c18459729c20c082efe7f450d98775e4b1579716f4fd988e76
+    hyperparams:
+      columns:
+        type: VALUE
+        data:
+          - 1
+    hyperparams:
+      semantic_types:
+        type: VALUE
+        data:
+          - https://metadata.datadrivendiscovery.org/types/CategoricalData
+
+  - type: PRIMITIVE
+    primitive:
+      id: 5bef5738-1638-48d6-9935-72445f0eecdc
+      version: 0.1.0
+      python_path: d3m.primitives.operator.dataset_map.DataFrameCommon
+      name: Map DataFrame resources to new resources using provided primitive
+      digest: b602026372cab83090708ad7f1c8e8e9d48cd03b1841f59b52b59244727a4aa0
+    arguments:
+      inputs:
+        type: CONTAINER
+        data: steps.6.produce
+    outputs:
+      - id: produce
+    hyperparams:
+      primitive:
+        type: PRIMITIVE
+        data: 7
+  - type: PRIMITIVE
+    primitive:
+      id: 3002bc5b-fa47-4a3d-882e-a8b5f3d756aa
+      version: 0.1.0
+      python_path: d3m.primitives.data_transformation.remove_semantic_types.Common
+      name: Remove semantic types from columns
+      digest: ff48930a123697994f8b606b8a353c7e60aaf21738f4fd1a2611d8d1eb4a349a
+    hyperparams:
+      columns:
+        type: VALUE
+        data:
+          - 1
+          - 2
+          - 5
+          - 8
+    hyperparams:
+      semantic_types:
+        type: VALUE
+        data:
+          - https://metadata.datadrivendiscovery.org/types/UnknownType
+
+  - type: PRIMITIVE
+    primitive:
+      id: 5bef5738-1638-48d6-9935-72445f0eecdc
+      version: 0.1.0
+      python_path: d3m.primitives.operator.dataset_map.DataFrameCommon
+      name: Map DataFrame resources to new resources using provided primitive
+      digest: b602026372cab83090708ad7f1c8e8e9d48cd03b1841f59b52b59244727a4aa0
+    arguments:
+      inputs:
+        type: CONTAINER
+        data: steps.8.produce
+    outputs:
+      - id: produce
+    hyperparams:
+      primitive:
+        type: PRIMITIVE
+        data: 9
+  - type: PRIMITIVE
+    primitive:
+      id: d7e14b12-abeb-42d8-942f-bdb077b4fd37
+      version: 0.1.0
+      python_path: d3m.primitives.data_transformation.add_semantic_types.Common
+      name: Add semantic types to columns
+      digest: f165abd067b013c18459729c20c082efe7f450d98775e4b1579716f4fd988e76
+    hyperparams:
+      columns:
+        type: VALUE
+        data:
+          - 1
+          - 2
+          - 5
+    hyperparams:
+      semantic_types:
+        type: VALUE
+        data:
+          - https://metadata.datadrivendiscovery.org/types/Attribute
+  - type: PRIMITIVE
+    primitive:
+      id: 5bef5738-1638-48d6-9935-72445f0eecdc
+      version: 0.1.0
+      python_path: d3m.primitives.operator.dataset_map.DataFrameCommon
+      name: Map DataFrame resources to new resources using provided primitive
+      digest: b602026372cab83090708ad7f1c8e8e9d48cd03b1841f59b52b59244727a4aa0
+    arguments:
+      inputs:
+        type: CONTAINER
+        data: steps.10.produce
+    outputs:
+      - id: produce
+    hyperparams:
+      primitive:
+        type: PRIMITIVE
+        data: 11
+  - type: PRIMITIVE
+    primitive:
+      id: d7e14b12-abeb-42d8-942f-bdb077b4fd37
+      version: 0.1.0
+      python_path: d3m.primitives.data_transformation.add_semantic_types.Common
+      name: Add semantic types to columns
+      digest: f165abd067b013c18459729c20c082efe7f450d98775e4b1579716f4fd988e76
+    hyperparams:
+      columns:
+        type: VALUE
+        data:
+          - 8
+    hyperparams:
+      semantic_types:
+        type: VALUE
+        data:
+          - https://metadata.datadrivendiscovery.org/types/Target
+
+  - type: PRIMITIVE
+    primitive:
+      id: 5bef5738-1638-48d6-9935-72445f0eecdc
+      version: 0.1.0
+      python_path: d3m.primitives.operator.dataset_map.DataFrameCommon
+      name: Map DataFrame resources to new resources using provided primitive
+      digest: b602026372cab83090708ad7f1c8e8e9d48cd03b1841f59b52b59244727a4aa0
+    arguments:
+      inputs:
+        type: CONTAINER
+        data: steps.12.produce
+    outputs:
+      - id: produce
+    hyperparams:
+      primitive:
+        type: PRIMITIVE
+        data: 13
+  - type: PRIMITIVE
+    primitive:
+      id: 3b09ba74-cc90-4f22-9e0a-0cf4f29a7e28
+      version: 0.1.0
+      python_path: d3m.primitives.data_transformation.remove_columns.Common
+      name: Removes columns
+      digest: d2d01abb8d2183baf0204a9ecb8fefdb43683547a1e26049bf4bf81af1137fa3
+    hyperparams:
+      columns:
+        type: VALUE
+        data:
+          - 3
+          - 4
+          - 6
+          - 7
+  - type: PRIMITIVE
+    primitive:
+      id: 5bef5738-1638-48d6-9935-72445f0eecdc
+      version: 0.1.0
+      python_path: d3m.primitives.operator.dataset_map.DataFrameCommon
+      name: Map DataFrame resources to new resources using provided primitive
+      digest: b602026372cab83090708ad7f1c8e8e9d48cd03b1841f59b52b59244727a4aa0
+    arguments:
+      inputs:
+        type: CONTAINER
+        data: steps.14.produce
+    outputs:
+      - id: produce
+    hyperparams:
+      primitive:
+        type: PRIMITIVE
+        data: 15
+  - type: PLACEHOLDER
+    inputs:
+      - data: steps.16.produce
+    outputs:
+      - id: produce
+
+

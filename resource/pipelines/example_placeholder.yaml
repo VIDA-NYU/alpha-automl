@@ -1,0 +1,29 @@
+id: 1b302a01-103d-4a06-af92-d504f9b229d3
+name: 1b302a01-103d-4a06-af92-d504f9b229d3
+description: Description
+schema: https://metadata.datadrivendiscovery.org/schemas/v0/pipeline.json
+created: "2019-07-16T17:29:53Z"
+context: TESTING
+inputs:
+  - name: input dataset
+outputs:
+  - data: steps.1.produce
+steps:
+  - type: PRIMITIVE
+    primitive:
+      id: f31f8c1f-d1c5-43e5-a4b2-2ae4a761ef2e
+      version: 0.2.0,
+      name: Denormalize datasets
+      python_path: d3m.primitives.data_transformation.denormalize.Common
+      digest: 6a80776d244347f0d29f4358df1cd0286c25f67e03a7e2ee517c6e853e6a9d1f
+    arguments:
+      inputs:
+        type: CONTAINER
+        data: inputs.0
+    outputs:
+      - id: produce
+  - type: PLACEHOLDER
+    inputs:
+      - data: steps.0.produce
+    outputs:
+      - id: produce

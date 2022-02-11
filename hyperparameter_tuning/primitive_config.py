@@ -13,7 +13,7 @@ from ConfigSpace.hyperparameters import CategoricalHyperparameter, UniformFloatH
 
 logger = logging.getLogger(__name__)
 
-HYPERPARAMETERS_FROM_METALEARNING_PATH = os.path.join(os.path.dirname(__file__), '../../resource/hyperparams.json')
+HYPERPARAMETERS_FROM_METALEARNING_PATH = os.path.join(os.path.dirname(__file__), '../resource/hyperparams.json')
 PRIMITIVES = {}
 primitives_info = load_primitives_hierarchy()
 for primitive_type in primitives_info:

@@ -16,16 +16,16 @@ from d3m.metadata.problem import PerformanceMetric, TaskKeyword
 logger = logging.getLogger(__name__)
 
 
-with pkg_resources.resource_stream('alphad3m', '../resource/pipelines/kfold_tabular_split.yaml') as fp:
+with pkg_resources.resource_stream('alphad3m', 'resource/pipelines/kfold_tabular_split.yaml') as fp:
     kfold_tabular_split = Pipeline.from_yaml(fp)
 
-with pkg_resources.resource_stream('alphad3m', '../resource/pipelines/kfold_timeseries_split.yaml') as fp:
+with pkg_resources.resource_stream('alphad3m', 'resource/pipelines/kfold_timeseries_split.yaml') as fp:
     kfold_timeseries_split = Pipeline.from_yaml(fp)
 
-with pkg_resources.resource_stream('alphad3m', '../resource/pipelines/train-test-tabular-split.yaml') as fp:
+with pkg_resources.resource_stream('alphad3m', 'resource/pipelines/train-test-tabular-split.yaml') as fp:
     train_test_tabular_split = Pipeline.from_yaml(fp)
 
-with pkg_resources.resource_stream('alphad3m', '../resource/pipelines/scoring.yaml') as fp:
+with pkg_resources.resource_stream('alphad3m', 'resource/pipelines/scoring.yaml') as fp:
     scoring_pipeline = Pipeline.from_yaml(fp)
 
 

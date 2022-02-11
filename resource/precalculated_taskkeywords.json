@@ -1,0 +1,1021 @@
+{
+    "124_120_mnist_8747": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "image"
+        ]
+    },
+    "124_138_cifar100_1858": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "image"
+        ]
+    },
+    "124_16_fashion_mnist": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "image"
+        ]
+    },
+    "124_174_cifar10_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "image"
+        ]
+    },
+    "124_188_usps_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "image"
+        ]
+    },
+    "124_214_coil20_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "image"
+        ]
+    },
+    "124_95_uc_merced_land_use_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "image",
+            "remoteSensing"
+        ]
+    },
+    "1491_one_hundred_plants_margin": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "1491_one_hundred_plants_margin_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "1491_one_hundred_plants_margin_clust": {
+        "task_keywords": [
+            "clustering",
+            "nonOverlapping"
+        ]
+    },
+    "1491_one_hundred_plants_margin_clust_MIN_METADATA": {
+        "task_keywords": [
+            "clustering",
+            "nonOverlapping"
+        ]
+    },
+    "1567_poker_hand_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "185_baseball": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "185_baseball_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "196_autoMpg": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "tabular"
+        ]
+    },
+    "196_autoMpg_MIN_METADATA": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "tabular"
+        ]
+    },
+    "22_handgeometry_MIN_METADATA": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "image"
+        ]
+    },
+    "26_radon_seed": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "tabular"
+        ]
+    },
+    "26_radon_seed_MIN_METADATA": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "tabular"
+        ]
+    },
+    "27_wordLevels": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "27_wordLevels_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "299_libras_move": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "299_libras_move_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "30_personae_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "text"
+        ]
+    },
+    "313_spectrometer": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "313_spectrometer_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "31_urbansound_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "audio"
+        ]
+    },
+    "32_fma_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "audio"
+        ]
+    },
+    "32_wikiqa": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "text",
+            "relational"
+        ]
+    },
+    "32_wikiqa_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "text",
+            "relational"
+        ]
+    },
+    "38_sick": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "tabular"
+        ]
+    },
+    "38_sick_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "tabular"
+        ]
+    },
+    "4550_MiceProtein": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "4550_MiceProtein_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "49_facebook_MIN_METADATA": {
+        "task_keywords": [
+            "graphMatching",
+            "graph"
+        ]
+    },
+    "534_cps_85_wages": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "tabular"
+        ]
+    },
+    "534_cps_85_wages_MIN_METADATA": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "tabular"
+        ]
+    },
+    "56_sunspots_MIN_METADATA": {
+        "task_keywords": [
+            "timeSeries",
+            "forecasting",
+            "tabular"
+        ]
+    },
+    "56_sunspots_monthly_MIN_METADATA": {
+        "task_keywords": [
+            "timeSeries",
+            "forecasting",
+            "tabular"
+        ]
+    },
+    "57_hypothyroid_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "59_LP_karate_MIN_METADATA": {
+        "task_keywords": [
+            "linkPrediction",
+            "graph"
+        ]
+    },
+    "59_umls_MIN_METADATA": {
+        "task_keywords": [
+            "linkPrediction",
+            "graph"
+        ]
+    },
+    "60_jester_MIN_METADATA": {
+        "task_keywords": [
+            "collaborativeFiltering",
+            "tabular"
+        ]
+    },
+    "66_chlorineConcentration_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "timeSeries"
+        ]
+    },
+    "6_70_com_amazon_MIN_METADATA": {
+        "task_keywords": [
+            "communityDetection",
+            "nonOverlapping",
+            "graph"
+        ]
+    },
+    "6_86_com_DBLP_MIN_METADATA": {
+        "task_keywords": [
+            "communityDetection",
+            "nonOverlapping",
+            "graph"
+        ]
+    },
+    "JIDO_SOHR_Articles_1061": {
+        "task_keywords": [
+            "classification",
+            "binary"
+        ]
+    },
+    "JIDO_SOHR_Tab_Articles_8569": {
+        "task_keywords": [
+            "classification",
+            "binary"
+        ]
+    },
+    "LL0_1100_popularkids": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "LL0_1100_popularkids_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "LL0_186_braziltourism_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "LL0_207_autoPrice": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "tabular"
+        ]
+    },
+    "LL0_207_autoPrice_MIN_METADATA": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "tabular"
+        ]
+    },
+    "LL0_acled_reduced": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "geospatial",
+            "tabular"
+        ]
+    },
+    "LL0_acled_reduced_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "geospatial",
+            "tabular"
+        ]
+    },
+    "LL0_jido_reduced_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "tabular"
+        ]
+    },
+    "LL1_2734_CLIR": {
+        "task_keywords": [
+            "graphMatching",
+            "graph"
+        ]
+    },
+    "LL1_336_MS_Geolife_transport_mode_prediction_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "timeSeries",
+            "geospatial",
+            "tabular"
+        ]
+    },
+    "LL1_336_MS_Geolife_transport_mode_prediction_separate_lat_lon_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "timeSeries",
+            "geospatial",
+            "tabular"
+        ]
+    },
+    "LL1_3476_HMDB_actio_recognition_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "video"
+        ]
+    },
+    "LL1_50words_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "timeSeries"
+        ]
+    },
+    "LL1_726_TIDY_GPS_carpool_bus_service_rating_prediction_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "timeSeries",
+            "geospatial",
+            "relational"
+        ]
+    },
+    "LL1_736_population_spawn_MIN_METADATA": {
+        "task_keywords": [
+            "timeSeries",
+            "forecasting",
+            "grouped"
+        ]
+    },
+    "LL1_736_population_spawn_simpler_MIN_METADATA": {
+        "task_keywords": [
+            "timeSeries",
+            "forecasting",
+            "grouped"
+        ]
+    },
+    "LL1_736_stock_market_MIN_METADATA": {
+        "task_keywords": [
+            "timeSeries",
+            "forecasting",
+            "grouped"
+        ]
+    },
+    "LL1_ACLED_TOR_online_behavior_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "geospatial",
+            "tabular"
+        ]
+    },
+    "LL1_Adiac_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "timeSeries"
+        ]
+    },
+    "LL1_ArrowHead_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "timeSeries"
+        ]
+    },
+    "LL1_CONFLICT_3457_atrocity_forecasting": {
+        "task_keywords": [
+            "timeSeries",
+            "forecasting",
+            "grouped",
+            "tabular"
+        ]
+    },
+    "LL1_Cricket_Y_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "timeSeries"
+        ]
+    },
+    "LL1_DIC28_net_MIN_METADATA": {
+        "task_keywords": [
+            "graphMatching",
+            "graph"
+        ]
+    },
+    "LL1_ECG200_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "timeSeries"
+        ]
+    },
+    "LL1_EDGELIST_net_nomination_seed_MIN_METADATA": {
+        "task_keywords": [
+            "vertexClassification",
+            "multiClass",
+            "graph"
+        ]
+    },
+    "LL1_ElectricDevices_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "timeSeries"
+        ]
+    },
+    "LL1_FISH_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "timeSeries"
+        ]
+    },
+    "LL1_FaceFour_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "timeSeries"
+        ]
+    },
+    "LL1_GS_process_classification_tabular_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "tabular"
+        ]
+    },
+    "LL1_GS_process_classification_text_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "text"
+        ]
+    },
+    "LL1_GT_actor_group_association_prediction_MIN_METADATA": {
+        "task_keywords": [
+            "linkPrediction",
+            "graph",
+            "timeSeries"
+        ]
+    },
+    "LL1_HandOutlines_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "timeSeries"
+        ]
+    },
+    "LL1_Haptics_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "timeSeries"
+        ]
+    },
+    "LL1_ItalyPowerDemand_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "timeSeries"
+        ]
+    },
+    "LL1_MIL_MUSK": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "multipleInstanceLearning"
+        ]
+    },
+    "LL1_MIL_Mutagenesis": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "multipleInstanceLearning"
+        ]
+    },
+    "LL1_MITLL_synthetic_vora_E_2538": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "tabular"
+        ]
+    },
+    "LL1_Meat_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "timeSeries"
+        ]
+    },
+    "LL1_OSULeaf_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "timeSeries"
+        ]
+    },
+    "LL1_PHEM_Monthly_Malnutrition_MIN_METADATA": {
+        "task_keywords": [
+            "timeSeries",
+            "forecasting",
+            "grouped",
+            "tabular"
+        ]
+    },
+    "LL1_PHEM_weeklyData_malnutrition_MIN_METADATA": {
+        "task_keywords": [
+            "timeSeries",
+            "forecasting",
+            "grouped",
+            "tabular"
+        ]
+    },
+    "LL1_TXT_CLS_3746_newsgroup_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "text"
+        ]
+    },
+    "LL1_TXT_CLS_SST_Binary": {
+        "task_keywords": [
+            "classification",
+            "binary"
+        ]
+    },
+    "LL1_TXT_CLS_airline_opinion": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "text"
+        ]
+    },
+    "LL1_TXT_CLS_airline_opinion_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "text"
+        ]
+    },
+    "LL1_TXT_CLS_apple_products_sentiment": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "text"
+        ]
+    },
+    "LL1_TXT_CLS_apple_products_sentiment_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "text"
+        ]
+    },
+    "LL1_VID_UCF11_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "video"
+        ]
+    },
+    "LL1_VTXC_1343_cora_MIN_METADATA": {
+        "task_keywords": [
+            "vertexClassification",
+            "multiClass",
+            "graph"
+        ]
+    },
+    "LL1_VTXC_1369_synthetic_MIN_METADATA": {
+        "task_keywords": [
+            "vertexClassification",
+            "multiClass",
+            "graph"
+        ]
+    },
+    "LL1_ViEWS_CM_S1": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "tabular"
+        ]
+    },
+    "LL1_ViEWS_PGM_S1": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "tabular"
+        ]
+    },
+    "LL1_bigearth_landuse_detection": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "remoteSensing",
+            "image"
+        ]
+    },
+    "LL1_bn_fly_drosophila_medulla_net_MIN_METADATA": {
+        "task_keywords": [
+            "communityDetection",
+            "nonOverlapping",
+            "graph"
+        ]
+    },
+    "LL1_h1b_visa_apps_7480": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "LL1_net_nomination_seed_MIN_METADATA": {
+        "task_keywords": [
+            "vertexClassification",
+            "multiClass",
+            "graph"
+        ]
+    },
+    "LL1_penn_fudan_pedestrian_MIN_METADATA": {
+        "task_keywords": [
+            "objectDetection",
+            "image"
+        ]
+    },
+    "LL1_retail_sales_total": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "relational"
+        ]
+    },
+    "LL1_retail_sales_total_MIN_METADATA": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "relational"
+        ]
+    },
+    "LL1_terra_canopy_height_long_form_s4_100_MIN_METADATA": {
+        "task_keywords": [
+            "timeSeries",
+            "forecasting",
+            "grouped"
+        ]
+    },
+    "LL1_terra_canopy_height_long_form_s4_70_MIN_METADATA": {
+        "task_keywords": [
+            "timeSeries",
+            "forecasting",
+            "grouped"
+        ]
+    },
+    "LL1_terra_canopy_height_long_form_s4_80_MIN_METADATA": {
+        "task_keywords": [
+            "timeSeries",
+            "forecasting",
+            "grouped"
+        ]
+    },
+    "LL1_terra_canopy_height_long_form_s4_90_MIN_METADATA": {
+        "task_keywords": [
+            "timeSeries",
+            "forecasting",
+            "grouped"
+        ]
+    },
+    "LL1_terra_leaf_angle_mean_long_form_s4_MIN_METADATA": {
+        "task_keywords": [
+            "timeSeries",
+            "forecasting",
+            "grouped"
+        ]
+    },
+    "LL1_tidy_terra_panicle_detection_MIN_METADATA": {
+        "task_keywords": [
+            "objectDetection",
+            "image"
+        ]
+    },
+    "SEMI_1040_sylva_prior": {
+        "task_keywords": [
+            "semiSupervised",
+            "classification",
+            "binary",
+            "tabular"
+        ]
+    },
+    "SEMI_1040_sylva_prior_MIN_METADATA": {
+        "task_keywords": [
+            "semiSupervised",
+            "classification",
+            "binary",
+            "tabular"
+        ]
+    },
+    "SEMI_1044_eye_movements": {
+        "task_keywords": [
+            "semiSupervised",
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "SEMI_1044_eye_movements_MIN_METADATA": {
+        "task_keywords": [
+            "semiSupervised",
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "SEMI_1053_jm1": {
+        "task_keywords": [
+            "semiSupervised",
+            "classification",
+            "binary",
+            "tabular"
+        ]
+    },
+    "SEMI_1053_jm1_MIN_METADATA": {
+        "task_keywords": [
+            "semiSupervised",
+            "classification",
+            "binary",
+            "tabular"
+        ]
+    },
+    "SEMI_1217_click_prediction_small_MIN_METADATA": {
+        "task_keywords": [
+            "semiSupervised",
+            "classification",
+            "binary",
+            "tabular"
+        ]
+    },
+    "SEMI_1459_artificial_characters": {
+        "task_keywords": [
+            "semiSupervised",
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "SEMI_1459_artificial_characters_MIN_METADATA": {
+        "task_keywords": [
+            "semiSupervised",
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "SEMI_155_pokerhand_MIN_METADATA": {
+        "task_keywords": [
+            "semiSupervised",
+            "classification",
+            "multiClass",
+            "tabular"
+        ]
+    },
+    "kaggle_music_hackathon": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "relational"
+        ]
+    },
+    "kaggle_music_hackathon_MIN_METADATA": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "relational"
+        ]
+    },
+    "loan_status": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "relational"
+        ]
+    },
+    "loan_status_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "relational"
+        ]
+    },
+    "political_instability": {
+        "task_keywords": [
+            "timeSeries",
+            "classification",
+            "binary",
+            "grouped",
+            "tabular"
+        ]
+    },
+    "political_instability_MIN_METADATA": {
+        "task_keywords": [
+            "timeSeries",
+            "classification",
+            "binary",
+            "grouped",
+            "tabular"
+        ]
+    },
+    "uu1_datasmash_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "timeSeries"
+        ]
+    },
+    "uu2_gp_hyperparameter_estimation_MIN_METADATA": {
+        "task_keywords": [
+            "regression",
+            "multivariate",
+            "tabular"
+        ]
+    },
+    "uu3_world_development_indicators_MIN_METADATA": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "relational"
+        ]
+    },
+    "uu3_world_development_indicators_raw": {
+        "task_keywords": [
+            "regression",
+            "univariate",
+            "relational"
+        ]
+    },
+    "uu4_SPECT": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "lupi",
+            "tabular"
+        ]
+    },
+    "uu4_SPECT_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "lupi",
+            "tabular"
+        ]
+    },
+    "uu5_heartstatlog": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "lupi",
+            "tabular"
+        ]
+    },
+    "uu5_heartstatlog_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "lupi",
+            "tabular"
+        ]
+    },
+    "uu6_hepatitis": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "lupi",
+            "tabular"
+        ]
+    },
+    "uu6_hepatitis_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "lupi",
+            "tabular"
+        ]
+    },
+    "uu7_pima_diabetes": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "lupi",
+            "tabular"
+        ]
+    },
+    "uu7_pima_diabetes_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "binary",
+            "lupi",
+            "tabular"
+        ]
+    },
+    "uu_101_object_categories_MIN_METADATA": {
+        "task_keywords": [
+            "classification",
+            "multiClass",
+            "image"
+        ]
+    }
+}

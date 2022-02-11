@@ -14,9 +14,9 @@ from d3m.metadata.problem import TaskKeywordBase
 logger = logging.getLogger(__name__)
 
 DATASETS_FOLDER_PATH = '/Users/rlopez/D3M/datasets/seed_datasets_current/'
-PRECALCULATED_METAFEATURES_PATH = join(dirname(__file__), '../../resource/precalculated_metafeatures.json')
-PRECALCULATED_DATAPROFILES_PATH = join(dirname(__file__), '../../resource/precalculated_dataprofiles.json')
-PRECALCULATED_TASKKEYWORDS_PATH = join(dirname(__file__), '../../resource/precalculated_taskkeywords.json')
+PRECALCULATED_METAFEATURES_PATH = join(dirname(__file__), '../resource/precalculated_metafeatures.json')
+PRECALCULATED_DATAPROFILES_PATH = join(dirname(__file__), '../resource/precalculated_dataprofiles.json')
+PRECALCULATED_TASKKEYWORDS_PATH = join(dirname(__file__), '../resource/precalculated_taskkeywords.json')
 
 
 def load_precalculated_data(mode):

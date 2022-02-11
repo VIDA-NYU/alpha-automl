@@ -1,0 +1,1227 @@
+{
+    "124_120_mnist_8747": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "124_138_cifar100_1858": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "124_16_fashion_mnist": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "124_174_cifar10_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "124_188_usps_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "124_214_coil20_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "124_95_uc_merced_land_use_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "1491_one_hundred_plants_margin": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "1491_one_hundred_plants_margin_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "1491_one_hundred_plants_margin_clust": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier",
+            "https://metadata.datadrivendiscovery.org/types/MissingData"
+        ],
+        "missing_values": false
+    },
+    "1491_one_hundred_plants_margin_clust_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier",
+            "https://metadata.datadrivendiscovery.org/types/MissingData"
+        ],
+        "missing_values": false
+    },
+    "1567_poker_hand_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "185_baseball": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "185_baseball_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "196_autoMpg": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "196_autoMpg_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "22_handgeometry_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "26_radon_seed": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "26_radon_seed_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "27_wordLevels": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "27_wordLevels_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "299_libras_move": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/identifier",
+            "http://schema.org/latitude",
+            "http://schema.org/longitude"
+        ],
+        "missing_values": false
+    },
+    "299_libras_move_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/identifier",
+            "http://schema.org/latitude",
+            "http://schema.org/longitude"
+        ],
+        "missing_values": false
+    },
+    "30_personae_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "313_spectrometer": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "313_spectrometer_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "31_urbansound_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "32_fma_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "32_wikiqa": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "32_wikiqa_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "38_sick": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier",
+            "https://metadata.datadrivendiscovery.org/types/MissingData"
+        ],
+        "missing_values": true
+    },
+    "38_sick_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier",
+            "https://metadata.datadrivendiscovery.org/types/MissingData"
+        ],
+        "missing_values": true
+    },
+    "4550_MiceProtein": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "4550_MiceProtein_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "49_facebook_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "534_cps_85_wages": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "534_cps_85_wages_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "56_sunspots_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "56_sunspots_monthly_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Float",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "57_hypothyroid_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier",
+            "https://metadata.datadrivendiscovery.org/types/MissingData"
+        ],
+        "missing_values": true
+    },
+    "59_LP_karate_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "59_umls_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "60_jester_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "66_chlorineConcentration_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "6_70_com_amazon_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "6_86_com_DBLP_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "JIDO_SOHR_Articles_1061": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "JIDO_SOHR_Tab_Articles_8569": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Text",
+            "http://schema.org/URL",
+            "http://schema.org/identifier",
+            "https://metadata.datadrivendiscovery.org/types/MissingData"
+        ],
+        "missing_values": true
+    },
+    "LL0_1100_popularkids": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL0_1100_popularkids_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL0_186_braziltourism_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "LL0_207_autoPrice": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL0_207_autoPrice_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL0_acled_reduced": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier",
+            "http://schema.org/latitude",
+            "http://schema.org/longitude"
+        ],
+        "missing_values": true
+    },
+    "LL0_acled_reduced_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier",
+            "http://schema.org/latitude",
+            "http://schema.org/longitude"
+        ],
+        "missing_values": true
+    },
+    "LL0_jido_reduced_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "LL1_2734_CLIR": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_336_MS_Geolife_transport_mode_prediction_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_336_MS_Geolife_transport_mode_prediction_separate_lat_lon_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/identifier",
+            "http://schema.org/latitude",
+            "http://schema.org/longitude"
+        ],
+        "missing_values": false
+    },
+    "LL1_3476_HMDB_actio_recognition_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_50words_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_726_TIDY_GPS_carpool_bus_service_rating_prediction_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "LL1_736_population_spawn_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_736_population_spawn_simpler_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_736_stock_market_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_ACLED_TOR_online_behavior_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_Adiac_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_ArrowHead_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_CONFLICT_3457_atrocity_forecasting": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_Cricket_Y_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_DIC28_net_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_ECG200_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_EDGELIST_net_nomination_seed_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_ElectricDevices_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_FISH_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_FaceFour_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_GS_process_classification_tabular_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "LL1_GS_process_classification_text_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_GT_actor_group_association_prediction_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_HandOutlines_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_Haptics_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_ItalyPowerDemand_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_MIL_MUSK": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_MIL_Mutagenesis": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_MITLL_synthetic_vora_E_2538": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "LL1_Meat_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_OSULeaf_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_PHEM_Monthly_Malnutrition_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_PHEM_weeklyData_malnutrition_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_TXT_CLS_3746_newsgroup_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_TXT_CLS_SST_Binary": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_TXT_CLS_airline_opinion": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_TXT_CLS_airline_opinion_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_TXT_CLS_apple_products_sentiment": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_TXT_CLS_apple_products_sentiment_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_VID_UCF11_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_VTXC_1343_cora_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_VTXC_1369_synthetic_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_ViEWS_CM_S1": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_ViEWS_PGM_S1": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_bigearth_landuse_detection": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_bn_fly_drosophila_medulla_net_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_h1b_visa_apps_7480": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "LL1_net_nomination_seed_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_penn_fudan_pedestrian_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_retail_sales_total": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_retail_sales_total_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_terra_canopy_height_long_form_s4_100_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_terra_canopy_height_long_form_s4_70_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_terra_canopy_height_long_form_s4_80_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_terra_canopy_height_long_form_s4_90_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_terra_leaf_angle_mean_long_form_s4_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "LL1_tidy_terra_panicle_detection_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "SEMI_1040_sylva_prior": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "SEMI_1040_sylva_prior_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "SEMI_1044_eye_movements": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "SEMI_1044_eye_movements_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "SEMI_1053_jm1": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "SEMI_1053_jm1_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "SEMI_1217_click_prediction_small_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "SEMI_1459_artificial_characters": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "SEMI_1459_artificial_characters_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "SEMI_155_pokerhand_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "kaggle_music_hackathon": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "kaggle_music_hackathon_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "loan_status": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "loan_status_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "political_instability": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "political_instability_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": true
+    },
+    "uu1_datasmash_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "uu2_gp_hyperparameter_estimation_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Float",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "uu3_world_development_indicators_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "uu3_world_development_indicators_raw": {
+        "feature_types": [
+            "http://schema.org/DateTime",
+            "http://schema.org/Enumeration",
+            "http://schema.org/Float",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "uu4_SPECT": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "uu4_SPECT_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "uu5_heartstatlog": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "uu5_heartstatlog_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "uu6_hepatitis": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "uu6_hepatitis_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Integer",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "uu7_pima_diabetes": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "uu7_pima_diabetes_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Boolean",
+            "http://schema.org/Float",
+            "http://schema.org/Integer",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    },
+    "uu_101_object_categories_MIN_METADATA": {
+        "feature_types": [
+            "http://schema.org/Enumeration",
+            "http://schema.org/Text",
+            "http://schema.org/identifier"
+        ],
+        "missing_values": false
+    }
+}

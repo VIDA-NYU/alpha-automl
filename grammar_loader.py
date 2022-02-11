@@ -8,7 +8,7 @@ from alphad3m.primitive_loader import load_primitives_hierarchy
 from alphad3m.metalearning.grammar_builder import create_metalearningdb_grammar
 
 logger = logging.getLogger(__name__)
-BASE_GRAMMAR_PATH = join(dirname(__file__), '../resource/base_grammar.bnf')
+BASE_GRAMMAR_PATH = join(dirname(__file__), 'resource/base_grammar.bnf')
 COMPLETE_GRAMMAR_PATH = join(os.environ.get('D3MOUTPUTDIR'), 'temp', 'complete_grammar.bnf')
 TASK_GRAMMAR_PATH = join(os.environ.get('D3MOUTPUTDIR'), 'temp', 'task_grammar.bnf')
 
