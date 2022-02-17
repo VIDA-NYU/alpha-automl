@@ -21,13 +21,8 @@ def setup_logging():
 
 def main_serve():
     setup_logging()
-    port = None
 
-    if len(sys.argv) == 2:
-        # TODO: Read the port from the env variable when this is ready:
-        #  https://gitlab.com/datadrivendiscovery/automl-rpc/-/issues/158
-        port = int(sys.argv[1])
-
+    port = int(os.environ['D3MPORT'])
     output_folder = os.environ['D3MOUTPUTDIR']
 
     automl = AutoML(output_folder)
