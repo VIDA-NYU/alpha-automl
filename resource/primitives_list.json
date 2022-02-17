@@ -568,6 +568,22 @@
         "type": "CLASSIFICATION"
     },
     {
+        "id": "dsbox-ensemble-voting",
+        "name": "DSBox ensemble voting",
+        "version": "1.6.1",
+        "python_path": "d3m.primitives.classification.ensemble_voting.DSBOX",
+        "digest": "b3ae98a5823c2fc268f4cb89c3171c5fda8d2129af2e83473576f7f43d20c0e8",
+        "type": "CLASSIFICATION"
+    },
+    {
+        "id": "dsbox-featurizer-video-classification-lstm",
+        "name": "DSBox Video Classification LSTM",
+        "version": "1.6.1",
+        "python_path": "d3m.primitives.classification.lstm.DSBOX",
+        "digest": "8b63f5c72649e23aee6261b5f093fc3a961b72520c4112ba4b4984b187b99ab2",
+        "type": "CLASSIFICATION"
+    },
+    {
         "id": "7476950e-4373-4cf5-a852-7e16afb8e098",
         "name": "XGBoost DART classifier",
         "version": "0.1.0",
@@ -726,6 +742,14 @@
         "python_path": "d3m.primitives.data_transformation.dataframe_to_ndarray.Common",
         "digest": "cd60e7bdf1423bcde15a84ef72ad573556cdd6a6ee323cf041e695b40c9556d4",
         "type": "DATA_CONVERSION"
+    },
+    {
+        "id": "dsbox-featurizer-image-dataframe-to-tensor",
+        "name": "DSBox Image Featurizer dataframe to tensor transformer",
+        "version": "1.6.1",
+        "python_path": "d3m.primitives.data_transformation.dataframe_to_tensor.DSBOX",
+        "digest": "f004c9adc1694d118973e4e7ba5d1e09ae86e4104ef0a79013cc523ace0e6b57",
+        "type": "TO_TENSOR"
     },
     {
         "id": "268315c1-7549-4aee-a4cc-28921cba74c0",
@@ -1132,8 +1156,32 @@
         "name": "CorexContinuous",
         "version": "1.0.0",
         "python_path": "d3m.primitives.feature_construction.corex_continuous.DSBOX",
-        "digest": "86142bcdd3b40d34eb0661cafdc503c78709085d3c54d31c2c022d15603b6f4e",
+        "digest": "d6fa2400f5ad48cf94da938982e41dc095afff91c639ab5ed38c9e773d6af820",
         "type": "FEATURE_CONSTRUCTION"
+    },
+    {
+        "id": "0c64ffd6-cb9e-49f0-b7cb-abd70a5a8261",
+        "name": "CorexText",
+        "version": "1.0.0",
+        "python_path": "d3m.primitives.feature_construction.corex_text.DSBOX",
+        "digest": "72b6ca410a4e90de6aeb61bd671958ee02855da02ed23b328b815ccdc4ca0a12",
+        "type": "TEXT_FEATURIZER"
+    },
+    {
+        "id": "393f9de8-a5b9-4d92-aaff-8808d563b6c4",
+        "name": "Echo",
+        "version": "1.0.0",
+        "python_path": "d3m.primitives.feature_construction.echo_ib.DSBOX",
+        "digest": "28bd576915fb1fb2eb75902c377d51aeda4f6d5a0ce2208eec80cdfb71f674c1",
+        "type": "FEATURE_CONSTRUCTION"
+    },
+    {
+        "id": "dsbox-featurizer-image-inceptionV3",
+        "name": "DSBox Image Featurizer inceptionV3",
+        "version": "1.6.1",
+        "python_path": "d3m.primitives.feature_extraction.inceptionV3_image_feature.DSBOX",
+        "digest": "a0b9f9099d2ef60166d2690377ee7b441f6942c969f6b8405ff5dad19ff1d4c9",
+        "type": "FEATURE_EXTRACTION"
     },
     {
         "id": "dsbox-multi-table-featurization-aggregation",
@@ -1150,6 +1198,30 @@
         "python_path": "d3m.primitives.feature_extraction.random_projection_timeseries_featurization.DSBOX",
         "digest": "5202ca4040588ef2f73820a0fa5c1e011eb53b2bf5ecc750ce3fef2fbc891f4f",
         "type": "TIME_SERIES_FEATURIZER"
+    },
+    {
+        "id": "dsbox-featurizer-image-resnet50",
+        "name": "DSBox Image Featurizer ResNet50",
+        "version": "1.6.1",
+        "python_path": "d3m.primitives.feature_extraction.resnet50_image_feature.DSBOX",
+        "digest": "94a9d299067d5e66b4df13014e9db02e10fdfc3f30558352c7e32155a3b3b06c",
+        "type": "IMAGE_FEATURIZER"
+    },
+    {
+        "id": "dsbox-featurizer-image-vgg16",
+        "name": "DSBox Image Featurizer VGG16",
+        "version": "1.6.1",
+        "python_path": "d3m.primitives.feature_extraction.vgg16_image_feature.DSBOX",
+        "digest": "3e03053bd2bc1b3ce4b5afec07685f1e50ce23739ada63e3e9bdfcd4907ecaa6",
+        "type": "FEATURE_EXTRACTION"
+    },
+    {
+        "id": "dsbox-featurizer-object-detection-yolo",
+        "name": "DSBox Object Detection YOLO",
+        "version": "1.6.1",
+        "python_path": "d3m.primitives.feature_extraction.yolo.DSBOX",
+        "digest": "2eef35fc5f313dc53e904af1208f98229678f607e4b3f129f40a714a28679f80",
+        "type": "OBJECT_DETECTION"
     },
     {
         "id": "03b1288c-d4f5-4fa8-9a49-32e82c5efaf2",
@@ -1182,6 +1254,14 @@
         "python_path": "d3m.primitives.operator.compute_unique_values.Common",
         "digest": "f842554b954a715a639f67d48f8de1087aaaa4795dd2056529a0bca2198f57f6",
         "type": "OPERATOR"
+    },
+    {
+        "id": "18e63b10-c5b7-34bc-a670-f2c831d6b4bf",
+        "name": "EchoLinearRegression",
+        "version": "1.0.0",
+        "python_path": "d3m.primitives.regression.echo_linear.DSBOX",
+        "digest": "31797c05619d05a639c7b84d0c1246b2bc45131dbac5c93e80118710a074378d",
+        "type": "REGRESSION"
     },
     {
         "id": "e193afa1-b45e-4d29-918f-5bb1fa3b88a7",

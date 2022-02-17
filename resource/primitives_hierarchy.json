@@ -31,10 +31,12 @@
         "d3m.primitives.classification.ada_boost.SKlearn",
         "d3m.primitives.classification.bagging.SKlearn",
         "d3m.primitives.classification.bernoulli_naive_bayes.SKlearn",
+        "d3m.primitives.classification.decision_tree.SKlearn",
         "d3m.primitives.classification.extra_trees.SKlearn",
         "d3m.primitives.classification.gaussian_naive_bayes.SKlearn",
         "d3m.primitives.classification.gradient_boosting.SKlearn",
         "d3m.primitives.classification.k_neighbors.SKlearn",
+        "d3m.primitives.classification.linear_discriminant_analysis.SKlearn",
         "d3m.primitives.classification.linear_svc.SKlearn",
         "d3m.primitives.classification.logistic_regression.SKlearn",
         "d3m.primitives.classification.mlp.SKlearn",
@@ -52,6 +54,7 @@
         "d3m.primitives.data_augmentation.datamart_augmentation.Common"
     ],
     "DATA_CONVERSION": [
+        "d3m.primitives.data_cleaning.cleaning_featurizer.DSBOX",
         "d3m.primitives.data_transformation.add_semantic_types.Common",
         "d3m.primitives.data_transformation.cast_to_type.Common",
         "d3m.primitives.data_transformation.column_parser.Common",
@@ -100,11 +103,14 @@
         "d3m.primitives.evaluation.train_score_dataset_split.Common"
     ],
     "FEATURE_CONSTRUCTION": [
-        "d3m.primitives.feature_construction.corex_continuous.DSBOX"
+        "d3m.primitives.feature_construction.corex_continuous.DSBOX",
+        "d3m.primitives.feature_construction.echo_ib.DSBOX"
     ],
     "FEATURE_EXTRACTION": [
         "d3m.primitives.feature_extraction.kernel_pca.SKlearn",
-        "d3m.primitives.feature_extraction.multitable_featurization.DSBOX"
+        "d3m.primitives.feature_extraction.inceptionV3_image_feature.DSBOX",
+        "d3m.primitives.feature_extraction.multitable_featurization.DSBOX",
+        "d3m.primitives.feature_extraction.vgg16_image_feature.DSBOX"
     ],
     "FEATURE_SCALING": [
         "d3m.primitives.data_cleaning.max_abs_scaler.SKlearn",
@@ -127,6 +133,9 @@
         "d3m.primitives.data_transformation.text_reader.Common",
         "d3m.primitives.data_transformation.video_reader.Common"
     ],
+    "IMAGE_FEATURIZER": [
+        "d3m.primitives.feature_extraction.resnet50_image_feature.DSBOX"
+    ],
     "IMPUTATION": [
         "d3m.primitives.data_cleaning.imputer.SKlearn"
     ],
@@ -143,6 +152,9 @@
     "NUMERICAL_METHOD": [
         "d3m.primitives.data_transformation.do_nothing.DSBOX",
         "d3m.primitives.data_transformation.do_nothing_for_dataset.DSBOX"
+    ],
+    "OBJECT_DETECTION": [
+        "d3m.primitives.feature_extraction.yolo.DSBOX"
     ],
     "OPERATOR": [
         "d3m.primitives.operator.compute_unique_values.Common"
@@ -170,7 +182,8 @@
         "d3m.primitives.regression.random_forest.SKlearn",
         "d3m.primitives.regression.ridge.SKlearn",
         "d3m.primitives.regression.sgd.SKlearn",
-        "d3m.primitives.regression.svr.SKlearn"
+        "d3m.primitives.regression.svr.SKlearn",
+        "d3m.primitives.regression.echo_linear.DSBOX"
     ],
     "SCHEMA_DISCOVERY": [
         "d3m.primitives.schema_discovery.profiler.Common",
@@ -181,7 +194,8 @@
     ],
     "TEXT_FEATURIZER": [
         "d3m.primitives.feature_extraction.count_vectorizer.SKlearn",
-        "d3m.primitives.feature_extraction.tfidf_vectorizer.SKlearn"
+        "d3m.primitives.feature_extraction.tfidf_vectorizer.SKlearn",
+        "d3m.primitives.feature_construction.corex_text.DSBOX"
     ],
     "TIME_SERIES_FEATURIZER": [
         "d3m.primitives.feature_extraction.random_projection_timeseries_featurization.DSBOX"
@@ -194,5 +208,8 @@
     ],
     "TIME_SERIES_READER": [
         "d3m.primitives.data_transformation.time_series_to_list.DSBOX"
+    ],
+    "TO_TENSOR": [
+        "d3m.primitives.data_transformation.dataframe_to_tensor.DSBOX"
     ]
 }
