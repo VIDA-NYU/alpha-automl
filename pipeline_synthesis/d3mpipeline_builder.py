@@ -135,6 +135,8 @@ def change_default_hyperparams(db, pipeline, primitive_name, primitive, learner_
         set_hyperparams(db, pipeline, primitive, epochs=1)
     elif primitive_name == 'd3m.primitives.time_series_forecasting.nbeats.DeepNeuralNetwork':
         set_hyperparams(db, pipeline, primitive, window_sampling_limit_multiplier=200, batch_size=10)
+    elif primitive_name == 'd3m.primitives.time_series_forecasting.esrnn.RNN':
+        set_hyperparams(db, pipeline, primitive, auto_tune=True)
     elif primitive_name == 'd3m.primitives.semisupervised_classification.iterative_labeling.AutonBox':
         if learner_index is not None:
             set_hyperparams(db, pipeline, primitive,  blackbox={'type': 'PRIMITIVE', 'data': learner_index})
@@ -415,8 +417,8 @@ class BaseBuilder:
             db.commit()
             logger.info('%s PIPELINE ID: %s', origin, pipeline.id)
             return pipeline.id
-        except:
-            logger.exception('Error creating pipeline id=%s, primitives=%s', pipeline.id, str(primitives))
+        except Exception as e:
+            logger.exception('Error creating pipeline id=%s, primitives=%s', pipeline.id, str(primitives), exc_info=e)
             return None
         finally:
             db.close()
