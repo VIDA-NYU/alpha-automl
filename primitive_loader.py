@@ -211,8 +211,8 @@ def load_primitives_hierarchy():
         if primitive_name not in BLACK_LIST:
             try:
                 primitive_type = get_primitive_type(primitive_name)
-            except:
-                logger.error('Loading metadata about primitive %s', primitive_name)
+            except Exception as e:
+                logger.error('Loading metadata about primitive %s', primitive_name, exc_info=e)
                 continue
 
             if primitive_type not in primitives:
@@ -238,8 +238,8 @@ def load_primitives_list():
     for primitive_name in INSTALLED_PRIMITIVES:
             try:
                 primitive_info = get_primitive_info(primitive_name)
-            except:
-                logger.error('Loading metadata about primitive %s', primitive_name)
+            except Exception as e:
+                logger.error('Loading metadata about primitive %s', primitive_name, exc_info=e)
                 continue
             primitives.append(primitive_info)
 
