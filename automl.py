@@ -119,7 +119,7 @@ class AutoML(Observable):
         if not port:
             port = 45042
         core_rpc = grpc_server.CoreService(self)
-        server = grpc.server(self.executor)
+        server = grpc.server(self.executor, options=(("grpc.so_reuseport", 0),))
         pb_core_grpc.add_CoreServicer_to_server(
             core_rpc, server)
         server.add_insecure_port('[::]:%d' % port)
