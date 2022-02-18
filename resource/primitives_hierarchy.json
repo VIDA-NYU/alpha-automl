@@ -47,7 +47,6 @@
         "d3m.primitives.classification.random_forest.SKlearn",
         "d3m.primitives.classification.sgd.SKlearn",
         "d3m.primitives.classification.svc.SKlearn",
-        "d3m.primitives.classification.bert_classifier.DistilBertTextClassification",
         "d3m.primitives.classification.xgboost_dart.Common"
     ],
     "CLUSTERING": [
@@ -192,7 +191,6 @@
     ],
     "REGRESSION": [
         "d3m.primitives.regression.ada_boost.SKlearn",
-        "d3m.primitives.regression.ard.SKlearn",
         "d3m.primitives.regression.bagging.SKlearn",
         "d3m.primitives.regression.decision_tree.SKlearn",
         "d3m.primitives.regression.elastic_net.SKlearn",
