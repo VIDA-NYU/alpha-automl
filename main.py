@@ -22,7 +22,7 @@ def setup_logging():
 def main_serve():
     setup_logging()
 
-    port = int(os.environ['D3MPORT'])
+    port = int(os.environ.get('D3MPORT', 45042))
     output_folder = os.environ['D3MOUTPUTDIR']
 
     automl = AutoML(output_folder)
