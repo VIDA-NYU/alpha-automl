@@ -137,7 +137,7 @@ def modify_manual_grammar(encoders, use_imputer):
 
 
 def modify_text_primitives(primitives, task_keywords):
-    if 'text' not in task_keywords:
+    if 'text' not in task_keywords and 'TEXT_FEATURIZER' in primitives:
         # Ignore some text processing primitives for non-text tasks
         ignore_primitives = {'d3m.primitives.feature_extraction.count_vectorizer.SKlearn',
                              'd3m.primitives.feature_extraction.boc.UBC', 'd3m.primitives.feature_extraction.bow.UBC',
@@ -160,7 +160,8 @@ def load_manual_grammar(task, task_keywords, encoders, use_imputer, include_prim
     return game_grammar
 
 
-def load_automatic_grammar(task, dataset_path, target_column, task_keywords, include_primitives, exclude_primitives):
+def load_automatic_grammar(task, dataset_path, target_column, task_keywords, include_primitives, exclude_primitives,
+                           use_probabilities):
     grammar_string, primitives = create_metalearningdb_grammar(task, dataset_path, target_column, task_keywords)
     if grammar_string is None:
         return None
@@ -169,7 +170,9 @@ def load_automatic_grammar(task, dataset_path, target_column, task_keywords, inc
     global_grammar = create_global_grammar(grammar_string, primitives['hierarchy'])
     task_grammar = create_task_grammar(global_grammar, task)
     game_grammar = create_game_grammar(task_grammar)
-    game_grammar = add_probabilities(game_grammar, primitives['probabilities'])
+
+    if use_probabilities:
+        game_grammar = add_probabilities(game_grammar, primitives['probabilities'])
 
     return game_grammar
 

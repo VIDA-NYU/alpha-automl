@@ -38,11 +38,16 @@ from d3m.metadata.problem import TaskKeyword, parse_problem_description
 from d3m.metadata import pipeline as pipeline_module
 
 
+#  #### These are hyperparameters of the search ####
 PIPELINES_TO_TUNE = 0  # Number of pipelines (top k) to be tuned.
 TIME_TO_TUNE = 0.15  # The ratio of the time to be used for the tuning phase.
 TIME_TO_SCORE = 5  # In minutes. Internal time to score a pipeline during the searching phase.
 MAX_RUNNING_TIME = 43800  # In minutes. If time is not provided for the searching either scoring, run it for 1 month.
 MAX_RUNNING_PROCESSES = int(os.environ.get('D3MCPU', multiprocessing.cpu_count()))  # Number of processes to be used
+USE_AUTOMATIC_GRAMMAR = True
+PRIORITIZE_PRIMITIVES = True
+EXCLUDE_PRIMITIVES = []
+INCLUDE_PRIMITIVES = []
 SEARCH_STRATEGIES = ['TEMPLATES', 'ALPHA_AUTOML']
 
 logger = logging.getLogger(__name__)
@@ -460,6 +465,18 @@ class AutoML(Observable):
         if timeout_search is None:
             timeout_search = MAX_RUNNING_TIME
 
+        if 'use_automatic_grammar' not in hyperparameters:
+            hyperparameters['use_automatic_grammar'] = USE_AUTOMATIC_GRAMMAR
+
+        if 'prioritize_primitives' not in hyperparameters:
+            hyperparameters['prioritize_primitives'] = PRIORITIZE_PRIMITIVES
+
+        if 'include_primitives' not in hyperparameters or hyperparameters['include_primitives'] is None:
+            hyperparameters['include_primitives'] = INCLUDE_PRIMITIVES
+
+        if 'exclude_primitives' not in hyperparameters or hyperparameters['exclude_primitives'] is None:
+            hyperparameters['exclude_primitives'] = EXCLUDE_PRIMITIVES
+
         timeout_search = timeout_search * 60  # Minutes to seconds
         timeout_search_internal = timeout_search
 
@@ -489,7 +506,6 @@ class AutoML(Observable):
 
     def _build_pipelines_from_generator(self, session, task_keywords, dataset_uri, sample_dataset_uri, metrics,
                                         hyperparameters, metadata, timeout_search, pipeline_template):
-
         logger.info("Starting AlphaD3M process, timeout is %s", timeout_search)
         msg_queue = Receiver()
         proc = run_process(

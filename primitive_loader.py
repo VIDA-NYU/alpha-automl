@@ -134,7 +134,7 @@ def get_primitive_type(primitive_name):
                             'd3m.primitives.data_transformation.fast_ica.SKlearn'}:
         primitive_type = 'DIMENSIONALITY_REDUCTION'  # Or should it be FEATURE_SELECTION ?
 
-    elif primitive_name in {'d3m.primitives.classification.bert_classifier.DistilBertPairClassification',
+    elif primitive_name in {'d3m.primitives.classification.bert_classifier.DistilBertTextClassification',
                             'd3m.primitives.classification.text_classifier.DistilTextClassifier'}:
         primitive_type = 'TEXT_CLASSIFIER'
 

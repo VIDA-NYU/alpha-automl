@@ -152,9 +152,9 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
         task_name = 'NA'
         builder = BaseBuilder()
 
-    use_automatic_grammar = False
-    include_primitives = hyperparameters.get('include_primitives', []) or []  # Use empty list when the value is None
-    exclude_primitives = hyperparameters.get('exclude_primitives', []) or []  # Use empty list when the value is None
+    use_automatic_grammar = hyperparameters['use_automatic_grammar']
+    include_primitives = hyperparameters['include_primitives']
+    exclude_primitives = hyperparameters['exclude_primitives']
 
     def update_config(task_name):
         config['PROBLEM'] = task_name
@@ -169,12 +169,15 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
         grammar = None
 
         if use_automatic_grammar:
+            logger.info('Creating an automatic grammar')
+            prioritize_primitives = hyperparameters['prioritize_primitives']
             dataset_path = join(dirname(dataset[7:]), 'tables', 'learningData.csv')
             target_column = problem['inputs'][0]['targets'][0]['column_name']
             grammar = load_automatic_grammar(task_name_id, dataset_path, target_column, task_keyword_ids,
-                                             include_primitives, exclude_primitives)
+                                             include_primitives, exclude_primitives, prioritize_primitives)
 
         if grammar is None:
+            logger.info('Creating a manual grammar')
             encoders = select_encoders(metadata['only_attribute_types'])
             use_imputer = metadata['missing_values']
             grammar = load_manual_grammar(task_name_id, task_keyword_ids, encoders, use_imputer, include_primitives,

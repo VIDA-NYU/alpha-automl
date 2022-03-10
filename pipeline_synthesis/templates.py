@@ -74,8 +74,8 @@ def generate_pipelines(task_keywords, dataset, problem, targets, features, hyper
         preprocessing_primitives.append('d3m.primitives.data_transformation.to_numeric.DSBOX')
 
     estimator_primitives = TEMPLATES.get(template_name, [])
-    include_primitives = hyperparameters.get('include_primitives', []) or []  # Use empty list when the value is None
-    exclude_primitives = hyperparameters.get('exclude_primitives', []) or []  # Use empty list when the value is None
+    include_primitives = hyperparameters['include_primitives']
+    exclude_primitives = hyperparameters['exclude_primitives']
     preprocessing_primitives, estimator_primitives = modify_search_space(preprocessing_primitives, estimator_primitives,
                                                                          include_primitives, exclude_primitives)
 
