@@ -16,4 +16,4 @@ PyYAML
 d3m==2021.12.19
 d3m-automl-rpc==1.2.0
 metalearn==0.6.2
-d3m-interface==0.5.0
+d3m-interface==0.6.0
