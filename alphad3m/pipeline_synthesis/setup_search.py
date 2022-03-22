@@ -1,10 +1,7 @@
 import signal
 import os
 import sys
-
-# Use a headless matplotlib backend
-os.environ['MPLBACKEND'] = 'Agg'
-
+import logging
 from os.path import join, dirname
 from alphad3m.pipeline_search.Coach import Coach
 from alphad3m.pipeline_search.pipeline.PipelineGame import PipelineGame

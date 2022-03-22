@@ -202,9 +202,13 @@ def load_primitives_hierarchy():
     if isfile(PRIMITIVES_HIERARCHY_PATH):
         with open(PRIMITIVES_HIERARCHY_PATH) as fin:
             primitives = json.load(fin)
-        logger.info('Loading primitives info from file')
+        # Verify if the loaded primitives from file are installed
+        installed_primitives = {}
+        for primitive_type in primitives.keys():
+            installed_primitives[primitive_type] = [x for x in primitives[primitive_type] if x in INSTALLED_PRIMITIVES]
 
-        return primitives
+        logger.info('Loading primitives info from file')
+        return installed_primitives
 
     primitives = {}
     for primitive_name in INSTALLED_PRIMITIVES:
@@ -230,9 +234,14 @@ def load_primitives_list():
     if isfile(PRIMITIVES_LIST_PATH):
         with open(PRIMITIVES_LIST_PATH) as fin:
             primitives = json.load(fin)
-        logger.info('Loading primitives info from file')
+        # Verify if the loaded primitives from file are installed
+        installed_primitives = []
+        for primitive_data in primitives:
+            if primitive_data['python_path'] in INSTALLED_PRIMITIVES:
+                installed_primitives.append(primitive_data)
 
-        return primitives
+        logger.info('Loading primitives info from file')
+        return installed_primitives
 
     primitives = []
     for primitive_name in INSTALLED_PRIMITIVES:

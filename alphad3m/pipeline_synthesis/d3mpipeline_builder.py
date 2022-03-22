@@ -1,4 +1,3 @@
-import os
 import pickle
 import logging
 from alphad3m.schema import database
@@ -6,9 +5,6 @@ from d3m import index
 from d3m.container import Dataset, DataFrame, ndarray, List
 from alphad3m.utils import is_collection, get_collection_type
 
-
-# Use a headless matplotlib backend
-os.environ['MPLBACKEND'] = 'Agg'
 logger = logging.getLogger(__name__)
 
 CONTAINER_CAST = {
