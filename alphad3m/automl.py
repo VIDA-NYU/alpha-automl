@@ -32,7 +32,6 @@ from alphad3m.utils import Observable, ProgressStatus, is_collection, get_datase
     read_streams, get_internal_scoring_config
 from alphad3m.schema import database
 from alphad3m.schema.convert import to_d3m_json
-from alphad3m.data_ingestion.data_reader import create_d3mdataset, create_d3mproblem
 from d3m.container import Dataset
 from d3m.metadata.problem import TaskKeyword, parse_problem_description
 from d3m.metadata import pipeline as pipeline_module
@@ -79,14 +78,6 @@ class AutoML(Observable):
         logger.warning("AlphaD3M started, version=%s", __version__)
 
     def run_search(self, dataset_path, problem_path=None, problem_config=None, timeout=None):
-        if not dataset_path.endswith('datasetDoc.json'):  # Convert to D3M format
-            logger.info('Reiceving a raw dataset, converting to D3M format')
-            dataset_folder = os.path.join(self.output_folder, 'temp', 'dataset_d3mformat', 'dataset')
-            problem_folder = os.path.join(self.output_folder, 'temp', 'dataset_d3mformat', 'problem')
-            create_outputfolders(problem_folder)
-            problem_path = create_d3mproblem(problem_config, dataset_path, problem_folder)
-            dataset_path = create_d3mdataset(dataset_path, dataset_folder)
-
         if dataset_path[0] == '/':
             dataset_path = 'file://' + dataset_path
 
