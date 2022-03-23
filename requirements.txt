@@ -1,7 +1,6 @@
 # Non-D3M dependencies:
 Cython
 SQLAlchemy>=1.2,<1.4
-datamart-materialize>=0.9,<0.10
 datamart-profiler>=0.9,<0.10
 nltk
 numpy
@@ -16,4 +15,4 @@ PyYAML
 d3m==2021.12.19
 d3m-automl-rpc==1.2.0
 metalearn==0.6.2
-d3m-interface==0.6.0
+d3m-interface==0.7.0
