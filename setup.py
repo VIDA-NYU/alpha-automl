@@ -42,8 +42,8 @@ setuptools.setup(
     include_package_data=True,
     author='Remi Rampin, Roque Lopez, Raoni Lourenco',
     author_email='remi.rampin@nyu.edu, rlopez@nyu.edu, raoni@nyu.edu',
-    maintainer='Remi Rampin, Roque Lopez, Raoni Lourenco',
-    maintainer_email='remi.rampin@nyu.edu, rlopez@nyu.edu, raoni@nyu.edu',
+    maintainer='Remi Rampin, Roque Lopez',
+    maintainer_email='remi.rampin@nyu.edu, rlopez@nyu.edu',
     keywords=['datadrivendiscovery', 'automl', 'd3m', 'ta2', 'nyu'],
     license='Apache-2.0',
     classifiers=[
