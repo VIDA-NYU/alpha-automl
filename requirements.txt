@@ -10,9 +10,9 @@ ConfigSpace>=0.4.19,<0.5
 scikit-learn==0.22.2.post1
 torch>=1.7
 PyYAML
+metalearn==0.6.2
 
 # D3M dependencies:
-d3m==2021.12.19
-d3m-automl-rpc==1.2.0
-metalearn==0.6.2
-d3m-interface==0.7.0
+d3m
+d3m-automl-rpc
+d3m-interface
