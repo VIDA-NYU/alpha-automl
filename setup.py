@@ -39,6 +39,7 @@ setuptools.setup(
     description="AlphaD3M: NYU's AutoML System",
     long_description=long_description,
     long_description_content_type='text/markdown',
+    url='https://gitlab.com/ViDA-NYU/d3m/alphad3m',
     include_package_data=True,
     author='Remi Rampin, Roque Lopez, Raoni Lourenco',
     author_email='remi.rampin@nyu.edu, rlopez@nyu.edu, raoni@nyu.edu',
