@@ -1117,7 +1117,8 @@ class ScoreJob(Job):
             return False
 
         error_msg = read_streams(self.proc)
-        if timeout_reached: error_msg = 'Reached timeout (%d seconds) to score a pipeline' % self.timeout_run
+        if timeout_reached:
+            error_msg = 'Reached timeout (%d seconds) to score a pipeline' % self.timeout_run
         log = logger.info if self.proc.returncode == 0 else logger.error
         log('Pipeline scoring process done, returned %d (pipeline: %s)', self.proc.returncode, self.pipeline_id)
 
@@ -1126,6 +1127,10 @@ class ScoreJob(Job):
                             pipeline_id=self.pipeline_id,
                             job_id=id(self))
         else:
+            logger.error(
+                "Error from scoring process:\n%s",
+                '\n'.join('  ' + l for l in error_msg.splitlines()),
+            )
             self.ta2.notify('scoring_error',
                             pipeline_id=self.pipeline_id,
                             job_id=id(self),
