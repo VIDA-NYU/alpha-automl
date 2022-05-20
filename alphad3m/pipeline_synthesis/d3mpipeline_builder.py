@@ -1,3 +1,4 @@
+import os
 import pickle
 import logging
 from alphad3m.schema import database
@@ -518,6 +519,7 @@ class BaseBuilder:
                 connect(db, pipeline, step0, step1)
 
                 step2 = make_pipeline_module(db, pipeline, primitives[0])
+                set_hyperparams(db, pipeline, step2, weights_path=os.environ.get('D3MOUTPUTDIR', None))
                 connect(db, pipeline, step1, step2)
                 connect(db, pipeline, step1, step2, to_input='outputs')
 
