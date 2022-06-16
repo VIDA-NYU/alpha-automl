@@ -2,63 +2,32 @@ import logging
 import numpy as np
 from scipy import stats
 from collections import OrderedDict
-from alphad3m.primitive_loader import load_primitives_list
-from alphad3m.metalearning.database import load_metalearningdb
-from alphad3m.metalearning.dataset_miner import get_similar_datasets, get_dataset_id
+from alphad3m.metalearning.resource_builder import load_metalearningdb
+from alphad3m.metalearning.dataset_similarity import get_similar_datasets
+from alphad3m.primitive_loader import load_primitives_by_name, load_primitives_by_id
 
 logger = logging.getLogger(__name__)
 
 
-IGNORE_PRIMITIVES = {
-    # These primitives are static elements in the pipelines, not considered as part of the pattern
-    'd3m.primitives.data_transformation.construct_predictions.Common',
-    'd3m.primitives.data_transformation.extract_columns_by_semantic_types.Common',
-    'd3m.primitives.data_transformation.dataset_to_dataframe.Common',
-    'd3m.primitives.data_transformation.denormalize.Common',
-    'd3m.primitives.data_transformation.flatten.DataFrameCommon',
-    'd3m.primitives.data_transformation.column_parser.Common',
-    'd3m.primitives.data_transformation.simple_column_parser.DataFrameCommon',
-    'd3m.primitives.data_transformation.do_nothing.DSBOX',
-    'd3m.primitives.data_transformation.do_nothing_for_dataset.DSBOX',
-    'd3m.primitives.data_transformation.add_semantic_types.Common',
-    'd3m.primitives.schema_discovery.profiler.Common',
-    'd3m.primitives.schema_discovery.profiler.DSBOX',
-    'd3m.primitives.data_cleaning.column_type_profiler.Simon',
-    'd3m.primitives.operator.compute_unique_values.Common',
-    'd3m.primitives.data_transformation.construct_confidence.Common',
-    # We add these primitives internally because they require special connections
-    'd3m.primitives.data_transformation.text_reader.Common',
-    'd3m.primitives.data_transformation.image_reader.Common'
-}
-
-
 def load_related_pipelines(dataset_path, target_column, task_keywords):
-    primitives_by_id = load_primitives_by_id()
-    primitives_by_name = load_primitives_by_name()
+    available_primitives = load_primitives_by_id()
     all_pipelines = load_metalearningdb()
     similar_datasets = get_similar_datasets('dataprofiles', dataset_path, target_column, task_keywords)
-    ignore_primitives_ids = set()
     task_pipelines = []
 
-    for ignore_primitive in IGNORE_PRIMITIVES:
-        if ignore_primitive in primitives_by_name:
-            ignore_primitives_ids.add(primitives_by_name[ignore_primitive]['id'])
-
-    for pipeline_run in all_pipelines:
-        dataset_id_db = get_dataset_id(pipeline_run['problem']['id'])
-        if dataset_id_db not in similar_datasets:
-            # Skip datasets that are not similar to the target dataset
+    for similar_dataset in similar_datasets.keys():
+        if similar_dataset not in all_pipelines['pipeline_performances']:
             continue
-        pipeline_primitives = pipeline_run['steps']
-        if is_available_primitive(pipeline_primitives, primitives_by_id):
-            primitives = filter_primitives(pipeline_primitives, ignore_primitives_ids)
-            primitives = [primitives_by_id[p] for p in primitives]  # Use the current names of primitives
-            if len(primitives) > 0:
-                score = pipeline_run['scores'][0]['normalized']
-                metric = pipeline_run['scores'][0]['metric']['metric']
-                dataset = pipeline_run['problem']['id']
-                task_pipelines.append({'pipeline': primitives, 'score': score, 'metric': metric, 'dataset': dataset,
-                                       'pipeline_repr': '_'.join(primitives)})
+
+        for pipeline_id, pipeline_performances in all_pipelines['pipeline_performances'][similar_dataset].items():
+            primitive_ids = all_pipelines['pipeline_structure'][pipeline_id]
+            if is_available_primitive(primitive_ids, available_primitives):
+                for index in range(len(pipeline_performances['score'])):
+                    primitives = [available_primitives[p] for p in primitive_ids]  # Use the current names of primitives
+                    score = pipeline_performances['score'][index]
+                    metric = pipeline_performances['metric'][index]
+                    task_pipelines.append({'pipeline': primitives, 'score': score, 'metric': metric, 'dataset': similar_dataset,
+                                           'pipeline_repr': '_'.join(primitives)})
 
     logger.info('Found %d related pipelines', len(task_pipelines))
 
@@ -287,74 +256,13 @@ def merge_patterns(grammar_patterns):
     return patterns, empty_elements
 
 
-def analyze_distribution(pipelines_metalearningdb):
-    available_primitives = load_primitives_by_name()
-    primitive_frequency = {}
-    primitive_distribution = {}
-    logger.info('Analyzing the distribution of primitives')
-
-    for pipeline_data in pipelines_metalearningdb:
-        for primitive_name in pipeline_data['pipeline']:
-            primitive_type = available_primitives[primitive_name]['type']
-            if primitive_type not in primitive_frequency:
-                primitive_frequency[primitive_type] = {'primitives': {}, 'total': 0}
-            if primitive_name not in primitive_frequency[primitive_type]['primitives']:
-                primitive_frequency[primitive_type]['primitives'][primitive_name] = 0
-            primitive_frequency[primitive_type]['primitives'][primitive_name] += 1
-            primitive_frequency[primitive_type]['total'] += 1
-
-    for primitive_type, primitives_info in primitive_frequency.items():
-        if primitive_type not in primitive_distribution:
-            primitive_distribution[primitive_type] = []
-        for primitive, frequency in sorted(primitives_info['primitives'].items(), key=lambda x: x[1], reverse=True):
-            distribution = round(float(frequency) / primitives_info['total'], 4)
-            primitive_distribution[primitive_type].append((primitive, distribution))
-
-    logger.info('Distribution:\n%s' % '\n'.join(['%s\n%s' % (k, str(v)) for k, v in primitive_distribution.items()]))
-    return primitive_distribution
-
-
-def is_available_primitive(pipeline_primitives, current_primitives, verbose=False):
+def is_available_primitive(pipeline_primitives, available_primitives, verbose=False):
     for primitive in pipeline_primitives:
-        if primitive['primitive']['id'] not in current_primitives:
+        if primitive not in available_primitives:
             if verbose:
-                logger.warning('Primitive %s is not longer available' % primitive['primitive']['python_path'])
+                logger.warning('Primitive %s is not longer available' % primitive)
             return False
     return True
-
-
-def filter_primitives(pipeline_steps, ignore_primitives):
-    primitives = []
-
-    for pipeline_step in pipeline_steps:
-        if pipeline_step['primitive']['id'] not in ignore_primitives:
-                primitives.append(pipeline_step['primitive']['id'])
-
-    if len(primitives) > 0 and primitives[0] == '7ddf2fd8-2f7f-4e53-96a7-0d9f5aeecf93':  # Primitive to_numeric.DSBOX
-        # This primitive should not be first because it only takes the numeric features, ignoring the remaining ones
-        primitives = primitives[1:]
-
-    return primitives
-
-
-def load_primitives_by_name():
-    primitives_by_name = {}
-    primitives = load_primitives_list()
-
-    for primitive in primitives:
-        primitives_by_name[primitive['python_path']] = {'id': primitive['id'], 'type': primitive['type']}
-
-    return primitives_by_name
-
-
-def load_primitives_by_id():
-    primitives_by_id = {}
-    primitives = load_primitives_list()
-
-    for primitive in primitives:
-        primitives_by_id[primitive['id']] = primitive['python_path']
-
-    return primitives_by_id
 
 
 def patterns_repr(patterns):
@@ -386,7 +294,6 @@ def test_dataset(dataset_id, task_name='TASK'):
         target_column = problem_doc['inputs']['data'][0]['targets'][0]['colName']
     logger.info('Evaluating dataset %s with task keywords=%s' % (dataset_id, str(task_keywords)))
     create_metalearningdb_grammar(task_name, dataset_path, target_column, task_keywords)
-    #analyze_distribution(load_related_pipelines(dataset_path, target_column, task_keywordsn))
 
 
 if __name__ == '__main__':
