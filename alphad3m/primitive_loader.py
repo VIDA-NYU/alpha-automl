@@ -1,6 +1,6 @@
 import logging
 import json
-from os.path import join, dirname, isfile
+from os.path import join, dirname
 from d3m import index
 from collections import OrderedDict
 
@@ -198,19 +198,9 @@ def get_primitive_type(primitive_name):
     return primitive_type
 
 
-def load_primitives_hierarchy():
-    if isfile(PRIMITIVES_HIERARCHY_PATH):
-        with open(PRIMITIVES_HIERARCHY_PATH) as fin:
-            primitives = json.load(fin)
-        # Verify if the loaded primitives from file are installed
-        installed_primitives = {}
-        for primitive_type in primitives.keys():
-            installed_primitives[primitive_type] = [x for x in primitives[primitive_type] if x in INSTALLED_PRIMITIVES]
-
-        logger.info('Loading primitives info from file')
-        return installed_primitives
-
+def create_primitives_hierarchy():
     primitives = {}
+
     for primitive_name in INSTALLED_PRIMITIVES:
         if primitive_name not in BLACK_LIST:
             try:
@@ -225,25 +215,14 @@ def load_primitives_hierarchy():
 
     with open(PRIMITIVES_HIERARCHY_PATH, 'w') as fout:
         json.dump(OrderedDict(sorted(primitives.items())), fout, indent=4)
-    logger.info('Loading primitives info from D3M index')
+    logger.info('Hierarchy of primitives created')
 
     return primitives
 
 
-def load_primitives_list():
-    if isfile(PRIMITIVES_LIST_PATH):
-        with open(PRIMITIVES_LIST_PATH) as fin:
-            primitives = json.load(fin)
-        # Verify if the loaded primitives from file are installed
-        installed_primitives = []
-        for primitive_data in primitives:
-            if primitive_data['python_path'] in INSTALLED_PRIMITIVES:
-                installed_primitives.append(primitive_data)
-
-        logger.info('Loading primitives info from file')
-        return installed_primitives
-
+def create_primitives_list():
     primitives = []
+
     for primitive_name in INSTALLED_PRIMITIVES:
             try:
                 primitive_info = get_primitive_info(primitive_name)
@@ -254,6 +233,75 @@ def load_primitives_list():
 
     with open(PRIMITIVES_LIST_PATH, 'w') as fout:
         json.dump(primitives, fout, indent=4)
-    logger.info('Loading primitives info from D3M index')
+    logger.info('List of primitives created')
 
     return primitives
+
+
+def load_primitives_hierarchy(only_installed_primitives=True):
+    with open(PRIMITIVES_HIERARCHY_PATH) as fin:
+        primitives = json.load(fin)
+    logger.info('Hierarchy of all primitives loaded')
+
+    if only_installed_primitives:
+        # Verify if the loaded primitives from file are installed
+        installed_primitives = {}
+        for primitive_type in primitives.keys():
+            installed_primitives[primitive_type] = [x for x in primitives[primitive_type] if x in INSTALLED_PRIMITIVES]
+        primitives = installed_primitives
+        logger.info('Hierarchy of only-installed primitives loaded')
+
+    return primitives
+
+
+def load_primitives_list(only_installed_primitives=True):
+    with open(PRIMITIVES_LIST_PATH) as fin:
+        primitives = json.load(fin)
+    logger.info('List of all primitives loaded')
+
+    if only_installed_primitives:
+        # Verify if the loaded primitives from file are installed
+        installed_primitives = []
+        for primitive_data in primitives:
+            if primitive_data['python_path'] in INSTALLED_PRIMITIVES:
+                installed_primitives.append(primitive_data)
+        primitives = installed_primitives
+        logger.info('List of only-installed primitives loaded')
+
+    return primitives
+
+
+def load_primitives_by_name(only_installed_primitives=True):
+    primitives_by_name = {}
+    primitives = load_primitives_list(only_installed_primitives)
+
+    for primitive in primitives:
+        primitives_by_name[primitive['python_path']] = {'id': primitive['id'], 'type': primitive['type']}
+
+    return primitives_by_name
+
+
+def load_primitives_by_id(only_installed_primitives=True):
+    primitives_by_id = {}
+    primitives = load_primitives_list(only_installed_primitives)
+
+    for primitive in primitives:
+        primitives_by_id[primitive['id']] = primitive['python_path']
+
+    return primitives_by_id
+
+
+def load_primitives_types(only_installed_primitives=True):
+    primitives_types = {}
+    primitives = load_primitives_list(only_installed_primitives)
+
+    for primitive in primitives:
+        primitives_types[primitive['python_path']] = primitive['type']
+
+    return primitives_types
+
+
+if __name__ == '__main__':
+    # Run this to create the files for the list and hierarchy of primitives
+    create_primitives_hierarchy()
+    create_primitives_list()

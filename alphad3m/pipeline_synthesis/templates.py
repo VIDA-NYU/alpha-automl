@@ -2,7 +2,7 @@ import logging
 from d3m.metadata.problem import TaskKeyword
 from alphad3m.pipeline_synthesis.d3mpipeline_builder import BaseBuilder
 from alphad3m.data_ingestion.data_profiler import get_privileged_data
-from alphad3m.utils import load_primitives_types
+from alphad3m.primitive_loader import load_primitives_types
 
 logger = logging.getLogger(__name__)
 
