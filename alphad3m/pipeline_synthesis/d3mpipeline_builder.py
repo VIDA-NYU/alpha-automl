@@ -126,6 +126,8 @@ def change_default_hyperparams(db, pipeline, primitive_name, primitive, learner_
         set_hyperparams(db, pipeline, primitive, cluster_col_name='Class')
     elif primitive_name == 'd3m.primitives.data_transformation.adjacency_spectral_embedding.JHU':
         set_hyperparams(db, pipeline, primitive, use_attributes=True, max_dimension=5)
+    elif primitive_name == 'd3m.primitives.data_preprocessing.lupi_mfa.lupi_mfa.LupiMFA':
+        set_hyperparams(db, pipeline, primitive, use_semantic_types=True)
     elif primitive_name == 'd3m.primitives.graph_clustering.gaussian_clustering.JHU':
         set_hyperparams(db, pipeline, primitive, max_clusters=10)
     elif primitive_name == 'd3m.primitives.time_series_classification.convolutional_neural_net.LSTM_FCN':
@@ -358,12 +360,8 @@ class BaseBuilder:
                 prev_step, primitives, primitive_steps = add_previous_primitives(db, pipeline, primitives, prev_step)
                 count_steps += primitive_steps
 
-            if metadata['large_columns']:
-                # TODO: Remove this when https://gitlab.com/datadrivendiscovery/common-primitives/-/issues/149 is fixed
-                step2 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.column_parser.DistilColumnParser')
-            else:
-                step2 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.column_parser.Common')
-                select_parsed_semantic_types(primitives, pipeline, step2, db)
+            step2 = make_pipeline_module(db, pipeline, 'd3m.primitives.data_transformation.column_parser.Common')
+            select_parsed_semantic_types(primitives, pipeline, step2, db)
 
             connect(db, pipeline, prev_step, step2)
             count_steps += 1
