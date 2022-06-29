@@ -192,6 +192,9 @@ def get_primitive_type(primitive_name):
     elif primitive_name in {'d3m.primitives.data_transformation.dataframe_to_tensor.DSBOX'}:
         primitive_type = 'TO_TENSOR'
 
+    elif primitive_name in {'d3m.primitives.data_preprocessing.lupi_mfa.lupi_mfa.LupiMFA'}:
+        primitive_type = 'LUPI'
+
     if primitive_type == 'ENCODE_ONE_HOT':
         primitive_type = 'CATEGORICAL_ENCODER'
 

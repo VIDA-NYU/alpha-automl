@@ -79,11 +79,8 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
     signal.signal(signal.SIGALRM, signal_handler)
     signal.alarm(int(time_bound))
 
-    builder = None
-    task_name = 'CLASSIFICATION' if TaskKeyword.CLASSIFICATION in task_keywords else 'REGRESSION'
-    # Primitives for LUPI problems are no longer available. So, just exclude privileged data
-    privileged_data = get_privileged_data(problem, task_keywords)
-    metadata['exclude_columns'] += privileged_data
+    builder = BaseBuilder()
+    task_name = None
 
     def eval_pipeline(primitive_names, origin):
         pipeline_id = builder.make_d3mpipeline(primitive_names, origin, dataset, pipeline_template, targets,
@@ -97,43 +94,33 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
 
     if TaskKeyword.CLUSTERING in task_keywords:
         task_name = 'CLUSTERING'
-        builder = BaseBuilder()
     elif TaskKeyword.SEMISUPERVISED in task_keywords:
         task_name = 'SEMISUPERVISED_CLASSIFICATION'
-        builder = BaseBuilder()
     elif TaskKeyword.COLLABORATIVE_FILTERING in task_keywords:
         task_name = 'COLLABORATIVE_FILTERING'
-        builder = BaseBuilder()
     elif TaskKeyword.FORECASTING in task_keywords:
         task_name = 'TIME_SERIES_FORECASTING'
-        builder = BaseBuilder()
     elif TaskKeyword.COMMUNITY_DETECTION in task_keywords:
         task_name = 'COMMUNITY_DETECTION'
-        builder = BaseBuilder()
     elif TaskKeyword.LINK_PREDICTION in task_keywords:
         task_name = 'LINK_PREDICTION'
-        builder = BaseBuilder()
+    elif TaskKeyword.LUPI in task_keywords:
+        task_name = 'LUPI'
     elif TaskKeyword.OBJECT_DETECTION in task_keywords:
         task_name = 'OBJECT_DETECTION'
-        builder = BaseBuilder()
     elif TaskKeyword.GRAPH_MATCHING in task_keywords:
         task_name = 'GRAPH_MATCHING'
-        builder = BaseBuilder()
     elif TaskKeyword.TIME_SERIES in task_keywords and TaskKeyword.CLASSIFICATION in task_keywords:
         task_name = 'TIME_SERIES_CLASSIFICATION'
-        builder = BaseBuilder()
     elif TaskKeyword.VERTEX_CLASSIFICATION in task_keywords or TaskKeyword.VERTEX_NOMINATION in task_keywords:
         task_name = 'VERTEX_CLASSIFICATION'
-        builder = BaseBuilder()
     elif get_collection_type(dataset[7:]) == 'text' or TaskKeyword.TEXT in task_keywords and (
             TaskKeyword.REGRESSION in task_keywords or TaskKeyword.CLASSIFICATION in task_keywords):
         task_name = 'TEXT_' + task_name
-        builder = BaseBuilder()
     elif get_collection_type(dataset[7:]) == 'image' or TaskKeyword.IMAGE in task_keywords and (
             TaskKeyword.REGRESSION in task_keywords or TaskKeyword.CLASSIFICATION in task_keywords):
         if TaskKeyword.IMAGE not in task_keywords: task_keywords.append(TaskKeyword.IMAGE)
         task_name = 'IMAGE_' + task_name
-        builder = BaseBuilder()
     elif TaskKeyword.AUDIO in task_keywords and (
             TaskKeyword.REGRESSION in task_keywords or TaskKeyword.CLASSIFICATION in task_keywords):
         task_name = 'AUDIO_' + task_name
@@ -141,13 +128,13 @@ def generate_pipelines(task_keywords, dataset, metrics, problem, targets, featur
     elif TaskKeyword.VIDEO in task_keywords and (
             TaskKeyword.REGRESSION in task_keywords or TaskKeyword.CLASSIFICATION in task_keywords):
         task_name = 'VIDEO_' + task_name
-        builder = BaseBuilder()
-    elif TaskKeyword.CLASSIFICATION in task_keywords or TaskKeyword.REGRESSION in task_keywords:
-        builder = BaseBuilder()
+    elif TaskKeyword.CLASSIFICATION in task_keywords:
+        task_name = 'CLASSIFICATION'
+    elif TaskKeyword.REGRESSION in task_keywords:
+        task_name = 'REGRESSION'
     else:
         logger.warning('Task %s doesnt exist in the grammar, using default NA_TASK' % task_name)
         task_name = 'NA'
-        builder = BaseBuilder()
 
     use_automatic_grammar = hyperparameters['use_automatic_grammar']
     include_primitives = hyperparameters['include_primitives']

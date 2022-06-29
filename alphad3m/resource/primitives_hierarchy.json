@@ -244,6 +244,9 @@
         "d3m.primitives.link_prediction.link_prediction.DistilLinkPrediction",
         "d3m.primitives.link_prediction.rank_classification.JHU"
     ],
+    "LUPI": [
+        "d3m.primitives.data_preprocessing.lupi_mfa.lupi_mfa.LupiMFA"
+    ],
     "METALEARNING": [
         "d3m.primitives.metalearning.metafeature_extractor.BYU",
         "d3m.primitives.metalearning.metafeature_extractor.Common"

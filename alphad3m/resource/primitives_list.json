@@ -2414,5 +2414,14 @@
         "python_path": "d3m.primitives.vertex_nomination.seeded_graph_matching.DistilVertexNomination",
         "digest": "e3b0d7be44232ecd16dcd1f7c5699688160b3bde80b80614e99b967b42883db5",
         "type": "VERTEX_CLASSIFICATION"
+    },
+    {
+        "id": "5361ebf6-9e5a-4ce5-b73c-3babf12f1941",
+        "name": "lupi_mfa.lupi_mfa.LupiMFA",
+        "version": "v6.0.0",
+        "python_path": "d3m.primitives.data_preprocessing.lupi_mfa.lupi_mfa.LupiMFA",
+        "digest": "dd4d81803be33a14a00f1d93c9123c2d1e1a51453ba71460b8b37acaab70ff29",
+        "type": "LUPI"
     }
+
 ]
