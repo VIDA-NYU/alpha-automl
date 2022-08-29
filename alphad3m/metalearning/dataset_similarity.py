@@ -116,9 +116,9 @@ def load_taskkeyword_vectors(task_keywords):
 def calculate_similarity(metalearningdb_vectors, target_vector, threshold):
     similar_datasets = {}
     for id_dataset, vector in metalearningdb_vectors.items():
-        similarity = cosine_similarity([target_vector], [vector]).flat[0]
-        if similarity > threshold:
-            similar_datasets[id_dataset] = round(similarity, 5)
+        similarity = round(cosine_similarity([target_vector], [vector]).flat[0], 5)
+        if similarity >= threshold:
+            similar_datasets[id_dataset] = similarity
 
     return similar_datasets
 
@@ -151,7 +151,8 @@ def get_similar_datasets(mode, dataset_path, target_column, task_keywords, thres
         similar_datasets = calculate_similarity(vectors_dataset, target_vector_dataset, threshold)
         logger.info('Similar datasets found using both information:\n%s', similarity_repr(similar_datasets))
     else:
-        similar_datasets = calculate_similarity(vectors_taskkeywords, target_vector_taskkeywords, threshold)
+        # Use threshold=1.0 to get datasets with the same task keywords
+        similar_datasets = calculate_similarity(vectors_taskkeywords, target_vector_taskkeywords, 1.0)
         logger.info('Similar datasets found using task_keywords features:\n%s', similarity_repr(similar_datasets))
         vectors_dataset = {k: vectors_dataset[k] for k in similar_datasets}  # Use only the similar datasets
         similar_datasets = calculate_similarity(vectors_dataset, target_vector_dataset, threshold)
