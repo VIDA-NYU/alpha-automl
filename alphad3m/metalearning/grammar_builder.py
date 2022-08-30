@@ -281,10 +281,9 @@ def patterns_repr(patterns):
     return '\n'.join(patterns_string)
 
 
-def test_dataset(dataset_id, task_name='TASK'):
+def test_dataset(dataset_folder_path, task_name='TASK'):
     from os.path import join
     import json
-    dataset_folder_path = join('/Users/rlopez/D3M/datasets/seed_datasets_current/', dataset_id)
     dataset_path = join(dataset_folder_path, 'TRAIN/dataset_TRAIN/tables/learningData.csv')
     problem_path = join(dataset_folder_path, 'TRAIN/problem_TRAIN/problemDoc.json')
 
@@ -292,9 +291,11 @@ def test_dataset(dataset_id, task_name='TASK'):
         problem_doc = json.load(fin)
         task_keywords = problem_doc['about']['taskKeywords']
         target_column = problem_doc['inputs']['data'][0]['targets'][0]['colName']
-    logger.info('Evaluating dataset %s with task keywords=%s' % (dataset_id, str(task_keywords)))
+    logger.info('Evaluating dataset "%s" with task keywords=%s' % (dataset_folder_path, str(task_keywords)))
     create_metalearningdb_grammar(task_name, dataset_path, target_column, task_keywords)
 
 
 if __name__ == '__main__':
-    test_dataset('185_baseball_MIN_METADATA')
+    dataset_id = '185_baseball_MIN_METADATA'
+    dataset_folder_path = '/Users/rlopez/D3M/datasets/seed_datasets_current/%s' % dataset_id
+    test_dataset(dataset_folder_path)
