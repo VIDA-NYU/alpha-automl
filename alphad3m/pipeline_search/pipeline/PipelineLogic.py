@@ -82,7 +82,11 @@ class Board():
         for p in pipeline:
             if p in list(self.non_terminals.values()):
                 #logger.info('GET LEGAL MOVES %s', p)
-                rules = [self.rules[key]-1 for key in self.rules_lookup[list(self.non_terminals.keys())[p-1]] if len(self.next_state(self.rules[key]-1)) <= self.p and len(set(self.next_state(self.rules[key]-1))) == len(self.next_state(self.rules[key]-1))]
+                rules = []
+                for key in self.rules_lookup[list(self.non_terminals.keys())[p - 1]]:
+                    if len(self.next_state(self.rules[key] - 1)) <= self.p:
+                        rules.append(self.rules[key] - 1)
+
                 np.put(valid_moves, rules, [1]*len(rules))
 
         return valid_moves.tolist()
