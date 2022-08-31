@@ -4,7 +4,6 @@ import pickle
 import math
 import logging
 from copy import deepcopy
-
 from alphad3m.pipeline_search.Game import Game
 from alphad3m.pipeline_search.pipeline.PipelineLogic import Board
 import numpy as np
@@ -12,6 +11,7 @@ import traceback
 import time
 
 logger = logging.getLogger(__name__)
+
 
 class PipelineGame(Game):
     # FIXEME: Maybe the input parameters can be in json
@@ -50,7 +50,6 @@ class PipelineGame(Game):
         self.m = len(self.dataset_metafeatures)+2
         self.p = input['PIPELINE_SIZE']
         self.action_size = 0
-
                 
     def getInitBoard(self):
         # return initial board (numpy board)
@@ -86,8 +85,8 @@ class PipelineGame(Game):
         b.set_metafeatures(board)
         b.set_pipeline(board)
         #logger.info('CURR STATE %s', b.pieces_p)
-        legalMoves =  b.get_legal_moves()
-        #logger.info('VALID MOVES %s', [b.valid_moves[i] for i in range(0, len(legalMoves)) if legalMoves[i] == 1])
+        legalMoves = b.get_legal_moves()
+        logger.info('VALID MOVES %s', [b.valid_moves[i] for i in range(0, len(legalMoves)) if legalMoves[i] == 1])
         return np.array(legalMoves)
 
     def getEvaluation(self, board):
@@ -180,4 +179,3 @@ class PipelineGame(Game):
     def display(self, b):
         board = self.get_pipeline_primitives(b)
         logger.info("PIPELINE: %s", '|'.join(e for e in board))
-
