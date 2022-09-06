@@ -34,18 +34,22 @@ def load_related_pipelines(dataset_path, target_column, task_keywords):
     return task_pipelines
 
 
-def create_metalearningdb_grammar(task_name, dataset_path, target_column, task_keywords):
+def create_metalearningdb_grammar(task_name, dataset_path, target_column, task_keywords, merge=False):
     pipelines = load_related_pipelines(dataset_path, target_column, task_keywords)
     patterns, primitives = extract_patterns(pipelines)
-    merged_patterns, empty_elements = merge_patterns(patterns)
-    grammar = format_grammar(task_name, merged_patterns, empty_elements)
+    empty_elements = []
+
+    if merge:
+        patterns, empty_elements = merge_patterns(patterns)
+
+    grammar = format_grammar(task_name, patterns, empty_elements)
 
     return grammar, primitives
 
 
 def format_grammar(task_name, patterns, empty_elements):
     if len(patterns) == 0:
-        logger.info('Empty patterns, no grammar have been generated')
+        logger.warning('Empty patterns, no grammar have been generated')
         return None
 
     grammar = 'S -> %s\n' % task_name
@@ -125,10 +129,23 @@ def extract_patterns(pipelines, max_nro_patterns=15, min_frequency=3, adtm_thres
         sorted_patterns = sorted(patterns.items(), key=lambda x: x[1]['mean_score'], reverse=True)
         patterns = {k: v for k, v in sorted_patterns[:max_nro_patterns]}
 
+    primitive_info = add_correlations(patterns, available_primitives)
+    # Make deterministic the order of the patterns
+    patterns = sorted(patterns.values(), key=lambda x: x['mean_score'], reverse=True)
+    logger.info('Patterns:\n%s', patterns_repr(patterns))
+    logger.info('Hierarchy:\n%s', '\n'.join(['%s:\n%s' % (k, ', '.join(v)) for k, v in primitive_info['hierarchy'].items()]))
+    patterns = [p['structure'] for p in patterns]
+
+    return patterns, primitive_info
+
+
+def add_correlations(patterns, available_primitives):
     primitive_hierarchy = {}
     all_pipelines = []
     all_performances = []
     all_primitives = []
+
+    # Add local correlations
     local_probabilities = {}
     for pattern_id, pattern in patterns.items():
         for primitive in pattern['primitives']:
@@ -148,24 +165,26 @@ def extract_patterns(pipelines, max_nro_patterns=15, min_frequency=3, adtm_thres
                 local_probabilities[pattern_id][primitive_type] = {}
             local_probabilities[pattern_id][primitive_type][primitive] = correlation
 
-    correlations = calculate_correlations(set(all_primitives), all_pipelines, all_performances)
+    # Add global correlations
     global_probabilities = {}
+    correlations = calculate_correlations(set(all_primitives), all_pipelines, all_performances)
+
     for primitive, correlation in correlations.items():
         primitive_type = available_primitives[primitive]['type']
         if primitive_type not in global_probabilities:
             global_probabilities[primitive_type] = {}
         global_probabilities[primitive_type][primitive] = correlation
 
-    # Make deterministic the order of the patterns and hierarchy
-    patterns = sorted(patterns.values(), key=lambda x: x['mean_score'], reverse=True)
-    primitive_hierarchy = OrderedDict({k: sorted(v) for k, v in sorted(primitive_hierarchy.items(), key=lambda x: x[0])})
-    logger.info('Patterns:\n%s', patterns_repr(patterns))
-    logger.info('Hierarchy:\n%s', '\n'.join(['%s:\n%s' % (k, ', '.join(v)) for k, v in primitive_hierarchy.items()]))
-    patterns = [p['structure'] for p in patterns]
+    global_probabilities['S'] = {}
+    for pattern, pattern_data in patterns.items():  # Use the mean adtm values as probabilities for the patterns
+        global_probabilities['S'][pattern] = 1 - pattern_data['mean_adtm']
+
     primitive_probabilities = {'global': global_probabilities, 'local': local_probabilities, 'types': available_primitives}
+    # Make deterministic the order of the hierarchy
+    primitive_hierarchy = OrderedDict({k: sorted(v) for k, v in sorted(primitive_hierarchy.items(), key=lambda x: x[0])})
     primitive_info = {'hierarchy': primitive_hierarchy, 'probabilities': primitive_probabilities}
 
-    return patterns, primitive_info
+    return primitive_info
 
 
 def calculate_correlations(primitives, pipelines, scores, normalize=True):
