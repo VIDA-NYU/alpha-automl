@@ -86,7 +86,7 @@ class PipelineGame(Game):
         b.set_pipeline(board)
         #logger.info('CURR STATE %s', b.pieces_p)
         legalMoves = b.get_legal_moves()
-        logger.info('VALID MOVES %s', [b.valid_moves[i] for i in range(0, len(legalMoves)) if legalMoves[i] == 1])
+        #logger.info('VALID MOVES %s', [b.valid_moves[i] for i in range(0, len(legalMoves)) if legalMoves[i] == 1])
         return np.array(legalMoves)
 
     def getEvaluation(self, board):

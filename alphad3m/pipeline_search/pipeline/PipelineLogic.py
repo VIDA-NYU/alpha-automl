@@ -116,7 +116,7 @@ class Board():
         return [list(self.terminals.keys())[list(self.terminals.values()).index(i)] if i in list(self.terminals.values()) else list(self.non_terminals.keys())[list(self.non_terminals.values()).index(i)] for i in pipeline if not i == 0]
 
     def get_train_board(self):
-        logger.info('TRAIN BOARD: %s', '|'.join(self.get_pipeline_primitives(self.pieces_p)))
+        #logger.info('TRAIN BOARD: %s', '|'.join(self.get_pipeline_primitives(self.pieces_p)))
         pipeline = [0]*(len(self.terminals)+len(self.non_terminals))
 
         for p in self.pieces_p:
