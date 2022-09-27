@@ -242,6 +242,8 @@ def load_precalculated_data(mode):
 
 if __name__ == '__main__':
     # Run this to create the meta-learning DB, task keywords, data profiles, and meta-features files
+    # Download the metalearningdb.pkl file from https://drive.google.com/file/d/1WjY7iKkkKMZFeoiCqzamA_iqVOwQidXS/view
+    # and D3M datasets from https://datasets.datadrivendiscovery.org/d3m/datasets/-/tree/master/seed_datasets_current
     metalearningdb_pickle_path = '/Users/rlopez/D3M/metalearning_db/metalearningdb.pkl'
     datasets_root_path = '/Users/rlopez/D3M/datasets/seed_datasets_current/'
 
