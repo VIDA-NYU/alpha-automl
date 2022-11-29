@@ -123,7 +123,7 @@ def extract_metafeatures_metalearningdb(datasets_path):
         logger.info('Calculating metafeatures for dataset %s...', dataset_id)
         if dataset_id not in metafeatures:
             try:
-                dataset_path, target_column, _ = load_task_info(dataset_id, datasets_path)
+                dataset_path, target_column, _ = load_task_info(dataset_id, datasets_path, 'SCORE')
                 mfs = extract_metafeatures(dataset_path, target_column)
                 metafeatures[dataset_id] = mfs
                 logger.info('Metafeatures successfully calculated for dataset %s', dataset_id)
@@ -159,7 +159,7 @@ def extract_dataprofiles_metalearningdb(datasets_path):
     return dataprofiles
 
 
-def load_task_info(dataset_id, datasets_path):
+def load_task_info(dataset_id, datasets_path, suffix='TRAIN'):
     possible_names = [join(datasets_path, dataset_id), join(datasets_path, dataset_id + '_MIN_METADATA'),
                       join(datasets_path, dataset_id.replace('_MIN_METADATA', ''))]
     # All possible names of the datasets on disk, with/without the suffix 'MIN_METADATA'
@@ -170,8 +170,8 @@ def load_task_info(dataset_id, datasets_path):
     else:
         raise FileNotFoundError('Dataset %s not found' % dataset_id)
 
-    dataset_path = join(dataset_folder_path, 'TRAIN/dataset_TRAIN/tables/learningData.csv')
-    problem_path = join(dataset_folder_path, 'TRAIN/problem_TRAIN/problemDoc.json')
+    dataset_path = join(dataset_folder_path, suffix, 'dataset_%s/tables/learningData.csv' % suffix)
+    problem_path = join(dataset_folder_path, suffix, 'problem_%s/problemDoc.json' % suffix)
 
     with open(problem_path) as fin:
         problem_doc = json.load(fin)

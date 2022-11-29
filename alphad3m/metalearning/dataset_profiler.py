@@ -5,6 +5,20 @@ from metalearn import Metafeatures
 
 logger = logging.getLogger(__name__)
 
+DEFAULT_METAFEATURES = ['NumberOfInstances', 'NumberOfFeatures', 'NumberOfNumericFeatures', 'NumberOfCategoricalFeatures',
+                        'RatioOfNumericFeatures', 'RatioOfCategoricalFeatures', 'NumberOfClasses', 'MeanClassProbability',
+                        'StdevClassProbability', 'SkewClassProbability', 'KurtosisClassProbability', 'MinClassProbability',
+                        'Quartile1ClassProbability', 'Quartile2ClassProbability', 'Quartile3ClassProbability', 'MaxClassProbability',
+                        'MinorityClassSize', 'MajorityClassSize', 'Dimensionality', 'NumberOfMissingValues', 'RatioOfMissingValues',
+                        'NumberOfInstancesWithMissingValues', 'RatioOfInstancesWithMissingValues', 'NumberOfFeaturesWithMissingValues',
+                        'RatioOfFeaturesWithMissingValues', 'MeanCardinalityOfCategoricalFeatures', 'StdevCardinalityOfCategoricalFeatures',
+                        'SkewCardinalityOfCategoricalFeatures', 'KurtosisCardinalityOfCategoricalFeatures', 'MinCardinalityOfCategoricalFeatures',
+                        'Quartile1CardinalityOfCategoricalFeatures', 'Quartile2CardinalityOfCategoricalFeatures',
+                        'Quartile3CardinalityOfCategoricalFeatures', 'MaxCardinalityOfCategoricalFeatures', 'MeanCardinalityOfNumericFeatures',
+                        'StdevCardinalityOfNumericFeatures', 'SkewCardinalityOfNumericFeatures', 'KurtosisCardinalityOfNumericFeatures',
+                        'MinCardinalityOfNumericFeatures', 'Quartile1CardinalityOfNumericFeatures', 'Quartile2CardinalityOfNumericFeatures',
+                        'Quartile3CardinalityOfNumericFeatures', 'MaxCardinalityOfNumericFeatures']
+
 
 def extract_metafeatures(dataset_path, target_column):
     data = pd.read_csv(dataset_path)
@@ -12,7 +26,7 @@ def extract_metafeatures(dataset_path, target_column):
     Y = pd.Series([str(i) for i in Y], name=target_column)  # Cast to string to get metalearn lib working correctly
     X = data.drop(columns=[target_column])
     metafeatures = Metafeatures()
-    mfs = metafeatures.compute(X, Y, seed=0, timeout=300)
+    mfs = metafeatures.compute(X, Y, metafeature_ids=DEFAULT_METAFEATURES, seed=0, timeout=300)
 
     return mfs
 
