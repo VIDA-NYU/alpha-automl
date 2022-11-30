@@ -2,12 +2,11 @@ import pickle
 import logging
 import copy
 import pandas as pd
-from os.path import join, dirname, exists
 from alphad3m.primitive_loader import load_primitives_by_name, load_primitives_by_id, load_primitives_types
 from alphad3m.metalearning.resource_builder import get_dataset_id, filter_primitives, load_precalculated_data
-logger = logging.getLogger(__name__)
+from alphad3m.metalearning.dataset_profiler import DEFAULT_METAFEATURES
 
-METALEARNING_DB_PATH = join(dirname(__file__), '../resource/metalearning_db.json.gz')
+logger = logging.getLogger(__name__)
 
 
 IGNORE_PRIMITIVES = {
@@ -40,6 +39,7 @@ def create_csv_data(metalearningdb_pickle_path, pipelines_csv_path,  use_primiti
     primitives_types = load_primitives_types(only_installed_primitives=False)
     dataset_task_keywords = load_precalculated_data('task_keywords')
     dataset_semantic_types = load_precalculated_data('dataprofiles')
+    dataset_metafeatures = load_precalculated_data('metafeatures')
     ignore_primitives_ids = {primitives_by_name[ignore_primitive]['id'] for ignore_primitive in IGNORE_PRIMITIVES}
     train_pipelines = []
     total_pipelines = 0
@@ -57,6 +57,7 @@ def create_csv_data(metalearningdb_pickle_path, pipelines_csv_path,  use_primiti
         pipeline_primitives = filter_primitives(pipeline_primitives, ignore_primitives_ids)  # Get the IDs of primitives
         task_keywords = ' '.join(dataset_task_keywords[dataset_id]['task_keywords'])
         semantic_types = ' '.join(dataset_semantic_types[dataset_id]['feature_types'])
+        metafeatures = [dataset_metafeatures[dataset_id][mf]['value'] for mf in DEFAULT_METAFEATURES]
 
         if len(pipeline_primitives) > 0:
             score = pipeline_run['scores'][0]['normalized']
@@ -66,7 +67,7 @@ def create_csv_data(metalearningdb_pickle_path, pipelines_csv_path,  use_primiti
                 if use_primitive_names:
                     pipeline_primitives = [primitives_by_id[p] for p in pipeline_primitives]
                 pipeline_stages = generate_pipeline_stages(pipeline_primitives, pipeline_primitive_types)
-                pipeline_stages = [(' '.join(ps), task_keywords, semantic_types, metric, score) for ps in pipeline_stages]
+                pipeline_stages = [[' '.join(ps), task_keywords, semantic_types, metric, score] + metafeatures for ps in pipeline_stages]
                 train_pipelines += pipeline_stages
                 total_pipelines += 1
             except:
@@ -74,7 +75,8 @@ def create_csv_data(metalearningdb_pickle_path, pipelines_csv_path,  use_primiti
 
     logger.info(f'Loaded {len(all_pipelines)} pipelines')
     logger.info(f'Found {total_pipelines} pipelines')
-    pipelines_df = pd.DataFrame.from_records(train_pipelines, columns=['primitives', 'task_keywords', 'semantic_types', 'metric', 'score'])
+    pipelines_df = pd.DataFrame.from_records(train_pipelines, columns=['primitives', 'task_keywords', 'semantic_types',
+                                                                       'metric', 'score'] + DEFAULT_METAFEATURES)
     pipelines_df.to_csv(pipelines_csv_path, index=False)
 
 
