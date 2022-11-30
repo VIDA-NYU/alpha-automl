@@ -1,4 +1,528 @@
 {
+    "124_120_mnist_8747": {
+        "Dimensionality": {
+            "value": 0.0002
+        },
+        "KurtosisCardinalityOfCategoricalFeatures": {
+            "value": -3.0
+        },
+        "KurtosisCardinalityOfNumericFeatures": {
+            "value": -3.0
+        },
+        "KurtosisClassProbability": {
+            "value": 0.8577803596881304
+        },
+        "MajorityClassSize": {
+            "value": 1135
+        },
+        "MaxCardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "MaxCardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "MaxClassProbability": {
+            "value": 0.1135
+        },
+        "MeanCardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "MeanCardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "MeanClassProbability": {
+            "value": 0.1
+        },
+        "MinCardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "MinCardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "MinClassProbability": {
+            "value": 0.0892
+        },
+        "MinorityClassSize": {
+            "value": 892
+        },
+        "NumberOfCategoricalFeatures": {
+            "value": 1
+        },
+        "NumberOfClasses": {
+            "value": 10
+        },
+        "NumberOfFeatures": {
+            "value": 2
+        },
+        "NumberOfFeaturesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfInstances": {
+            "value": 10000
+        },
+        "NumberOfInstancesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfMissingValues": {
+            "value": 0
+        },
+        "NumberOfNumericFeatures": {
+            "value": 1
+        },
+        "Quartile1CardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "Quartile1CardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "Quartile1ClassProbability": {
+            "value": 0.09755
+        },
+        "Quartile2CardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "Quartile2CardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "Quartile2ClassProbability": {
+            "value": 0.09955
+        },
+        "Quartile3CardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "Quartile3CardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "Quartile3ClassProbability": {
+            "value": 0.10235
+        },
+        "RatioOfCategoricalFeatures": {
+            "value": 0.5
+        },
+        "RatioOfFeaturesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfInstancesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfNumericFeatures": {
+            "value": 0.5
+        },
+        "SkewCardinalityOfCategoricalFeatures": {
+            "value": 0.0
+        },
+        "SkewCardinalityOfNumericFeatures": {
+            "value": 0.0
+        },
+        "SkewClassProbability": {
+            "value": 0.5551679192793703
+        },
+        "StdevCardinalityOfCategoricalFeatures": {
+            "value": 0.0
+        },
+        "StdevCardinalityOfNumericFeatures": {
+            "value": 0.0
+        },
+        "StdevClassProbability": {
+            "value": 0.0062398361801857885
+        }
+    },
+    "124_138_cifar100_1858": {
+        "Dimensionality": {
+            "value": 0.0002
+        },
+        "KurtosisCardinalityOfCategoricalFeatures": {
+            "value": -3.0
+        },
+        "KurtosisCardinalityOfNumericFeatures": {
+            "value": -3.0
+        },
+        "KurtosisClassProbability": {
+            "value": -2.0
+        },
+        "MajorityClassSize": {
+            "value": 100
+        },
+        "MaxCardinalityOfCategoricalFeatures": {
+            "value": 9999.0
+        },
+        "MaxCardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "MaxClassProbability": {
+            "value": 0.01
+        },
+        "MeanCardinalityOfCategoricalFeatures": {
+            "value": 9999.0
+        },
+        "MeanCardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "MeanClassProbability": {
+            "value": 0.009999999999999998
+        },
+        "MinCardinalityOfCategoricalFeatures": {
+            "value": 9999.0
+        },
+        "MinCardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "MinClassProbability": {
+            "value": 0.01
+        },
+        "MinorityClassSize": {
+            "value": 100
+        },
+        "NumberOfCategoricalFeatures": {
+            "value": 1
+        },
+        "NumberOfClasses": {
+            "value": 100
+        },
+        "NumberOfFeatures": {
+            "value": 2
+        },
+        "NumberOfFeaturesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfInstances": {
+            "value": 10000
+        },
+        "NumberOfInstancesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfMissingValues": {
+            "value": 0
+        },
+        "NumberOfNumericFeatures": {
+            "value": 1
+        },
+        "Quartile1CardinalityOfCategoricalFeatures": {
+            "value": 9999.0
+        },
+        "Quartile1CardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "Quartile1ClassProbability": {
+            "value": 0.01
+        },
+        "Quartile2CardinalityOfCategoricalFeatures": {
+            "value": 9999.0
+        },
+        "Quartile2CardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "Quartile2ClassProbability": {
+            "value": 0.01
+        },
+        "Quartile3CardinalityOfCategoricalFeatures": {
+            "value": 9999.0
+        },
+        "Quartile3CardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "Quartile3ClassProbability": {
+            "value": 0.01
+        },
+        "RatioOfCategoricalFeatures": {
+            "value": 0.5
+        },
+        "RatioOfFeaturesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfInstancesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfNumericFeatures": {
+            "value": 0.5
+        },
+        "SkewCardinalityOfCategoricalFeatures": {
+            "value": 0.0
+        },
+        "SkewCardinalityOfNumericFeatures": {
+            "value": 0.0
+        },
+        "SkewClassProbability": {
+            "value": 1.0
+        },
+        "StdevCardinalityOfCategoricalFeatures": {
+            "value": 0.0
+        },
+        "StdevCardinalityOfNumericFeatures": {
+            "value": 0.0
+        },
+        "StdevClassProbability": {
+            "value": 1.7434626923745965e-18
+        }
+    },
+    "124_16_fashion_mnist": {
+        "Dimensionality": {
+            "value": 0.0002
+        },
+        "KurtosisCardinalityOfCategoricalFeatures": {
+            "value": -3.0
+        },
+        "KurtosisCardinalityOfNumericFeatures": {
+            "value": -3.0
+        },
+        "KurtosisClassProbability": {
+            "value": -3.0
+        },
+        "MajorityClassSize": {
+            "value": 1000
+        },
+        "MaxCardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "MaxCardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "MaxClassProbability": {
+            "value": 0.1
+        },
+        "MeanCardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "MeanCardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "MeanClassProbability": {
+            "value": 0.1
+        },
+        "MinCardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "MinCardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "MinClassProbability": {
+            "value": 0.1
+        },
+        "MinorityClassSize": {
+            "value": 1000
+        },
+        "NumberOfCategoricalFeatures": {
+            "value": 1
+        },
+        "NumberOfClasses": {
+            "value": 10
+        },
+        "NumberOfFeatures": {
+            "value": 2
+        },
+        "NumberOfFeaturesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfInstances": {
+            "value": 10000
+        },
+        "NumberOfInstancesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfMissingValues": {
+            "value": 0
+        },
+        "NumberOfNumericFeatures": {
+            "value": 1
+        },
+        "Quartile1CardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "Quartile1CardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "Quartile1ClassProbability": {
+            "value": 0.1
+        },
+        "Quartile2CardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "Quartile2CardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "Quartile2ClassProbability": {
+            "value": 0.1
+        },
+        "Quartile3CardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "Quartile3CardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "Quartile3ClassProbability": {
+            "value": 0.1
+        },
+        "RatioOfCategoricalFeatures": {
+            "value": 0.5
+        },
+        "RatioOfFeaturesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfInstancesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfNumericFeatures": {
+            "value": 0.5
+        },
+        "SkewCardinalityOfCategoricalFeatures": {
+            "value": 0.0
+        },
+        "SkewCardinalityOfNumericFeatures": {
+            "value": 0.0
+        },
+        "SkewClassProbability": {
+            "value": 0.0
+        },
+        "StdevCardinalityOfCategoricalFeatures": {
+            "value": 0.0
+        },
+        "StdevCardinalityOfNumericFeatures": {
+            "value": 0.0
+        },
+        "StdevClassProbability": {
+            "value": 0.0
+        }
+    },
+    "124_174_cifar10_MIN_METADATA": {
+        "Dimensionality": {
+            "value": 0.0002
+        },
+        "KurtosisCardinalityOfCategoricalFeatures": {
+            "value": -3.0
+        },
+        "KurtosisCardinalityOfNumericFeatures": {
+            "value": -3.0
+        },
+        "KurtosisClassProbability": {
+            "value": -3.0
+        },
+        "MajorityClassSize": {
+            "value": 1000
+        },
+        "MaxCardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "MaxCardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "MaxClassProbability": {
+            "value": 0.1
+        },
+        "MeanCardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "MeanCardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "MeanClassProbability": {
+            "value": 0.1
+        },
+        "MinCardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "MinCardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "MinClassProbability": {
+            "value": 0.1
+        },
+        "MinorityClassSize": {
+            "value": 1000
+        },
+        "NumberOfCategoricalFeatures": {
+            "value": 1
+        },
+        "NumberOfClasses": {
+            "value": 10
+        },
+        "NumberOfFeatures": {
+            "value": 2
+        },
+        "NumberOfFeaturesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfInstances": {
+            "value": 10000
+        },
+        "NumberOfInstancesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfMissingValues": {
+            "value": 0
+        },
+        "NumberOfNumericFeatures": {
+            "value": 1
+        },
+        "Quartile1CardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "Quartile1CardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "Quartile1ClassProbability": {
+            "value": 0.1
+        },
+        "Quartile2CardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "Quartile2CardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "Quartile2ClassProbability": {
+            "value": 0.1
+        },
+        "Quartile3CardinalityOfCategoricalFeatures": {
+            "value": 10000.0
+        },
+        "Quartile3CardinalityOfNumericFeatures": {
+            "value": 10000.0
+        },
+        "Quartile3ClassProbability": {
+            "value": 0.1
+        },
+        "RatioOfCategoricalFeatures": {
+            "value": 0.5
+        },
+        "RatioOfFeaturesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfInstancesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfNumericFeatures": {
+            "value": 0.5
+        },
+        "SkewCardinalityOfCategoricalFeatures": {
+            "value": 0.0
+        },
+        "SkewCardinalityOfNumericFeatures": {
+            "value": 0.0
+        },
+        "SkewClassProbability": {
+            "value": 0.0
+        },
+        "StdevCardinalityOfCategoricalFeatures": {
+            "value": 0.0
+        },
+        "StdevCardinalityOfNumericFeatures": {
+            "value": 0.0
+        },
+        "StdevClassProbability": {
+            "value": 0.0
+        }
+    },
     "124_188_usps_MIN_METADATA": {
         "Dimensionality": {
             "value": 0.000996512207274539
@@ -6942,6 +7466,268 @@
             "value": 0.0009594393231839529
         }
     },
+    "LL1_336_MS_Geolife_transport_mode_prediction_MIN_METADATA": {
+        "Dimensionality": {
+            "value": 3.929751757581474e-06
+        },
+        "KurtosisCardinalityOfCategoricalFeatures": {
+            "value": -2.0
+        },
+        "KurtosisCardinalityOfNumericFeatures": {
+            "value": -1.8029246260099028
+        },
+        "KurtosisClassProbability": {
+            "value": -0.6220368003111147
+        },
+        "MajorityClassSize": {
+            "value": 515847
+        },
+        "MaxCardinalityOfCategoricalFeatures": {
+            "value": 1727375.0
+        },
+        "MaxCardinalityOfNumericFeatures": {
+            "value": 1781283.0
+        },
+        "MaxClassProbability": {
+            "value": 0.28959295069901864
+        },
+        "MeanCardinalityOfCategoricalFeatures": {
+            "value": 1665784.0
+        },
+        "MeanCardinalityOfNumericFeatures": {
+            "value": 680666.2
+        },
+        "MeanClassProbability": {
+            "value": 0.09090909090909091
+        },
+        "MinCardinalityOfCategoricalFeatures": {
+            "value": 1604193.0
+        },
+        "MinCardinalityOfNumericFeatures": {
+            "value": 64.0
+        },
+        "MinClassProbability": {
+            "value": 6.175324190485173e-05
+        },
+        "MinorityClassSize": {
+            "value": 110
+        },
+        "NumberOfCategoricalFeatures": {
+            "value": 2
+        },
+        "NumberOfClasses": {
+            "value": 11
+        },
+        "NumberOfFeatures": {
+            "value": 7
+        },
+        "NumberOfFeaturesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfInstances": {
+            "value": 1781283
+        },
+        "NumberOfInstancesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfMissingValues": {
+            "value": 0
+        },
+        "NumberOfNumericFeatures": {
+            "value": 5
+        },
+        "Quartile1CardinalityOfCategoricalFeatures": {
+            "value": 1634988.5
+        },
+        "Quartile1CardinalityOfNumericFeatures": {
+            "value": 4351.0
+        },
+        "Quartile1ClassProbability": {
+            "value": 0.0011817324928155718
+        },
+        "Quartile2CardinalityOfCategoricalFeatures": {
+            "value": 1665784.0
+        },
+        "Quartile2CardinalityOfNumericFeatures": {
+            "value": 13440.0
+        },
+        "Quartile2ClassProbability": {
+            "value": 0.05504908540641773
+        },
+        "Quartile3CardinalityOfCategoricalFeatures": {
+            "value": 1696579.5
+        },
+        "Quartile3CardinalityOfNumericFeatures": {
+            "value": 1604193.0
+        },
+        "Quartile3ClassProbability": {
+            "value": 0.1388889356716479
+        },
+        "RatioOfCategoricalFeatures": {
+            "value": 0.2857142857142857
+        },
+        "RatioOfFeaturesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfInstancesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfNumericFeatures": {
+            "value": 0.7142857142857143
+        },
+        "SkewCardinalityOfCategoricalFeatures": {
+            "value": 0.0
+        },
+        "SkewCardinalityOfNumericFeatures": {
+            "value": 0.42212698670960014
+        },
+        "SkewClassProbability": {
+            "value": 0.8324473162060522
+        },
+        "StdevCardinalityOfCategoricalFeatures": {
+            "value": 87102.8275201213
+        },
+        "StdevCardinalityOfNumericFeatures": {
+            "value": 926022.6100267207
+        },
+        "StdevClassProbability": {
+            "value": 0.10168286701654523
+        }
+    },
+    "LL1_336_MS_Geolife_transport_mode_prediction_separate_lat_lon_MIN_METADATA": {
+        "Dimensionality": {
+            "value": 4.490376001634497e-06
+        },
+        "KurtosisCardinalityOfCategoricalFeatures": {
+            "value": -3.0
+        },
+        "KurtosisCardinalityOfNumericFeatures": {
+            "value": -1.2923074826323406
+        },
+        "KurtosisClassProbability": {
+            "value": -0.6238913457175403
+        },
+        "MajorityClassSize": {
+            "value": 515772
+        },
+        "MaxCardinalityOfCategoricalFeatures": {
+            "value": 1604417.0
+        },
+        "MaxCardinalityOfNumericFeatures": {
+            "value": 1781588.0
+        },
+        "MaxClassProbability": {
+            "value": 0.28950127638937845
+        },
+        "MeanCardinalityOfCategoricalFeatures": {
+            "value": 1604417.0
+        },
+        "MeanCardinalityOfNumericFeatures": {
+            "value": 668785.2857142857
+        },
+        "MeanClassProbability": {
+            "value": 0.0909090909090909
+        },
+        "MinCardinalityOfCategoricalFeatures": {
+            "value": 1604417.0
+        },
+        "MinCardinalityOfNumericFeatures": {
+            "value": 64.0
+        },
+        "MinClassProbability": {
+            "value": 6.174267002247433e-05
+        },
+        "MinorityClassSize": {
+            "value": 110
+        },
+        "NumberOfCategoricalFeatures": {
+            "value": 1
+        },
+        "NumberOfClasses": {
+            "value": 11
+        },
+        "NumberOfFeatures": {
+            "value": 8
+        },
+        "NumberOfFeaturesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfInstances": {
+            "value": 1781588
+        },
+        "NumberOfInstancesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfMissingValues": {
+            "value": 0
+        },
+        "NumberOfNumericFeatures": {
+            "value": 7
+        },
+        "Quartile1CardinalityOfCategoricalFeatures": {
+            "value": 1604417.0
+        },
+        "Quartile1CardinalityOfNumericFeatures": {
+            "value": 8919.5
+        },
+        "Quartile1ClassProbability": {
+            "value": 0.001181249536929975
+        },
+        "Quartile2CardinalityOfCategoricalFeatures": {
+            "value": 1604417.0
+        },
+        "Quartile2CardinalityOfNumericFeatures": {
+            "value": 609290.0
+        },
+        "Quartile2ClassProbability": {
+            "value": 0.055031241791031374
+        },
+        "Quartile3CardinalityOfCategoricalFeatures": {
+            "value": 1604417.0
+        },
+        "Quartile3CardinalityOfNumericFeatures": {
+            "value": 1136358.0
+        },
+        "Quartile3ClassProbability": {
+            "value": 0.13892353338706817
+        },
+        "RatioOfCategoricalFeatures": {
+            "value": 0.125
+        },
+        "RatioOfFeaturesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfInstancesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfNumericFeatures": {
+            "value": 0.875
+        },
+        "SkewCardinalityOfCategoricalFeatures": {
+            "value": 0.0
+        },
+        "SkewCardinalityOfNumericFeatures": {
+            "value": 0.5497732183962708
+        },
+        "SkewClassProbability": {
+            "value": 0.8319472150117304
+        },
+        "StdevCardinalityOfCategoricalFeatures": {
+            "value": 0.0
+        },
+        "StdevCardinalityOfNumericFeatures": {
+            "value": 756676.0819989212
+        },
+        "StdevClassProbability": {
+            "value": 0.10168172091444563
+        }
+    },
     "LL1_3476_HMDB_actio_recognition_MIN_METADATA": {
         "Dimensionality": {
             "value": 0.031746031746031744
@@ -10217,6 +11003,137 @@
             "value": 0.34998214422364476
         }
     },
+    "LL1_MITLL_synthetic_vora_E_2538": {
+        "Dimensionality": {
+            "value": 0.00112261444430585
+        },
+        "KurtosisCardinalityOfCategoricalFeatures": {
+            "value": 10.384529419802426
+        },
+        "KurtosisCardinalityOfNumericFeatures": {
+            "value": 4.121007941171968
+        },
+        "KurtosisClassProbability": {
+            "value": -2.0
+        },
+        "MajorityClassSize": {
+            "value": 37461
+        },
+        "MaxCardinalityOfCategoricalFeatures": {
+            "value": 3956.0
+        },
+        "MaxCardinalityOfNumericFeatures": {
+            "value": 40085.0
+        },
+        "MaxClassProbability": {
+            "value": 0.9345391044031434
+        },
+        "MeanCardinalityOfCategoricalFeatures": {
+            "value": 319.51428571428573
+        },
+        "MeanCardinalityOfNumericFeatures": {
+            "value": 40011.0
+        },
+        "MeanClassProbability": {
+            "value": 0.5
+        },
+        "MinCardinalityOfCategoricalFeatures": {
+            "value": 2.0
+        },
+        "MinCardinalityOfNumericFeatures": {
+            "value": 39988.0
+        },
+        "MinClassProbability": {
+            "value": 0.06546089559685668
+        },
+        "MinorityClassSize": {
+            "value": 2624
+        },
+        "NumberOfCategoricalFeatures": {
+            "value": 35
+        },
+        "NumberOfClasses": {
+            "value": 2
+        },
+        "NumberOfFeatures": {
+            "value": 45
+        },
+        "NumberOfFeaturesWithMissingValues": {
+            "value": 44
+        },
+        "NumberOfInstances": {
+            "value": 40085
+        },
+        "NumberOfInstancesWithMissingValues": {
+            "value": 3465
+        },
+        "NumberOfMissingValues": {
+            "value": 3465
+        },
+        "NumberOfNumericFeatures": {
+            "value": 10
+        },
+        "Quartile1CardinalityOfCategoricalFeatures": {
+            "value": 3.0
+        },
+        "Quartile1CardinalityOfNumericFeatures": {
+            "value": 39999.75
+        },
+        "Quartile1ClassProbability": {
+            "value": 0.2827304477984284
+        },
+        "Quartile2CardinalityOfCategoricalFeatures": {
+            "value": 4.0
+        },
+        "Quartile2CardinalityOfNumericFeatures": {
+            "value": 40004.0
+        },
+        "Quartile2ClassProbability": {
+            "value": 0.5
+        },
+        "Quartile3CardinalityOfCategoricalFeatures": {
+            "value": 28.5
+        },
+        "Quartile3CardinalityOfNumericFeatures": {
+            "value": 40008.5
+        },
+        "Quartile3ClassProbability": {
+            "value": 0.7172695522015717
+        },
+        "RatioOfCategoricalFeatures": {
+            "value": 0.7777777777777778
+        },
+        "RatioOfFeaturesWithMissingValues": {
+            "value": 0.9777777777777777
+        },
+        "RatioOfInstancesWithMissingValues": {
+            "value": 0.08644131221155045
+        },
+        "RatioOfMissingValues": {
+            "value": 0.0019209180491455656
+        },
+        "RatioOfNumericFeatures": {
+            "value": 0.2222222222222222
+        },
+        "SkewCardinalityOfCategoricalFeatures": {
+            "value": 3.421348896573524
+        },
+        "SkewCardinalityOfNumericFeatures": {
+            "value": 2.3253794523365543
+        },
+        "SkewClassProbability": {
+            "value": 8.45675312078548e-17
+        },
+        "StdevCardinalityOfCategoricalFeatures": {
+            "value": 942.7619115390372
+        },
+        "StdevCardinalityOfNumericFeatures": {
+            "value": 26.927887238160945
+        },
+        "StdevClassProbability": {
+            "value": 0.6145310948283836
+        }
+    },
     "LL1_Meat_MIN_METADATA": {
         "Dimensionality": {
             "value": 0.03333333333333333
@@ -12049,6 +12966,268 @@
         },
         "StdevClassProbability": {
             "value": 0.05120842798982036
+        }
+    },
+    "LL1_ViEWS_PGM_S1": {
+        "Dimensionality": {
+            "value": 5.485757101379467e-05
+        },
+        "KurtosisCardinalityOfCategoricalFeatures": {
+            "value": NaN
+        },
+        "KurtosisCardinalityOfNumericFeatures": {
+            "value": 35.972904937115814
+        },
+        "KurtosisClassProbability": {
+            "value": 149.00609749188425
+        },
+        "MajorityClassSize": {
+            "value": 743824
+        },
+        "MaxCardinalityOfCategoricalFeatures": {
+            "value": NaN
+        },
+        "MaxCardinalityOfNumericFeatures": {
+            "value": 747390.0
+        },
+        "MaxClassProbability": {
+            "value": 0.9952287293113368
+        },
+        "MeanCardinalityOfCategoricalFeatures": {
+            "value": NaN
+        },
+        "MeanCardinalityOfNumericFeatures": {
+            "value": 19952.39024390244
+        },
+        "MeanClassProbability": {
+            "value": 0.006493506493506495
+        },
+        "MinCardinalityOfCategoricalFeatures": {
+            "value": NaN
+        },
+        "MinCardinalityOfNumericFeatures": {
+            "value": 104.0
+        },
+        "MinClassProbability": {
+            "value": 1.3379895369218212e-06
+        },
+        "MinorityClassSize": {
+            "value": 1
+        },
+        "NumberOfCategoricalFeatures": {
+            "value": 0
+        },
+        "NumberOfClasses": {
+            "value": 154
+        },
+        "NumberOfFeatures": {
+            "value": 41
+        },
+        "NumberOfFeaturesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfInstances": {
+            "value": 747390
+        },
+        "NumberOfInstancesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfMissingValues": {
+            "value": 0
+        },
+        "NumberOfNumericFeatures": {
+            "value": 41
+        },
+        "Quartile1CardinalityOfCategoricalFeatures": {
+            "value": NaN
+        },
+        "Quartile1CardinalityOfNumericFeatures": {
+            "value": 395.0
+        },
+        "Quartile1ClassProbability": {
+            "value": 1.3379895369218212e-06
+        },
+        "Quartile2CardinalityOfCategoricalFeatures": {
+            "value": NaN
+        },
+        "Quartile2CardinalityOfNumericFeatures": {
+            "value": 444.0
+        },
+        "Quartile2ClassProbability": {
+            "value": 2.6759790738436424e-06
+        },
+        "Quartile3CardinalityOfCategoricalFeatures": {
+            "value": NaN
+        },
+        "Quartile3CardinalityOfNumericFeatures": {
+            "value": 1880.0
+        },
+        "Quartile3ClassProbability": {
+            "value": 1.3379895369218213e-05
+        },
+        "RatioOfCategoricalFeatures": {
+            "value": 0.0
+        },
+        "RatioOfFeaturesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfInstancesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfNumericFeatures": {
+            "value": 1.0
+        },
+        "SkewCardinalityOfCategoricalFeatures": {
+            "value": NaN
+        },
+        "SkewCardinalityOfNumericFeatures": {
+            "value": 6.159978929992366
+        },
+        "SkewClassProbability": {
+            "value": 12.288444740216496
+        },
+        "StdevCardinalityOfCategoricalFeatures": {
+            "value": NaN
+        },
+        "StdevCardinalityOfNumericFeatures": {
+            "value": 116485.78771203767
+        },
+        "StdevClassProbability": {
+            "value": 0.08019536134994869
+        }
+    },
+    "LL1_bigearth_landuse_detection": {
+        "Dimensionality": {
+            "value": 0.00022851919561243144
+        },
+        "KurtosisCardinalityOfCategoricalFeatures": {
+            "value": 0.2065758619607201
+        },
+        "KurtosisCardinalityOfNumericFeatures": {
+            "value": -3.0
+        },
+        "KurtosisClassProbability": {
+            "value": 1.9664057654993412
+        },
+        "MajorityClassSize": {
+            "value": 16308
+        },
+        "MaxCardinalityOfCategoricalFeatures": {
+            "value": 26256.0
+        },
+        "MaxCardinalityOfNumericFeatures": {
+            "value": 2188.0
+        },
+        "MaxClassProbability": {
+            "value": 0.6211151736745887
+        },
+        "MeanCardinalityOfCategoricalFeatures": {
+            "value": 6136.8
+        },
+        "MeanCardinalityOfNumericFeatures": {
+            "value": 2188.0
+        },
+        "MeanClassProbability": {
+            "value": 0.14285714285714285
+        },
+        "MinCardinalityOfCategoricalFeatures": {
+            "value": 12.0
+        },
+        "MinCardinalityOfNumericFeatures": {
+            "value": 2188.0
+        },
+        "MinClassProbability": {
+            "value": 0.03610603290676417
+        },
+        "MinorityClassSize": {
+            "value": 948
+        },
+        "NumberOfCategoricalFeatures": {
+            "value": 5
+        },
+        "NumberOfClasses": {
+            "value": 7
+        },
+        "NumberOfFeatures": {
+            "value": 6
+        },
+        "NumberOfFeaturesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfInstances": {
+            "value": 26256
+        },
+        "NumberOfInstancesWithMissingValues": {
+            "value": 0
+        },
+        "NumberOfMissingValues": {
+            "value": 0
+        },
+        "NumberOfNumericFeatures": {
+            "value": 1
+        },
+        "Quartile1CardinalityOfCategoricalFeatures": {
+            "value": 92.0
+        },
+        "Quartile1CardinalityOfNumericFeatures": {
+            "value": 2188.0
+        },
+        "Quartile1ClassProbability": {
+            "value": 0.047074954296160876
+        },
+        "Quartile2CardinalityOfCategoricalFeatures": {
+            "value": 2136.0
+        },
+        "Quartile2CardinalityOfNumericFeatures": {
+            "value": 2188.0
+        },
+        "Quartile2ClassProbability": {
+            "value": 0.051645338208409504
+        },
+        "Quartile3CardinalityOfCategoricalFeatures": {
+            "value": 2188.0
+        },
+        "Quartile3CardinalityOfNumericFeatures": {
+            "value": 2188.0
+        },
+        "Quartile3ClassProbability": {
+            "value": 0.09849177330895795
+        },
+        "RatioOfCategoricalFeatures": {
+            "value": 0.8333333333333334
+        },
+        "RatioOfFeaturesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfInstancesWithMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfMissingValues": {
+            "value": 0.0
+        },
+        "RatioOfNumericFeatures": {
+            "value": 0.16666666666666666
+        },
+        "SkewCardinalityOfCategoricalFeatures": {
+            "value": 1.4673574973772934
+        },
+        "SkewCardinalityOfNumericFeatures": {
+            "value": 0.0
+        },
+        "SkewClassProbability": {
+            "value": 1.9564283304615389
+        },
+        "StdevCardinalityOfCategoricalFeatures": {
+            "value": 11296.397797528201
+        },
+        "StdevCardinalityOfNumericFeatures": {
+            "value": 0.0
+        },
+        "StdevClassProbability": {
+            "value": 0.21314522583592707
         }
     },
     "LL1_bn_fly_drosophila_medulla_net_MIN_METADATA": {
