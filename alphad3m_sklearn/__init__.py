@@ -1,3 +1,1 @@
-__version__ = '0.24.0.dev0'
-
-from .api import AutoML
+__version__ = '0.0.1.dev0'
