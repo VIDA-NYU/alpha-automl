@@ -1,24 +1,29 @@
-from sklearn.metrics import SCORERS, make_scorer
+from sklearn.metrics import SCORERS, get_scorer, make_scorer as make_scorer_sk
 from sklearn.model_selection import BaseCrossValidator, KFold, train_test_split
 from sklearn.model_selection._split import BaseShuffleSplit, _RepeatedSplits
 
 
-def format_metric(metric, metric_kwargs):
+def make_scorer(metric, metric_kwargs):
     if isinstance(metric, str) and metric in SCORERS.keys():
-        return metric
+        return get_scorer(metric)
 
-    elif callable(metric):  # TODO: Add more conditions like https://github.com/scikit-learn/scikit-learn/blob/8c9c1f27b7e21201cfffb118934999025fd50cca/sklearn/metrics/_scorer.py#L480
+    elif callable(metric):
         if metric_kwargs is None:
             metric_kwargs = {}
 
-        return make_scorer(metric, **metric_kwargs)
+        module = getattr(metric, '__module__', '')
+        if module.startswith('sklearn.metrics._scorer'):  # Heuristic to know if it is a sklearn scorer
+            return metric
+
+        else:
+            return make_scorer_sk(metric, **metric_kwargs)
 
     else:
         raise ValueError(f'Unknown "{metric}" metric, you should choose among: {list(SCORERS.keys())} or a scorer '
                          f'callable object/function')
 
 
-def format_splitting_strategy(splitting_strategy, splitting_strategy_kwargs, array):
+def make_splitter(splitting_strategy, splitting_strategy_kwargs, array):
     if splitting_strategy_kwargs is None:
         splitting_strategy_kwargs = {}
 

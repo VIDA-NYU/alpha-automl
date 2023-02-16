@@ -1,6 +1,5 @@
-from sklearn.metrics import get_scorer
 from alphad3m_sklearn.automl_builder import build_pipelines
-from alphad3m_sklearn.utils import format_metric, format_splitting_strategy
+from alphad3m_sklearn.utils import make_scorer, make_splitter
 
 id_best_pipeline = 'pipeline_1'
 
@@ -30,6 +29,8 @@ class AutoML():
         self.split_strategy = split_strategy
         self.split_strategy_kwargs = split_strategy_kwargs
         self.pipelines = {}
+        self.scorer = None
+        self.splitter = None
 
     def fit(self, X, y):
         """
@@ -38,10 +39,10 @@ class AutoML():
         :param X: The training input samples, array-like or sparse matrix of shape = [n_samples, n_features]
         :param y: The target classes, array-like, shape = [n_samples] or [n_samples, n_outputs]
         """
-        val_metric = format_metric(self.metric, self.metric_kwargs)
-        val_splitting_strategy = format_splitting_strategy(self.split_strategy, self.split_strategy_kwargs, y)
+        self.scorer = make_scorer(self.metric, self.metric_kwargs)
+        self.splitter = make_splitter(self.split_strategy, self.split_strategy_kwargs, y)
 
-        pipelines = build_pipelines(X, y, val_metric, val_splitting_strategy)
+        pipelines = build_pipelines(X, y, self.scorer, self.splitter)
         sorted_pipelines = sorted(pipelines, key=lambda x: x['pipeline_score'])  # TODO: Improve this, sort by score
 
         for index, pipeline_data in enumerate(sorted_pipelines, start=1):
@@ -130,10 +131,7 @@ class AutoML():
 
     def _score(self, X, y, id_pipeline):
         predictions = self.pipelines[id_pipeline]['pipeline'].predict(X)
-        if isinstance(self.metric, str):
-            score = get_scorer(self.metric)._score_func(y, predictions)
-        else:  # It is callable
-            score = self.metric(y, predictions)
+        score = self.scorer._score_func(y, predictions)
 
         print(f'Metric: {self.metric}, Score: {score}')
 
