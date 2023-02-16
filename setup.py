@@ -1,7 +1,7 @@
 import os
 import setuptools
 
-package_name = 'alphad3m'
+package_name = 'alphad3m_sklearn'
 
 
 def read_readme():
@@ -30,22 +30,17 @@ setuptools.setup(
     name=package_name,
     version=version,
     packages=setuptools.find_packages(),
-    entry_points={
-        'console_scripts': [
-            'alphad3m_serve = alphad3m.main:main_serve',
-            'alphad3m_search = alphad3m.main:main_search'
-          ]},
     install_requires=req,
-    description="AlphaD3M: NYU's AutoML System",
+    description="AlphaD3M-Sklearn: NYU's AutoML System",
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://gitlab.com/ViDA-NYU/d3m/alphad3m',
+    url='https://github.com/VIDA-NYU/alphad3m-sklearn',
     include_package_data=True,
-    author='Remi Rampin, Roque Lopez, Raoni Lourenco',
-    author_email='remi.rampin@nyu.edu, rlopez@nyu.edu, raoni@nyu.edu',
-    maintainer='Remi Rampin, Roque Lopez',
-    maintainer_email='remi.rampin@nyu.edu, rlopez@nyu.edu',
-    keywords=['datadrivendiscovery', 'automl', 'd3m', 'ta2', 'nyu'],
+    author='Roque Lopez, Remi Rampin',
+    author_email='rlopez@nyu.edu, remi.rampin@nyu.edu',
+    maintainer='Roque Lopez, Remi Rampin',
+    maintainer_email='rlopez@nyu.edu, remi.rampin@nyu.edu',
+    keywords=['datadrivendiscovery', 'automl', 'nyu'],
     license='Apache-2.0',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
