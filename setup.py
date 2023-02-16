@@ -34,7 +34,7 @@ setuptools.setup(
     description="AlphaD3M-Sklearn: NYU's AutoML System",
     long_description=long_description,
     long_description_content_type='text/markdown',
-    url='https://github.com/VIDA-NYU/alphad3m-sklearn',
+    url='https://github.com/VIDA-NYU/alphad3m_sklearn',
     include_package_data=True,
     author='Roque Lopez, Remi Rampin',
     author_email='rlopez@nyu.edu, remi.rampin@nyu.edu',
