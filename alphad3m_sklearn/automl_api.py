@@ -1,6 +1,6 @@
 from sklearn.metrics import get_scorer
-from automl_builder import build_pipelines
-from utils import format_metric, format_splitting_strategy
+from alphad3m_sklearn.automl_builder import build_pipelines
+from alphad3m_sklearn.utils import format_metric, format_splitting_strategy
 
 id_best_pipeline = 'pipeline_1'
 

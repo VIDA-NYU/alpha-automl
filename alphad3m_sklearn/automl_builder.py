@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import cross_val_score
-from primitives_manager import primitive_list
+from alphad3m_sklearn.primitives_manager import primitive_list
 
 
 def build_pipelines(X, y, scoring, splitting_strategy):
