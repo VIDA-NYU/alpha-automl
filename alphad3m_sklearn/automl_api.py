@@ -130,7 +130,11 @@ class AutoML():
 
     def _score(self, X, y, id_pipeline):
         predictions = self.pipelines[id_pipeline]['pipeline'].predict(X)
-        score = get_scorer(self.metric)._score_func(y, predictions)
+        if isinstance(self.metric, str):
+            score = get_scorer(self.metric)._score_func(y, predictions)
+        else:  # It is callable
+            score = self.metric(y, predictions)
+
         print(f'Metric: {self.metric}, Score: {score}')
 
         return {'metric': self.metric, 'score': score}
