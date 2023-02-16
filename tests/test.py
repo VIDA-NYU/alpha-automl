@@ -2,10 +2,7 @@ from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import ShuffleSplit
-import sys
-# TODO: Remove this when the package is implemented, it just a temporal solution
-sys.path.append('/Users/rlopez/D3M/alphad3m-sklearn/alphad3m_sklearn')
-from automl_api import AutoML
+from alphad3m_sklearn import AutoML
 
 diabetes = load_iris()
 X = diabetes.data
