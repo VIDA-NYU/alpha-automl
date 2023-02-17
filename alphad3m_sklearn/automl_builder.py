@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import cross_val_score
-from alphad3m_sklearn.primitives_manager import primitive_list
+from alphad3m_sklearn.utils import create_object
 
 
 def build_pipelines(X, y, scoring, splitting_strategy):
@@ -18,18 +18,19 @@ def build_pipelines(X, y, scoring, splitting_strategy):
 def search_pipelines():
     # Here we call to AlphaD3M engine
     return [
-        ['StandardScaler', 'SVC'],
-        ['MinMaxScaler', 'SVC']
+        ['sklearn.preprocessing.StandardScaler', 'sklearn.svm.SVC'],
+        ['sklearn.preprocessing.MaxAbsScaler', 'sklearn.svm.SVC']
     ]
 
 
-def build_pipeline_object(primitive_names):
-    pipeline_steps = []
+def build_pipeline_object(string_pipeline):
+    pipeline_primitives = []
 
-    for primitive_name in primitive_names:
-        pipeline_steps.append((primitive_name, primitive_list[primitive_name]))
+    for primitive_string in string_pipeline:
+        primitive_object = create_object(primitive_string)
+        pipeline_primitives.append((primitive_string, primitive_object))
 
-    pipeline = Pipeline(pipeline_steps)
+    pipeline = Pipeline(pipeline_primitives)
 
     return pipeline
 

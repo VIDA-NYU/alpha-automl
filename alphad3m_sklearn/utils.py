@@ -1,3 +1,4 @@
+import importlib
 from sklearn.metrics import SCORERS, get_scorer, make_scorer as make_scorer_sk
 from sklearn.model_selection import BaseCrossValidator, KFold, train_test_split
 from sklearn.model_selection._split import BaseShuffleSplit, _RepeatedSplits
@@ -55,3 +56,16 @@ def make_splitter(splitting_strategy, splitting_strategy_kwargs, array):
     else:
         raise ValueError(f'Unknown "{splitting_strategy}" splitting strategy, you should choose "holdout", "cv" or an '
                          f'instance of BaseCrossValidator, BaseShuffleSplit, RepeatedSplits.')
+
+
+def create_object(import_path, class_params=None):
+    if class_params is None:
+        class_params = {}
+
+    modules = import_path.split('.')
+    class_name = modules[-1]
+    import_module = '.'.join(modules[:-1])
+    class_ = getattr(importlib.import_module(import_module), class_name)
+    object_ = class_(**class_params)  # Instantiates the object
+
+    return object_
