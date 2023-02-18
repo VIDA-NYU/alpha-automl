@@ -1,4 +1,6 @@
 import importlib
+import numpy as np
+from sklearn.model_selection import cross_val_score
 from sklearn.metrics import SCORERS, get_scorer, make_scorer as make_scorer_sk
 from sklearn.model_selection import BaseCrossValidator, KFold, train_test_split
 from sklearn.model_selection._split import BaseShuffleSplit, _RepeatedSplits
@@ -68,4 +70,11 @@ def create_object(import_path, class_params=None):
     class_ = getattr(importlib.import_module(import_module), class_name)
     object_ = class_(**class_params)  # Instantiates the object
 
-    return object_
+    return
+
+
+def score_pipeline(pipeline, X, y, scoring, splitting_strategy):
+    scores = cross_val_score(pipeline, X, y, cv=splitting_strategy, scoring=scoring)
+    score = np.average(scores)
+
+    return score
