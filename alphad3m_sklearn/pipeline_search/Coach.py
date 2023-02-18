@@ -2,8 +2,8 @@ import logging
 import time
 import numpy as np
 from collections import deque
-from alphad3m.pipeline_search.Arena import Arena
-from alphad3m.pipeline_search.MCTS import MCTS
+from alphad3m_sklearn.pipeline_search.Arena import Arena
+from alphad3m_sklearn.pipeline_search.MCTS import MCTS
 
 #from alphad3m.pipeline_search.utils import Bar, AverageMeter
 
