@@ -1,4 +1,4 @@
-from alphad3m_sklearn.automl_builder import build_pipelines
+from alphad3m_sklearn.automl_manager import build_pipelines
 from alphad3m_sklearn.utils import make_scorer, make_splitter
 
 id_best_pipeline = 'pipeline_1'
