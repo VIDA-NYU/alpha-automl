@@ -1,14 +1,13 @@
 import logging
 import json
 from os.path import join, dirname
-from d3m import index
 from collections import OrderedDict
 
 logger = logging.getLogger(__name__)
 
 PRIMITIVES_LIST_PATH = join(dirname(__file__), 'resource/primitives_list.json')
 PRIMITIVES_HIERARCHY_PATH = join(dirname(__file__), 'resource/primitives_hierarchy.json')
-INSTALLED_PRIMITIVES = sorted(index.search(), key=lambda x: x.endswith('SKlearn'), reverse=True)
+INSTALLED_PRIMITIVES = []
 
 BLACK_LIST = {
      # Not working primitives:

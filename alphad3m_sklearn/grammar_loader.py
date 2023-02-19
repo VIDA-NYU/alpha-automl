@@ -3,13 +3,11 @@ import logging
 import itertools
 from os.path import join, dirname
 from nltk.grammar import Production, Nonterminal, CFG, is_terminal, is_nonterminal
-from alphad3m.primitive_loader import load_primitives_hierarchy, load_primitives_types
-from alphad3m.metalearning.grammar_builder import create_metalearningdb_grammar
+from alphad3m_sklearn.primitive_loader import load_primitives_hierarchy, load_primitives_types
+#from alphad3m_sklearn.metalearning.grammar_builder import create_metalearningdb_grammar
 
 logger = logging.getLogger(__name__)
 BASE_GRAMMAR_PATH = join(dirname(__file__), 'resource/base_grammar.bnf')
-COMPLETE_GRAMMAR_PATH = join(os.environ.get('D3MOUTPUTDIR'), 'temp', 'complete_grammar.bnf')
-TASK_GRAMMAR_PATH = join(os.environ.get('D3MOUTPUTDIR'), 'temp', 'task_grammar.bnf')
 
 
 def create_global_grammar(grammar_string, primitives):
