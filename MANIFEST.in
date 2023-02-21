@@ -2,3 +2,5 @@ include LICENSE.txt
 include NOTICE.txt
 include README.md
 include requirements.txt
+include alphad3m_sklearn/resource/*.json
+include alphad3m_sklearn/resource/*.bnf
