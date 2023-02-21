@@ -26,9 +26,11 @@ class BaseBuilder:
         pipeline = None
 
         if is_linear_pipeline(pipeline_primitives):
-            pipeline = self.make_linear_pipeline(primitives)
+            pipeline = self.make_linear_pipeline(pipeline_primitives)
         else:
             pass # TODO: Use Column Transformer
+
+        logger.info(f'New pipelined created:\n{pipeline}')
         return pipeline
 
     def make_linear_pipeline(self, pipeline_primitives):

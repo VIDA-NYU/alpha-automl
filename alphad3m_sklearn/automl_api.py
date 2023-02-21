@@ -1,5 +1,10 @@
-from alphad3m_sklearn.automl_manager import build_pipelines
+import logging
+from alphad3m_sklearn.automl_manager import AutoMLManager
 from alphad3m_sklearn.utils import make_scorer, make_splitter
+
+
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
 
 id_best_pipeline = 'pipeline_1'
 
@@ -31,6 +36,7 @@ class AutoML():
         self.pipelines = {}
         self.scorer = None
         self.splitter = None
+        self.automl_manager = AutoMLManager(output_folder, time_bound, time_bound_run)
 
     def fit(self, X, y):
         """
@@ -42,7 +48,11 @@ class AutoML():
         self.scorer = make_scorer(self.metric, self.metric_kwargs)
         self.splitter = make_splitter(self.split_strategy, self.split_strategy_kwargs, y)
 
-        pipelines = build_pipelines(X, y, self.scorer, self.splitter)
+        pipelines = []
+        for pipeline in self.automl_manager.search_pipelines(X, y, self.scorer, self.splitter):
+            print('Found pipeline:', pipeline)
+            pipelines.append(pipeline)
+
         sorted_pipelines = sorted(pipelines, key=lambda x: x['pipeline_score'])  # TODO: Improve this, sort by score
 
         for index, pipeline_data in enumerate(sorted_pipelines, start=1):

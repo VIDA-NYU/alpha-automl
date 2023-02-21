@@ -44,8 +44,41 @@ config = {
 
 
 def signal_handler(signal_num, frame):
-    logger.info('Receiving signal %s, terminating process' % signal.Signals(signal_num).name)
+    logger.info(f'Receiving signal {signal.Signals(signal_num).name}, terminating process')
     signal.alarm(0)  # Disable the alarm
+    sys.exit(0)
+
+
+def search_pipelines(X, y, scoring, splitting_strategy, task_name, hyperparameters, time_bound,  dataset, output_folder, queue):
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGALRM, signal_handler)
+    signal.alarm(int(time_bound))
+
+    builder = BaseBuilder()
+
+    def evaluate_pipeline(primitives, origin):
+        pipeline = builder.make_pipeline(primitives)
+        score = score_pipeline(pipeline, X, y, scoring, splitting_strategy)
+        print('score', score)
+        #queue.send((pipeline, score))
+        return score
+
+    metric = 'accuracy'
+    config_updated = update_config(task_name, metric, dataset, output_folder, hyperparameters)
+
+    game = PipelineGame(config_updated, evaluate_pipeline)
+    nnet = NNetWrapper(game)
+
+    if config['ARGS'].get('load_model'):
+        model_file = join(config['ARGS'].get('load_folder_file')[0],
+                          config['ARGS'].get('load_folder_file')[1])
+        if os.path.isfile(model_file):
+            nnet.load_checkpoint(config['ARGS'].get('load_folder_file')[0],
+                                 config['ARGS'].get('load_folder_file')[1])
+
+    c = Coach(game, nnet, config['ARGS'])
+    c.learn()
+
     sys.exit(0)
 
 
@@ -54,9 +87,9 @@ def update_config(task_name, metric, dataset, output_folder, hyperparameters):
     config['DATA_TYPE'] = 'TABULAR'
     config['METRIC'] = metric
     config['DATASET'] = dataset
-    config['ARGS']['stepsfile'] = join(output_folder, 'temp', dataset, '_pipeline_steps.txt')
-    config['ARGS']['checkpoint'] = join(output_folder, 'temp', 'nn_models')
-    config['ARGS']['load_folder_file'] = join(output_folder, 'temp', 'nn_models', 'best.pth.tar')
+    config['ARGS']['stepsfile'] = join(output_folder, f'{dataset}_pipeline_steps.txt')
+    config['ARGS']['checkpoint'] = join(output_folder, 'nn_models')
+    config['ARGS']['load_folder_file'] = join(output_folder, 'nn_models', 'best.pth.tar')
 
     task_name_id = task_name + '_TASK'
     use_automatic_grammar = hyperparameters['use_automatic_grammar']
@@ -86,38 +119,3 @@ def update_config(task_name, metric, dataset, output_folder, hyperparameters):
     config['DATASET_METAFEATURES'] = [0] * 50  # metafeatures_extractor.compute_metafeatures('AlphaD3M_compute_metafeatures')
 
     return config
-
-def generate_pipelines(output_folder, task_name, X, y, scoring, splitting_strategy, dataset, metric, hyperparameters, time_bound, msg_queue):
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGALRM, signal_handler)
-    signal.alarm(int(time_bound))
-
-    builder = BaseBuilder()
-
-    def evaluate_pipeline(primitives, origin):
-        pipeline = builder.make_pipeline(primitives)
-        score = score_pipeline(pipeline, X, y, scoring, splitting_strategy)
-        # Evaluate the pipeline if syntax is correct:
-        if pipeline:
-            msg_queue.send(('eval', pipeline))
-            return msg_queue.recv()
-        else:
-            return None
-
-
-    config_updated = update_config(task_name, metric, dataset, output_folder, hyperparameters)
-
-    game = PipelineGame(config_updated, evaluate_pipeline)
-    nnet = NNetWrapper(game)
-
-    if config['ARGS'].get('load_model'):
-        model_file = join(config['ARGS'].get('load_folder_file')[0],
-                          config['ARGS'].get('load_folder_file')[1])
-        if os.path.isfile(model_file):
-            nnet.load_checkpoint(config['ARGS'].get('load_folder_file')[0],
-                                 config['ARGS'].get('load_folder_file')[1])
-
-    c = Coach(game, nnet, config['ARGS'])
-    c.learn()
-
-    sys.exit(0)

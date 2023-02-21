@@ -1,32 +1,62 @@
-from alphad3m_sklearn.pipeline_synthesis.setup_search import generate_pipelines as gp
+import multiprocessing
+from alphad3m_sklearn.pipeline_synthesis.setup_search import search_pipelines as search_pipelines_proc
+
+USE_AUTOMATIC_GRAMMAR = False
+PRIORITIZE_PRIMITIVES = False
+EXCLUDE_PRIMITIVES = []
+INCLUDE_PRIMITIVES = []
+
+class AutoMLManager():
+
+    def __init__(self, output_folder, time_bound, time_bound_run):
+        self.output_folder = output_folder
+        self.time_bound = time_bound
+        self.time_bound_run = time_bound_run
 
 
-def build_pipelines(X, y, scoring, splitting_strategy):
-    pipelines = []
+    def search_pipelines(self, X, y, scoring, splitting_strategy, hyperparameters={}):
 
-    for pipeline in generate_pipelines(X, y, scoring, splitting_strategy):
-        pipelines.append(pipeline)
+        if 'use_automatic_grammar' not in hyperparameters:
+            hyperparameters['use_automatic_grammar'] = USE_AUTOMATIC_GRAMMAR
 
-    return pipelines
+        if 'prioritize_primitives' not in hyperparameters:
+            hyperparameters['prioritize_primitives'] = PRIORITIZE_PRIMITIVES
 
+        if 'include_primitives' not in hyperparameters or hyperparameters['include_primitives'] is None:
+            hyperparameters['include_primitives'] = INCLUDE_PRIMITIVES
 
-def generate_pipelines(X, y, scoring, splitting_strategy):
-    # Here we call to AlphaD3M engine
-    from alphad3m_sklearn.utils import score_pipeline
-    from sklearn.preprocessing import StandardScaler
-    from sklearn.linear_model import LogisticRegression
-    from sklearn.pipeline import Pipeline
-    from sklearn.svm import SVC
+        if 'exclude_primitives' not in hyperparameters or hyperparameters['exclude_primitives'] is None:
+            hyperparameters['exclude_primitives'] = EXCLUDE_PRIMITIVES
 
-    pipelines = []
-    pipeline1 = Pipeline(steps=[("preprocessor", StandardScaler()), ("classifier", LogisticRegression())])
+        search_pipelines_proc(X, y, scoring, splitting_strategy, 'CLASSIFICATION', hyperparameters, self.time_bound,  'dataset', self.output_folder, None)
+        '''queue = multiprocessing.Queue()
+        search_process = multiprocessing.Process(target=search_pipelines_proc,
+                                                 args=(X, y, scoring, splitting_strategy, 'classification',
+                                                       hyperparameters, self.time_bound,  'dataset', self.output_folder, queue,))
+        search_process.start()
 
-    score1 = score_pipeline(pipeline1, X, y, scoring, splitting_strategy)
-    pipelines.append({'pipeline_object': pipeline1, 'pipeline_score': score1})
+        while True:
+            value = queue.get()
+            if value == "done":  # no more values from child process
+                break
+            print('New Pipeline', value)'''
 
-    pipeline2 = Pipeline(steps=[("preprocessor", StandardScaler()), ("classifier", SVC())])
-    score2 = score_pipeline(pipeline2, X, y, scoring, splitting_strategy)
-    pipelines.append({'pipeline_object': pipeline2, 'pipeline_score': score2})
+    def search_pipelines_fake(self, X, y, scoring, splitting_strategy):
+        from alphad3m_sklearn.utils import score_pipeline
+        from sklearn.preprocessing import StandardScaler
+        from sklearn.linear_model import LogisticRegression
+        from sklearn.pipeline import Pipeline
+        from sklearn.svm import SVC
 
-    return pipelines
+        pipelines = []
+        pipeline1 = Pipeline(steps=[("preprocessor", StandardScaler()), ("classifier", LogisticRegression())])
 
+        score1 = score_pipeline(pipeline1, X, y, scoring, splitting_strategy)
+        pipelines.append({'pipeline_object': pipeline1, 'pipeline_score': score1})
+
+        pipeline2 = Pipeline(steps=[("preprocessor", StandardScaler()), ("classifier", SVC())])
+        score2 = score_pipeline(pipeline2, X, y, scoring, splitting_strategy)
+        pipelines.append({'pipeline_object': pipeline2, 'pipeline_score': score2})
+
+        for pipeline in pipelines:
+            yield pipeline
