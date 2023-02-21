@@ -10,7 +10,7 @@ y = diabetes.target
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.33, random_state=1)
 
 # Add settings
-automl = AutoML('/tmp', time_bound=10, metric='accuracy', split_strategy='holdout')
+automl = AutoML('/Users/rlopez/D3M/tmp/', time_bound=10, metric='accuracy', split_strategy='holdout')
 #automl = AutoML('/tmp', time_bound=10, metric=accuracy_score, split_strategy=ShuffleSplit())
 
 # Perform the search
