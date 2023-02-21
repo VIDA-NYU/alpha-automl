@@ -37,7 +37,7 @@
         "sklearn.feature_selection.SelectKBest"
     ],
     "IMPUTATION": [
-        "sklearn.preprocessing.Imputer"
+        "sklearn.impute.SimpleImputer"
     ],
     "REGRESSION": [
         "sklearn.linear_model.ARDRegression",
