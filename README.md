@@ -1,8 +1,8 @@
-AlphaD3M-Sklearn is an AutoML system that automatically searches for models and derives end-to-end pipelines that read, 
-pre-process the data, and train the model. AlphaD3M-Sklearn leverages recent advances in deep reinforcement learning and is 
+AlphaAutoML is an AutoML system that automatically searches for models and derives end-to-end pipelines that read, 
+pre-process the data, and train the model. AlphaAutoML leverages recent advances in deep reinforcement learning and is 
 able to adapt to different application domains and problems through incremental learning.
 
-AlphaD3M-Sklearn provides data scientists and data engineers the flexibility to address complex problems by leveraging the 
+AlphaAutoML provides data scientists and data engineers the flexibility to address complex problems by leveraging the 
 Python ecosystem, including open-source libraries and tools, support for collaboration, and infrastructure that enables 
 transparency and reproducibility. 
 

@@ -1,6 +1,6 @@
 import multiprocessing
 from multiprocessing import set_start_method
-from alphad3m_sklearn.pipeline_synthesis.setup_search import search_pipelines as search_pipelines_proc
+from alpha_automl.pipeline_synthesis.setup_search import search_pipelines as search_pipelines_proc
 
 USE_AUTOMATIC_GRAMMAR = False
 PRIORITIZE_PRIMITIVES = False
@@ -45,7 +45,7 @@ class AutoMLManager():
             yield pipeline_data
 
     def search_pipelines_fake(self, X, y, scoring, splitting_strategy):
-        from alphad3m_sklearn.utils import score_pipeline
+        from alpha_automl.utils import score_pipeline
         from sklearn.preprocessing import StandardScaler
         from sklearn.linear_model import LogisticRegression
         from sklearn.pipeline import Pipeline

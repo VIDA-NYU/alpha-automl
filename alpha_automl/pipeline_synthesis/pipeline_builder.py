@@ -2,7 +2,7 @@ import logging
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
-from alphad3m_sklearn.utils import create_object
+from alpha_automl.utils import create_object
 
 logger = logging.getLogger(__name__)
 

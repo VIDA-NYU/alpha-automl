@@ -1,7 +1,8 @@
 import os
 import setuptools
 
-package_name = 'alphad3m_sklearn'
+package_name = 'alpha-automl'
+package_dir = 'alpha_automl'
 
 
 def read_readme():
@@ -10,7 +11,7 @@ def read_readme():
 
 
 def read_version():
-    module_path = os.path.join(package_name, '__init__.py')
+    module_path = os.path.join(package_dir, '__init__.py')
     with open(module_path) as file:
         for line in file:
             parts = line.strip().split(' ')
@@ -31,7 +32,7 @@ setuptools.setup(
     version=version,
     packages=setuptools.find_packages(),
     install_requires=req,
-    description="AlphaD3M-Sklearn: NYU's AutoML System",
+    description="AlphaAutoML: NYU's AutoML System",
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/VIDA-NYU/alphad3m_sklearn',

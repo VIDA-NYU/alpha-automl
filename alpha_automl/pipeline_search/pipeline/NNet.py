@@ -8,14 +8,14 @@ import sys
 import logging
 
 #from alphad3m.pipeline_search.utils import Bar, AverageMeter
-from alphad3m_sklearn.pipeline_search.NeuralNet import NeuralNet
+from alpha_automl.pipeline_search.NeuralNet import NeuralNet
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 
-from alphad3m_sklearn.pipeline_search.pipeline.PipelineNNet import PipelineNNet as onnet
+from alpha_automl.pipeline_search.pipeline.PipelineNNet import PipelineNNet as onnet
 
 logger = logging.getLogger(__name__)
 

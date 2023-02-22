@@ -3,7 +3,7 @@ import logging
 import itertools
 from os.path import join, dirname
 from nltk.grammar import Production, Nonterminal, CFG, is_terminal, is_nonterminal
-from alphad3m_sklearn.primitive_loader import load_primitives_hierarchy
+from alpha_automl.primitive_loader import load_primitives_hierarchy
 #from alphad3m_sklearn.metalearning.grammar_builder import create_metalearningdb_grammar
 
 logger = logging.getLogger(__name__)

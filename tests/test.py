@@ -2,7 +2,7 @@ from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import ShuffleSplit
-from alphad3m_sklearn import AutoML
+from alpha_automl import AutoML
 
 diabetes = load_iris()
 X = diabetes.data

@@ -1,6 +1,6 @@
 import logging
-from alphad3m_sklearn.automl_manager import AutoMLManager
-from alphad3m_sklearn.utils import make_scorer, make_splitter
+from alpha_automl.automl_manager import AutoMLManager
+from alpha_automl.utils import make_scorer, make_splitter
 
 
 logging.basicConfig()
