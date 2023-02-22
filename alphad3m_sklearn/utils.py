@@ -76,13 +76,15 @@ def create_object(import_path, class_params=None):
     return object_
 
 
-def score_pipeline(pipeline, X, y, scoring, splitting_strategy, verbose=False):
+def score_pipeline(pipeline, X, y, scoring, splitting_strategy, verbose=True):
     score = None
     try:
         scores = cross_val_score(pipeline, X, y, cv=splitting_strategy, scoring=scoring, error_score='raise')
         score = np.average(scores)
+        logger.info(f'Score: {score}')
     except Exception:
+        logger.warning('Exception scoring a pipeline')
         if verbose:
-            logging.warning("Exception scoring pipeline", exc_info=True)
+            logger.warning('Detailed error:', exc_info=True)
 
     return score
