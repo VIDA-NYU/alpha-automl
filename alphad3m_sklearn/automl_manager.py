@@ -28,18 +28,16 @@ class AutoMLManager():
         if 'exclude_primitives' not in hyperparameters or hyperparameters['exclude_primitives'] is None:
             hyperparameters['exclude_primitives'] = EXCLUDE_PRIMITIVES
 
-        search_pipelines_proc(X, y, scoring, splitting_strategy, 'CLASSIFICATION', hyperparameters, self.time_bound,  'dataset', self.output_folder, None)
-        '''queue = multiprocessing.Queue()
+        #search_pipelines_proc(X, y, scoring, splitting_strategy, 'CLASSIFICATION', hyperparameters, self.time_bound,  'dataset', self.output_folder, None)
+        queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=search_pipelines_proc,
-                                                 args=(X, y, scoring, splitting_strategy, 'classification',
-                                                       hyperparameters, self.time_bound,  'dataset', self.output_folder, queue,))
+                                                 args=(X, y, scoring, splitting_strategy, 'CLASSIFICATION', hyperparameters, self.time_bound,  'dataset', self.output_folder, queue,))
         search_process.start()
 
         while True:
-            value = queue.get()
-            if value == "done":  # no more values from child process
-                break
-            print('New Pipeline', value)'''
+            pipeline_data = queue.get()
+            print('>>> pipeline:', pipeline_data)
+            yield pipeline_data
 
     def search_pipelines_fake(self, X, y, scoring, splitting_strategy):
         from alphad3m_sklearn.utils import score_pipeline

@@ -58,9 +58,14 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, hyperparamete
 
     def evaluate_pipeline(primitives, origin):
         pipeline = builder.make_pipeline(primitives)
-        score = score_pipeline(pipeline, X, y, scoring, splitting_strategy)
-        print('score', score)
-        #queue.send((pipeline, score))
+        score = None
+
+        if pipeline is not None:
+            score = score_pipeline(pipeline, X, y, scoring, splitting_strategy)
+            print('>>> score:', score)
+            if score is not None:
+                queue.put((pipeline, score)) # Only send valid pipelines
+
         return score
 
     metric = 'accuracy'
