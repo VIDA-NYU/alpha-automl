@@ -88,3 +88,21 @@ def score_pipeline(pipeline, X, y, scoring, splitting_strategy, verbose=True):
             logger.warning('Detailed error:', exc_info=True)
 
     return score
+
+
+def sample_dataset(X, y, sample_size):
+    original_size = len(X)
+
+    if original_size > sample_size:
+        ratio = sample_size / original_size
+        try:
+            _, X_test, _, y_test = train_test_split(X, y, random_state=0, test_size=ratio, stratify=y)
+        except:
+            # Not using stratified sampling when the minority class has few instances, not enough for all the folds
+            _, X_test, _, y_test = train_test_split(X, y, random_state=0, test_size=ratio)
+        logger.info(f'Sampling down data from {original_size} to {len(X_test)}')
+        return X_test, y_test, True
+
+    else:
+        logger.info('Not doing sampling for small dataset (size = %d)', original_size)
+        return X, y, False
