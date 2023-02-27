@@ -29,14 +29,15 @@ class AutoMLManager():
         if 'exclude_primitives' not in hyperparameters or hyperparameters['exclude_primitives'] is None:
             hyperparameters['exclude_primitives'] = EXCLUDE_PRIMITIVES
 
-        #search_pipelines_proc(X, y, scoring, splitting_strategy, 'CLASSIFICATION', hyperparameters, self.time_bound,
-        #                      'dataset', self.output_folder, None)
+        #search_pipelines_proc(X, y, scoring, splitting_strategy, 'CLASSIFICATION', self.time_bound, hyperparameters,
+        #                      self.output_folder, None)
         set_start_method('fork') # Only for Mac and Linux
         queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=search_pipelines_proc,
                                                  args=(X, y, scoring, splitting_strategy, 'CLASSIFICATION',
-                                                       hyperparameters, self.time_bound,  'dataset', self.output_folder,
-                                                       queue,))
+                                                       self.time_bound, hyperparameters, self.output_folder, queue
+                                                       )
+                                                 )
         search_process.start()
 
         while True:

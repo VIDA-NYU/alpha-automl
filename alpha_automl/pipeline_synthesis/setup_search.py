@@ -49,7 +49,7 @@ def signal_handler(signal_num, frame):
     sys.exit(0)
 
 
-def search_pipelines(X, y, scoring, splitting_strategy, task_name, hyperparameters, time_bound,  dataset, output_folder, queue):
+def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, hyperparameters, output_folder, queue):
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGALRM, signal_handler)
     signal.alarm(int(time_bound))
@@ -68,8 +68,7 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, hyperparamete
 
         return score
 
-    metric = 'accuracy'
-    config_updated = update_config(task_name, metric, dataset, output_folder, hyperparameters)
+    config_updated = update_config(task_name, scoring, output_folder, hyperparameters)
 
     game = PipelineGame(config_updated, evaluate_pipeline)
     nnet = NNetWrapper(game)
@@ -87,10 +86,11 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, hyperparamete
     sys.exit(0)
 
 
-def update_config(task_name, metric, dataset, output_folder, hyperparameters):
+def update_config(task_name, scoring, output_folder, hyperparameters):
+    dataset = f'DATASET_{task_name}'
     config['PROBLEM'] = task_name
     config['DATA_TYPE'] = 'TABULAR'
-    config['METRIC'] = metric
+    config['METRIC'] = scoring._score_func.__name__
     config['DATASET'] = dataset
     config['ARGS']['stepsfile'] = join(output_folder, f'{dataset}_pipeline_steps.txt')
     config['ARGS']['checkpoint'] = join(output_folder, 'nn_models')
@@ -100,8 +100,6 @@ def update_config(task_name, metric, dataset, output_folder, hyperparameters):
     use_automatic_grammar = hyperparameters['use_automatic_grammar']
     include_primitives = hyperparameters['include_primitives']
     exclude_primitives = hyperparameters['exclude_primitives']
-
-    task_keyword_ids = []
     grammar = None
 
     if use_automatic_grammar:
@@ -109,15 +107,13 @@ def update_config(task_name, metric, dataset, output_folder, hyperparameters):
         prioritize_primitives = hyperparameters['prioritize_primitives']
         dataset_path = join(dirname(dataset[7:]), 'tables', 'learningData.csv')
         target_column = ''
-        grammar = load_automatic_grammar(task_name_id, dataset_path, target_column, task_keyword_ids,
-                                         include_primitives, exclude_primitives, prioritize_primitives)
+        grammar = load_automatic_grammar(task_name_id, dataset_path, target_column, include_primitives, exclude_primitives, prioritize_primitives)
 
     if grammar is None:
         logger.info('Creating a manual grammar')
         encoders = []#select_encoders(metadata['only_attribute_types'])
         use_imputer = True
-        grammar = load_manual_grammar(task_name_id, task_keyword_ids, encoders, use_imputer, include_primitives,
-                                      exclude_primitives)
+        grammar = load_manual_grammar(task_name_id, encoders, use_imputer, include_primitives, exclude_primitives)
 
     config['GRAMMAR'] = grammar
     # metafeatures_extractor = ComputeMetafeatures(dataset, targets, features, DBSession)

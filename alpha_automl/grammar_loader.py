@@ -128,7 +128,7 @@ def modify_manual_grammar(encoders, use_imputer):
     return new_grammar
 
 
-def load_manual_grammar(task, task_keywords, encoders, use_imputer, include_primitives, exclude_primitives):
+def load_manual_grammar(task, encoders, use_imputer, include_primitives, exclude_primitives):
     primitives = load_primitives_hierarchy()
     #primitives = modify_search_space(primitives, include_primitives, exclude_primitives)
     grammar_string = modify_manual_grammar(encoders, use_imputer)
@@ -139,9 +139,9 @@ def load_manual_grammar(task, task_keywords, encoders, use_imputer, include_prim
     return game_grammar
 
 
-def load_automatic_grammar(task, dataset_path, target_column, task_keywords, include_primitives, exclude_primitives,
+def load_automatic_grammar(task, dataset_path, target_column, include_primitives, exclude_primitives,
                            use_probabilities):
-    grammar_string, primitives = create_metalearningdb_grammar(task, dataset_path, target_column, task_keywords)
+    grammar_string, primitives = create_metalearningdb_grammar(task, dataset_path, target_column, 'task_keywords')
     if grammar_string is None:
         return None
 
