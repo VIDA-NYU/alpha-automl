@@ -62,7 +62,6 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, h
 
         if pipeline is not None:
             score = score_pipeline(pipeline, X, y, scoring, splitting_strategy)
-            print('>>> score:', score)
             if score is not None:
                 queue.put((pipeline, score)) # Only send valid pipelines
 

@@ -1,4 +1,5 @@
 import logging
+import datetime
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.utils import make_scorer, make_splitter
 
@@ -47,11 +48,18 @@ class AutoML():
         """
         self.scorer = make_scorer(self.metric, self.metric_kwargs)
         self.splitter = make_splitter(self.split_strategy, self.split_strategy_kwargs, y)
-
+        start_time = datetime.datetime.utcnow()
         pipelines = []
+
         for pipeline in self.automl_manager.search_pipelines(X, y, self.scorer, self.splitter):
-            print('Found pipeline:', pipeline)
-            pipelines.append(pipeline)
+            end_time = datetime.datetime.utcnow()
+
+            if pipeline['message'] == 'FOUND':
+                duration = str(end_time - start_time)
+                print(f'Found pipeline, time={duration}, scoring...')
+            elif pipeline['message'] == 'SCORED':
+                print(f'Scored pipeline, score={pipeline["pipeline_score"]}')
+                pipelines.append(pipeline)
 
         sorted_pipelines = sorted(pipelines, key=lambda x: x['pipeline_score'])  # TODO: Improve this, sort by score
 

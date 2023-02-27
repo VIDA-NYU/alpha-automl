@@ -1,11 +1,14 @@
 import multiprocessing
 from multiprocessing import set_start_method
 from alpha_automl.pipeline_synthesis.setup_search import search_pipelines as search_pipelines_proc
+from alpha_automl.utils import *
 
 USE_AUTOMATIC_GRAMMAR = False
 PRIORITIZE_PRIMITIVES = False
 EXCLUDE_PRIMITIVES = []
 INCLUDE_PRIMITIVES = []
+SPLITTING_STRATEGY = 'holdout'
+SAMPLE_SIZE = 2000
 
 class AutoMLManager():
 
@@ -13,10 +16,26 @@ class AutoMLManager():
         self.output_folder = output_folder
         self.time_bound = time_bound
         self.time_bound_run = time_bound_run
+        self.X = None
+        self.y = None
+        self.scoring = None
+        self.splitting_strategy =  None
 
 
-    def search_pipelines(self, X, y, scoring, splitting_strategy, hyperparameters={}):
+    def search_pipelines(self, X, y, scoring, splitting_strategy, hyperparameters=None):
+        if hyperparameters is None:
+            hyperparameters = {}
 
+        self.X = X
+        self.y = y
+        self.scoring = scoring
+        self.splitting_strategy = splitting_strategy
+
+        for pipeline_data in self._search_pipelines( hyperparameters):
+            yield pipeline_data
+
+
+    def _search_pipelines(self, hyperparameters):
         if 'use_automatic_grammar' not in hyperparameters:
             hyperparameters['use_automatic_grammar'] = USE_AUTOMATIC_GRAMMAR
 
@@ -31,10 +50,13 @@ class AutoMLManager():
 
         #search_pipelines_proc(X, y, scoring, splitting_strategy, 'CLASSIFICATION', self.time_bound, hyperparameters,
         #                      self.output_folder, None)
+
+        X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE)
+
         set_start_method('fork') # Only for Mac and Linux
         queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=search_pipelines_proc,
-                                                 args=(X, y, scoring, splitting_strategy, 'CLASSIFICATION',
+                                                 args=(X, y, self.scoring, self.splitting_strategy, 'CLASSIFICATION',
                                                        self.time_bound, hyperparameters, self.output_folder, queue
                                                        )
                                                  )
@@ -42,8 +64,15 @@ class AutoMLManager():
 
         while True:
             pipeline_data = queue.get()
-            print('>>> pipeline:', pipeline_data)
-            yield pipeline_data
+            pipeline_object = pipeline_data[0]
+            pipeline_score = pipeline_data[1]
+
+            yield {'pipeline_object': pipeline_object, 'pipeline_score': pipeline_score, 'message': 'FOUND'}
+
+            if is_sample:
+                pipeline_score = score_pipeline(pipeline_object, self.X, self.y, self.scoring, self.splitting_strategy)
+
+            yield {'pipeline_object': pipeline_object, 'pipeline_score': pipeline_score, 'message': 'SCORED'}
 
     def search_pipelines_fake(self, X, y, scoring, splitting_strategy):
         from alpha_automl.utils import score_pipeline
