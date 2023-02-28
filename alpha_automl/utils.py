@@ -9,7 +9,7 @@ from sklearn.model_selection._split import BaseShuffleSplit, _RepeatedSplits
 logger = logging.getLogger(__name__)
 
 
-def make_scorer(metric, metric_kwargs):
+def make_scorer(metric, metric_kwargs=None):
     if isinstance(metric, str) and metric in SCORERS.keys():
         return get_scorer(metric)
 
@@ -29,7 +29,7 @@ def make_scorer(metric, metric_kwargs):
                          f'callable object/function')
 
 
-def make_splitter(splitting_strategy, splitting_strategy_kwargs, array):
+def make_splitter(splitting_strategy, array, splitting_strategy_kwargs=None):
     if splitting_strategy_kwargs is None:
         splitting_strategy_kwargs = {}
 

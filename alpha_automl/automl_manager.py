@@ -52,11 +52,12 @@ class AutoMLManager():
         #                      self.output_folder, None)
 
         X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE)
+        splitting_strategy = make_splitter(SPLITTING_STRATEGY, y)
 
         set_start_method('fork') # Only for Mac and Linux
         queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=search_pipelines_proc,
-                                                 args=(X, y, self.scoring, self.splitting_strategy, 'CLASSIFICATION',
+                                                 args=(X, y, self.scoring, splitting_strategy, 'CLASSIFICATION',
                                                        self.time_bound, hyperparameters, self.output_folder, queue
                                                        )
                                                  )

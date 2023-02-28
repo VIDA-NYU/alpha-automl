@@ -47,7 +47,7 @@ class AutoML():
         :param y: The target classes, array-like, shape = [n_samples] or [n_samples, n_outputs]
         """
         self.scorer = make_scorer(self.metric, self.metric_kwargs)
-        self.splitter = make_splitter(self.split_strategy, self.split_strategy_kwargs, y)
+        self.splitter = make_splitter(self.split_strategy, y, self.split_strategy_kwargs)
         start_time = datetime.datetime.utcnow()
         pipelines = []
 
