@@ -43,16 +43,16 @@ config = {
 }
 
 
-def signal_handler(signal_num, frame):
-    logger.info(f'Receiving signal {signal.Signals(signal_num).name}, terminating process')
+def signal_handler(queue):
+    logger.info('Receiving signal, terminating process')
     signal.alarm(0)  # Disable the alarm
-    sys.exit(0)
+    queue.put('DONE')
+    # TODO: Should it save the last status of the NN model?
 
 
 def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, hyperparameters, output_folder, queue):
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGALRM, signal_handler)
-    signal.alarm(int(time_bound))
+    signal.signal(signal.SIGALRM, lambda signum, frame: signal_handler(queue))
+    signal.alarm(time_bound)
 
     builder = BaseBuilder()
 
@@ -63,7 +63,7 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, h
         if pipeline is not None:
             score = score_pipeline(pipeline, X, y, scoring, splitting_strategy)
             if score is not None:
-                queue.put((pipeline, score)) # Only send valid pipelines
+                queue.put((pipeline, score))  # Only send valid pipelines
 
         return score
 
@@ -81,8 +81,8 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, h
 
     c = Coach(game, nnet, config['ARGS'])
     c.learn()
-
-    sys.exit(0)
+    logger.info('Search completed')
+    queue.put('DONE')
 
 
 def update_config(task_name, scoring, output_folder, hyperparameters):

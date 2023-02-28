@@ -20,12 +20,11 @@ class AutoMLManager():
     def __init__(self, output_folder, time_bound, time_bound_run):
         self.output_folder = output_folder
         self.time_bound = time_bound * 60
-        self.time_bound_run = time_bound_run
+        self.time_bound_run = time_bound_run * 60
         self.X = None
         self.y = None
         self.scoring = None
         self.splitting_strategy =  None
-
 
     def search_pipelines(self, X, y, scoring, splitting_strategy, hyperparameters=None):
         if hyperparameters is None:
@@ -38,7 +37,6 @@ class AutoMLManager():
 
         for pipeline_data in self._search_pipelines( hyperparameters):
             yield pipeline_data
-
 
     def _search_pipelines(self, hyperparameters):
         start_time = time.time()
@@ -54,13 +52,10 @@ class AutoMLManager():
         if 'exclude_primitives' not in hyperparameters or hyperparameters['exclude_primitives'] is None:
             hyperparameters['exclude_primitives'] = EXCLUDE_PRIMITIVES
 
-        #search_pipelines_proc(X, y, scoring, splitting_strategy, 'CLASSIFICATION', self.time_bound, hyperparameters,
-        #                      self.output_folder, None)
-
         X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE)
         splitting_strategy = make_splitter(SPLITTING_STRATEGY, y)
 
-        set_start_method('fork') # Only for Mac and Linux
+        set_start_method('fork')  # Only for Mac and Linux
         queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=search_pipelines_proc,
                                                  args=(X, y, self.scoring, splitting_strategy, 'CLASSIFICATION',
@@ -70,11 +65,17 @@ class AutoMLManager():
         search_process.start()
 
         while True:
-            pipeline_data = queue.get()
-            logger.info('Found new pipeline')
-            pipeline_object = pipeline_data[0]
-            pipeline_score = pipeline_data[1]
+            result = queue.get()
 
+            if result == 'DONE':
+                search_process.terminate()
+                search_process.join(30)
+                logger.info('Search done')
+                break
+
+            pipeline_object = result[0]
+            pipeline_score = result[1]
+            logger.info('Found new pipeline')
             yield {'pipeline_object': pipeline_object, 'pipeline_score': pipeline_score, 'message': 'FOUND'}
 
             if is_sample:
@@ -85,7 +86,10 @@ class AutoMLManager():
                 yield {'pipeline_object': pipeline_object, 'pipeline_score': pipeline_score, 'message': 'SCORED'}
 
             if time.time() > start_time + self.time_bound:
+                search_process.terminate()
+                search_process.join(30)
                 logger.info('Reached search timeout')
+                break
 
     def search_pipelines_fake(self, X, y, scoring, splitting_strategy):
         from alpha_automl.utils import score_pipeline
