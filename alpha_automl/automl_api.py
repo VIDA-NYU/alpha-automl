@@ -66,7 +66,7 @@ class AutoML():
             end_time = datetime.datetime.utcnow()
 
             if pipeline['message'] == 'FOUND':
-                duration = str(end_time - start_time)
+                duration = str(end_time - start_time).split('.')[0]
                 logger.info(f'Found pipeline, time={duration}, scoring...')
             elif pipeline['message'] == 'SCORED':
                 logger.info(f'Scored pipeline, score={pipeline["pipeline_score"]}')
