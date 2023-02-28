@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 id_best_pipeline = 'pipeline_1'
 
 
-
 class AutoML():
 
     def __init__(self, output_folder, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5,
@@ -48,7 +47,6 @@ class AutoML():
             for logger_name in logging.root.manager.loggerDict:
                 if logger_name not in ['alpha_automl', 'alpha_automl.automl_api']:
                     logging.getLogger(logger_name).setLevel(logging.CRITICAL+1)
-
 
     def fit(self, X, y):
         """
