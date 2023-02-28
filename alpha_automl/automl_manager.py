@@ -17,14 +17,15 @@ logger = logging.getLogger(__name__)
 
 class AutoMLManager():
 
-    def __init__(self, output_folder, time_bound, time_bound_run):
+    def __init__(self, output_folder, time_bound, time_bound_run, task):
         self.output_folder = output_folder
         self.time_bound = time_bound * 60
         self.time_bound_run = time_bound_run * 60
+        self.task = task
         self.X = None
         self.y = None
         self.scoring = None
-        self.splitting_strategy =  None
+        self.splitting_strategy = None
 
     def search_pipelines(self, X, y, scoring, splitting_strategy, hyperparameters=None):
         if hyperparameters is None:
@@ -58,7 +59,7 @@ class AutoMLManager():
         set_start_method('fork')  # Only for Mac and Linux
         queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=search_pipelines_proc,
-                                                 args=(X, y, self.scoring, splitting_strategy, 'CLASSIFICATION',
+                                                 args=(X, y, self.scoring, splitting_strategy, self.task,
                                                        self.time_bound, hyperparameters, self.output_folder, queue
                                                        )
                                                  )

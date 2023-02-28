@@ -1,6 +1,5 @@
 import signal
 import os
-import sys
 import logging
 from os.path import join, dirname
 from alpha_automl.pipeline_search.Coach import Coach
@@ -94,6 +93,9 @@ def update_config(task_name, scoring, output_folder, hyperparameters):
     config['ARGS']['stepsfile'] = join(output_folder, f'{dataset}_pipeline_steps.txt')
     config['ARGS']['checkpoint'] = join(output_folder, 'nn_models')
     config['ARGS']['load_folder_file'] = join(output_folder, 'nn_models', 'best.pth.tar')
+
+    if task_name is None:
+        task_name = 'NA'
 
     task_name_id = task_name + '_TASK'
     use_automatic_grammar = hyperparameters['use_automatic_grammar']
