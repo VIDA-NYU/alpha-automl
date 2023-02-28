@@ -1,3 +1,5 @@
+import logging
+import time
 import multiprocessing
 from multiprocessing import set_start_method
 from alpha_automl.pipeline_synthesis.setup_search import search_pipelines as search_pipelines_proc
@@ -10,11 +12,14 @@ INCLUDE_PRIMITIVES = []
 SPLITTING_STRATEGY = 'holdout'
 SAMPLE_SIZE = 2000
 
+logger = logging.getLogger(__name__)
+
+
 class AutoMLManager():
 
     def __init__(self, output_folder, time_bound, time_bound_run):
         self.output_folder = output_folder
-        self.time_bound = time_bound
+        self.time_bound = time_bound * 60
         self.time_bound_run = time_bound_run
         self.X = None
         self.y = None
@@ -36,6 +41,7 @@ class AutoMLManager():
 
 
     def _search_pipelines(self, hyperparameters):
+        start_time = time.time()
         if 'use_automatic_grammar' not in hyperparameters:
             hyperparameters['use_automatic_grammar'] = USE_AUTOMATIC_GRAMMAR
 
@@ -65,6 +71,7 @@ class AutoMLManager():
 
         while True:
             pipeline_data = queue.get()
+            logger.info('Found new pipeline')
             pipeline_object = pipeline_data[0]
             pipeline_score = pipeline_data[1]
 
@@ -73,7 +80,12 @@ class AutoMLManager():
             if is_sample:
                 pipeline_score = score_pipeline(pipeline_object, self.X, self.y, self.scoring, self.splitting_strategy)
 
-            yield {'pipeline_object': pipeline_object, 'pipeline_score': pipeline_score, 'message': 'SCORED'}
+            if pipeline_score is not None:
+                logger.info(f'Pipeline scored successfully, score={pipeline_score}')
+                yield {'pipeline_object': pipeline_object, 'pipeline_score': pipeline_score, 'message': 'SCORED'}
+
+            if time.time() > start_time + self.time_bound:
+                logger.info('Reached search timeout')
 
     def search_pipelines_fake(self, X, y, scoring, splitting_strategy):
         from alpha_automl.utils import score_pipeline
