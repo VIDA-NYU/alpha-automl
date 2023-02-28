@@ -1,19 +1,22 @@
 import logging
 import datetime
+import warnings
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.utils import make_scorer, make_splitter
 
 
-logging.basicConfig()
-logging.getLogger().setLevel(logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 
 id_best_pipeline = 'pipeline_1'
+
 
 
 class AutoML():
 
     def __init__(self, output_folder, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5,
-                 metric_kwargs=None, split_strategy_kwargs=None):
+                 metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
         """
         Create/instantiate an AutoML object
 
@@ -39,6 +42,14 @@ class AutoML():
         self.splitter = None
         self.automl_manager = AutoMLManager(output_folder, time_bound, time_bound_run)
 
+        if not verbose:
+            # Hide all warnings and logs
+            warnings.filterwarnings('ignore')
+            for logger_name in logging.root.manager.loggerDict:
+                if logger_name not in ['alpha_automl', 'alpha_automl.automl_api']:
+                    logging.getLogger(logger_name).setLevel(logging.CRITICAL+1)
+
+
     def fit(self, X, y):
         """
         Search for pipelines and fit the best pipeline
@@ -56,9 +67,9 @@ class AutoML():
 
             if pipeline['message'] == 'FOUND':
                 duration = str(end_time - start_time)
-                print(f'Found pipeline, time={duration}, scoring...')
+                logger.info(f'Found pipeline, time={duration}, scoring...')
             elif pipeline['message'] == 'SCORED':
-                print(f'Scored pipeline, score={pipeline["pipeline_score"]}')
+                logger.info(f'Scored pipeline, score={pipeline["pipeline_score"]}')
                 pipelines.append(pipeline)
 
         sorted_pipelines = sorted(pipelines, key=lambda x: x['pipeline_score'])  # TODO: Improve this, sort by score
