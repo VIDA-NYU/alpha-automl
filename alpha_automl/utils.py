@@ -1,6 +1,7 @@
 import logging
 import importlib
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import cross_val_score
 from sklearn.metrics import SCORERS, get_scorer, make_scorer as make_scorer_sk
 from sklearn.model_selection import BaseCrossValidator, KFold, train_test_split
@@ -39,7 +40,11 @@ def make_splitter(splitting_strategy, array, splitting_strategy_kwargs=None):
                 splitting_strategy_kwargs['test_size'] = 0.25
             if 'random_state' not in splitting_strategy_kwargs:
                 splitting_strategy_kwargs['random_state'] = 1
+
             train_indices, test_indices = train_test_split(array, **splitting_strategy_kwargs)
+            if isinstance(train_indices, pd.DataFrame) and isinstance(test_indices, pd.DataFrame):
+                train_indices, test_indices = train_indices.index, test_indices.index
+
             holdout_split = [(train_indices, test_indices)]
 
             return holdout_split
