@@ -1,11 +1,13 @@
+import sys
 import logging
 import datetime
 import warnings
+import pandas as pd
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.utils import make_scorer, make_splitter
 
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
 
@@ -47,7 +49,7 @@ class BaseAutoML():
             warnings.filterwarnings('ignore')
             for logger_name in logging.root.manager.loggerDict:
                 if logger_name not in ['alpha_automl', 'alpha_automl.automl_api']:
-                    logging.getLogger(logger_name).setLevel(logging.CRITICAL+1)
+                    logging.getLogger(logger_name).setLevel(logging.CRITICAL)
 
     def fit(self, X, y):
         """
@@ -71,12 +73,19 @@ class BaseAutoML():
                 logger.info(f'Scored pipeline, score={pipeline["pipeline_score"]}')
                 pipelines.append(pipeline)
 
-        sorted_pipelines = sorted(pipelines, key=lambda x: x['pipeline_score'])  # TODO: Improve this, sort by score
+        if len(pipelines) == 0:
+            logger.info('No pipelines were found')
+            return
+
+        logger.info(f'Found {len(pipelines)} pipelines')
+        sorted_pipelines = sorted(pipelines, key=lambda x: x['pipeline_score'], reverse=True)  # TODO: Improve this, sort by score
 
         for index, pipeline_data in enumerate(sorted_pipelines, start=1):
             pipeline_id = f'pipeline_{index}'
-            self.pipelines[pipeline_id] = {'pipeline': pipeline_data['pipeline_object'],
-                                           'score': pipeline_data['pipeline_score']}
+            pipeline_summary = self._get_pipeline_summary(pipeline_data['pipeline_object'].named_steps.keys())
+            self.pipelines[pipeline_id] = {'pipeline_object': pipeline_data['pipeline_object'],
+                                           'pipeline_score': pipeline_data['pipeline_score'],
+                                           'pipeline_summary': pipeline_summary}
 
         self._fit(X, y, id_best_pipeline)
 
@@ -141,7 +150,20 @@ class BaseAutoML():
         """
         Plot the leaderboard
         """
-        pass
+        metric = self.metric
+        leaderboard_data = []
+
+        if len(self.pipelines) > 0:
+            for index in range(1, len(self.pipelines) + 1):
+                pipeline_id = f'pipeline_{index}'
+                leaderboard_data.append([index, self.pipelines[pipeline_id]['pipeline_summary'],
+                                         self.pipelines[pipeline_id]['pipeline_score']])
+
+            leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'summary', metric])
+
+            return leaderboard.style.hide_index()
+        else:
+            logger.info('No pipelines were found')
 
     def plot_comparison_pipelines(self):
         """
@@ -150,25 +172,34 @@ class BaseAutoML():
         pass
 
     def _fit(self, X, y, pipeline_id):
-        self.pipelines[pipeline_id]['pipeline'].fit(X, y)
+        self.pipelines[pipeline_id]['pipeline_object'].fit(X, y)
 
     def _predict(self, X, pipeline_id):
-        predictions = self.pipelines[pipeline_id]['pipeline'].predict(X)
+        predictions = self.pipelines[pipeline_id]['pipeline_object'].predict(X)
 
         return predictions
 
     def _score(self, X, y, id_pipeline):
-        predictions = self.pipelines[id_pipeline]['pipeline'].predict(X)
+        predictions = self.pipelines[id_pipeline]['pipeline_object'].predict(X)
         score = self.scorer._score_func(y, predictions)
 
         logger.info(f'Metric: {self.metric}, Score: {score}')
 
         return {'metric': self.metric, 'score': score}
 
+    def _get_pipeline_summary(self, pipeline_steps):
+        step_names = []
+
+        for step in pipeline_steps:
+            step_name = step.split('.')[-1]
+            step_names.append(step_name)
+
+        return ', '.join(step_names)
+
 
 class AutoMLClassifier(BaseAutoML):
 
-    def __init__(self, output_folder, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5,
+    def __init__(self, output_folder, time_bound=15, metric='accuracy', split_strategy='holdout', time_bound_run=5,
                  metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
         """
         Create/instantiate an AutoMLClassifier object
@@ -190,7 +221,7 @@ class AutoMLClassifier(BaseAutoML):
 
 class AutoMLRegressor(BaseAutoML):
 
-    def __init__(self, output_folder, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5,
+    def __init__(self, output_folder, time_bound=15, metric='max_error', split_strategy='holdout', time_bound_run=5,
                  metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
         """
         Create/instantiate an AutoMLRegressor object
