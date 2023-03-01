@@ -1,7 +1,6 @@
 import logging
 import time
 import multiprocessing
-from multiprocessing import set_start_method
 from alpha_automl.pipeline_synthesis.setup_search import search_pipelines as search_pipelines_proc
 from alpha_automl.utils import *
 
@@ -56,7 +55,6 @@ class AutoMLManager():
         X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE)
         splitting_strategy = make_splitter(SPLITTING_STRATEGY, y)
 
-        set_start_method('fork')  # Only for Mac and Linux
         queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=search_pipelines_proc,
                                                  args=(X, y, self.scoring, splitting_strategy, self.task,
@@ -64,6 +62,7 @@ class AutoMLManager():
                                                        )
                                                  )
         search_process.start()
+        found_pipelines = 0
 
         while True:
             result = queue.get()
@@ -71,6 +70,7 @@ class AutoMLManager():
             if result == 'DONE':
                 search_process.terminate()
                 search_process.join(30)
+                logger.info(f'Found {found_pipelines} pipelines')
                 logger.info('Search done')
                 break
 
@@ -84,11 +84,13 @@ class AutoMLManager():
 
             if pipeline_score is not None:
                 logger.info(f'Pipeline scored successfully, score={pipeline_score}')
+                found_pipelines += 1
                 yield {'pipeline_object': pipeline_object, 'pipeline_score': pipeline_score, 'message': 'SCORED'}
 
             if time.time() > start_time + self.time_bound:
                 search_process.terminate()
                 search_process.join(30)
+                logger.info(f'Found {found_pipelines} pipelines')
                 logger.info('Reached search timeout')
                 break
 
