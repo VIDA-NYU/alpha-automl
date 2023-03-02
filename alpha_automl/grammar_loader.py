@@ -128,8 +128,13 @@ def modify_manual_grammar(encoders, use_imputer):
     return new_grammar
 
 
-def load_manual_grammar(task, encoders, use_imputer, include_primitives, exclude_primitives):
+def load_manual_grammar(task, encoders, use_imputer, new_primitives, include_primitives, exclude_primitives):
     primitives = load_primitives_hierarchy()
+
+    for primitive_name in new_primitives.keys():
+        primitive_type = new_primitives[primitive_name]['primitive_type']
+        primitives[primitive_type].append(primitive_name)
+
     #primitives = modify_search_space(primitives, include_primitives, exclude_primitives)
     grammar_string = modify_manual_grammar(encoders, use_imputer)
     global_grammar = create_global_grammar(grammar_string, primitives)

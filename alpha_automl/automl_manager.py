@@ -8,6 +8,7 @@ USE_AUTOMATIC_GRAMMAR = False
 PRIORITIZE_PRIMITIVES = False
 EXCLUDE_PRIMITIVES = []
 INCLUDE_PRIMITIVES = []
+NEW_PRIMITIVES = {}
 SPLITTING_STRATEGY = 'holdout'
 SAMPLE_SIZE = 2000
 
@@ -26,31 +27,34 @@ class AutoMLManager():
         self.scoring = None
         self.splitting_strategy = None
 
-    def search_pipelines(self, X, y, scoring, splitting_strategy, hyperparameters=None):
-        if hyperparameters is None:
-            hyperparameters = {}
+    def search_pipelines(self, X, y, scoring, splitting_strategy, automl_hyperparams=None):
+        if automl_hyperparams is None:
+            automl_hyperparams = {}
 
         self.X = X
         self.y = y
         self.scoring = scoring
         self.splitting_strategy = splitting_strategy
 
-        for pipeline_data in self._search_pipelines( hyperparameters):
+        for pipeline_data in self._search_pipelines(automl_hyperparams):
             yield pipeline_data
 
-    def _search_pipelines(self, hyperparameters):
+    def _search_pipelines(self, automl_hyperparams):
         start_time = time.time()
-        if 'use_automatic_grammar' not in hyperparameters:
-            hyperparameters['use_automatic_grammar'] = USE_AUTOMATIC_GRAMMAR
+        if 'use_automatic_grammar' not in automl_hyperparams:
+            automl_hyperparams['use_automatic_grammar'] = USE_AUTOMATIC_GRAMMAR
 
-        if 'prioritize_primitives' not in hyperparameters:
-            hyperparameters['prioritize_primitives'] = PRIORITIZE_PRIMITIVES
+        if 'prioritize_primitives' not in automl_hyperparams:
+            automl_hyperparams['prioritize_primitives'] = PRIORITIZE_PRIMITIVES
 
-        if 'include_primitives' not in hyperparameters or hyperparameters['include_primitives'] is None:
-            hyperparameters['include_primitives'] = INCLUDE_PRIMITIVES
+        if 'include_primitives' not in automl_hyperparams or automl_hyperparams['include_primitives'] is None:
+            automl_hyperparams['include_primitives'] = INCLUDE_PRIMITIVES
 
-        if 'exclude_primitives' not in hyperparameters or hyperparameters['exclude_primitives'] is None:
-            hyperparameters['exclude_primitives'] = EXCLUDE_PRIMITIVES
+        if 'exclude_primitives' not in automl_hyperparams or automl_hyperparams['exclude_primitives'] is None:
+            automl_hyperparams['exclude_primitives'] = EXCLUDE_PRIMITIVES
+
+        if 'new_primitives' not in automl_hyperparams or automl_hyperparams['new_primitives'] is None:
+            automl_hyperparams['new_primitives'] = NEW_PRIMITIVES
 
         X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE)
         splitting_strategy = make_splitter(SPLITTING_STRATEGY, y)
@@ -58,7 +62,7 @@ class AutoMLManager():
         queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=search_pipelines_proc,
                                                  args=(X, y, self.scoring, splitting_strategy, self.task,
-                                                       self.time_bound, hyperparameters, self.output_folder, queue
+                                                       self.time_bound, automl_hyperparams, self.output_folder, queue
                                                        )
                                                  )
         search_process.start()
