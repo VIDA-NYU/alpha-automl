@@ -49,14 +49,14 @@ def signal_handler(queue):
     # TODO: Should it save the last status of the NN model?
 
 
-def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, hyperparameters, output_folder, queue):
+def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, automl_hyperparams, output_folder, queue):
     signal.signal(signal.SIGALRM, lambda signum, frame: signal_handler(queue))
     signal.alarm(time_bound)
 
     builder = BaseBuilder()
 
     def evaluate_pipeline(primitives, origin):
-        pipeline = builder.make_pipeline(primitives)
+        pipeline = builder.make_pipeline(primitives, automl_hyperparams)
         score = None
 
         if pipeline is not None:
@@ -66,7 +66,7 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, h
 
         return score
 
-    config_updated = update_config(task_name, scoring, output_folder, hyperparameters)
+    config_updated = update_config(task_name, scoring, output_folder, automl_hyperparams)
 
     game = PipelineGame(config_updated, evaluate_pipeline)
     nnet = NNetWrapper(game)
@@ -84,7 +84,7 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, h
     queue.put('DONE')
 
 
-def update_config(task_name, scoring, output_folder, hyperparameters):
+def update_config(task_name, scoring, output_folder, automl_hyperparams):
     dataset = f'DATASET_{task_name}'
     config['PROBLEM'] = task_name
     config['DATA_TYPE'] = 'TABULAR'
@@ -98,14 +98,15 @@ def update_config(task_name, scoring, output_folder, hyperparameters):
         task_name = 'NA'
 
     task_name_id = task_name + '_TASK'
-    use_automatic_grammar = hyperparameters['use_automatic_grammar']
-    include_primitives = hyperparameters['include_primitives']
-    exclude_primitives = hyperparameters['exclude_primitives']
+    use_automatic_grammar = automl_hyperparams['use_automatic_grammar']
+    include_primitives = automl_hyperparams['include_primitives']
+    exclude_primitives = automl_hyperparams['exclude_primitives']
+    new_primitives = automl_hyperparams['new_primitives']
     grammar = None
 
     if use_automatic_grammar:
         logger.info('Creating an automatic grammar')
-        prioritize_primitives = hyperparameters['prioritize_primitives']
+        prioritize_primitives = automl_hyperparams['prioritize_primitives']
         dataset_path = join(dirname(dataset[7:]), 'tables', 'learningData.csv')
         target_column = ''
         grammar = load_automatic_grammar(task_name_id, dataset_path, target_column, include_primitives, exclude_primitives, prioritize_primitives)
@@ -114,7 +115,7 @@ def update_config(task_name, scoring, output_folder, hyperparameters):
         logger.info('Creating a manual grammar')
         encoders = []#select_encoders(metadata['only_attribute_types'])
         use_imputer = True
-        grammar = load_manual_grammar(task_name_id, encoders, use_imputer, include_primitives, exclude_primitives)
+        grammar = load_manual_grammar(task_name_id, encoders, use_imputer, new_primitives, include_primitives, exclude_primitives)
 
     config['GRAMMAR'] = grammar
     # metafeatures_extractor = ComputeMetafeatures(dataset, targets, features, DBSession)

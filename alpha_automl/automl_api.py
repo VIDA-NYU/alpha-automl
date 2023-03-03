@@ -3,6 +3,7 @@ import logging
 import datetime
 import warnings
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.utils import make_scorer, make_splitter
 
@@ -40,8 +41,10 @@ class BaseAutoML():
         self.split_strategy = split_strategy
         self.split_strategy_kwargs = split_strategy_kwargs
         self.pipelines = {}
+        self.new_primitives = {}
         self.scorer = None
         self.splitter = None
+        self.leaderboard = None
         self.automl_manager = AutoMLManager(output_folder, time_bound, time_bound_run, task)
 
         if not verbose:
@@ -59,11 +62,12 @@ class BaseAutoML():
         :param y: The target classes, array-like, shape = [n_samples] or [n_samples, n_outputs]
         """
         self.scorer = make_scorer(self.metric, self.metric_kwargs)
-        self.splitter = make_splitter(self.split_strategy, y, self.split_strategy_kwargs)
+        self.splitter = make_splitter(self.split_strategy, self.split_strategy_kwargs)
+        automl_hyperparams = {'new_primitives': self.new_primitives}
         start_time = datetime.datetime.utcnow()
         pipelines = []
 
-        for pipeline in self.automl_manager.search_pipelines(X, y, self.scorer, self.splitter):
+        for pipeline in self.automl_manager.search_pipelines(X, y, self.scorer, self.splitter, automl_hyperparams):
             end_time = datetime.datetime.utcnow()
 
             if pipeline['message'] == 'FOUND':
@@ -80,12 +84,17 @@ class BaseAutoML():
         logger.info(f'Found {len(pipelines)} pipelines')
         sorted_pipelines = sorted(pipelines, key=lambda x: x['pipeline_score'], reverse=True)  # TODO: Improve this, sort by score
 
+        leaderboard_data = []
         for index, pipeline_data in enumerate(sorted_pipelines, start=1):
             pipeline_id = f'pipeline_{index}'
             pipeline_summary = self._get_pipeline_summary(pipeline_data['pipeline_object'].named_steps.keys())
             self.pipelines[pipeline_id] = {'pipeline_object': pipeline_data['pipeline_object'],
                                            'pipeline_score': pipeline_data['pipeline_score'],
                                            'pipeline_summary': pipeline_summary}
+
+            leaderboard_data.append([index, pipeline_summary, pipeline_data['pipeline_score']])
+
+            self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'summary', self.metric])
 
         self._fit(X, y, id_best_pipeline)
 
@@ -146,22 +155,26 @@ class BaseAutoML():
 
         return self.pipelines[pipeline_id][pipeline_id]
 
-    def plot_leaderboard(self):
+    def add_primitives(self, new_primitives):
+        for primitive_object, primitive_name, primitive_type in new_primitives:
+            self.new_primitives[primitive_name] = {'primitive_object': primitive_object, 'primitive_type': primitive_type}
+
+    def get_leaderboard(self):
+        """
+        Return the leaderboard
+        """
+        return self.leaderboard
+
+    def plot_leaderboard(self, use_print=False):
         """
         Plot the leaderboard
         """
-        metric = self.metric
-        leaderboard_data = []
 
         if len(self.pipelines) > 0:
-            for index in range(1, len(self.pipelines) + 1):
-                pipeline_id = f'pipeline_{index}'
-                leaderboard_data.append([index, self.pipelines[pipeline_id]['pipeline_summary'],
-                                         self.pipelines[pipeline_id]['pipeline_score']])
-
-            leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'summary', metric])
-
-            return leaderboard.style.hide_index()
+            if use_print:
+                print(self.leaderboard.to_string(index=False))
+            else:
+                return self.leaderboard.style.hide_index()
         else:
             logger.info('No pipelines were found')
 
@@ -179,8 +192,8 @@ class BaseAutoML():
 
         return predictions
 
-    def _score(self, X, y, id_pipeline):
-        predictions = self.pipelines[id_pipeline]['pipeline_object'].predict(X)
+    def _score(self, X, y, pipeline_id):
+        predictions = self.pipelines[pipeline_id]['pipeline_object'].predict(X)
         score = self.scorer._score_func(y, predictions)
 
         logger.info(f'Metric: {self.metric}, Score: {score}')
@@ -214,9 +227,24 @@ class AutoMLClassifier(BaseAutoML):
         :param split_strategy_kwargs: Additional arguments for splitting_strategy
         """
 
+        self.label_enconder = LabelEncoder()
         task = 'CLASSIFICATION'
-        BaseAutoML.__init__(self, output_folder, time_bound, metric, split_strategy, time_bound_run, task,
-                            metric_kwargs, split_strategy_kwargs, verbose)
+        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, metric_kwargs,
+                         split_strategy_kwargs, verbose)
+
+    def fit(self, X, y):
+        y = self.label_enconder.fit_transform(y)
+        super().fit(X, y)
+
+    def predict(self, X):
+        predictions = super().predict(X)
+
+        return self.label_enconder.inverse_transform(predictions)
+
+    def score(self, X, y):
+        y = self.label_enconder.transform(y)
+
+        return super().score(X, y)
 
 
 class AutoMLRegressor(BaseAutoML):
@@ -237,5 +265,5 @@ class AutoMLRegressor(BaseAutoML):
         """
 
         task = 'REGRESSION'
-        BaseAutoML.__init__(self, output_folder, time_bound, metric, split_strategy, time_bound_run, task,
-                            metric_kwargs, split_strategy_kwargs, verbose)
+        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, metric_kwargs,
+                         split_strategy_kwargs, verbose)
