@@ -3,6 +3,7 @@ import logging
 import datetime
 import warnings
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.utils import make_scorer, make_splitter
 
@@ -40,9 +41,9 @@ class BaseAutoML():
         self.split_strategy = split_strategy
         self.split_strategy_kwargs = split_strategy_kwargs
         self.pipelines = {}
+        self.new_primitives = {}
         self.scorer = None
         self.splitter = None
-        self.new_primitives = None
         self.leaderboard = None
         self.automl_manager = AutoMLManager(output_folder, time_bound, time_bound_run, task)
 
@@ -61,7 +62,7 @@ class BaseAutoML():
         :param y: The target classes, array-like, shape = [n_samples] or [n_samples, n_outputs]
         """
         self.scorer = make_scorer(self.metric, self.metric_kwargs)
-        self.splitter = make_splitter(self.split_strategy, y, self.split_strategy_kwargs)
+        self.splitter = make_splitter(self.split_strategy, self.split_strategy_kwargs)
         automl_hyperparams = {'new_primitives': self.new_primitives}
         start_time = datetime.datetime.utcnow()
         pipelines = []
@@ -155,8 +156,6 @@ class BaseAutoML():
         return self.pipelines[pipeline_id][pipeline_id]
 
     def add_primitives(self, new_primitives):
-        self.new_primitives = {}
-
         for primitive_object, primitive_name, primitive_type in new_primitives:
             self.new_primitives[primitive_name] = {'primitive_object': primitive_object, 'primitive_type': primitive_type}
 
@@ -193,8 +192,8 @@ class BaseAutoML():
 
         return predictions
 
-    def _score(self, X, y, id_pipeline):
-        predictions = self.pipelines[id_pipeline]['pipeline_object'].predict(X)
+    def _score(self, X, y, pipeline_id):
+        predictions = self.pipelines[pipeline_id]['pipeline_object'].predict(X)
         score = self.scorer._score_func(y, predictions)
 
         logger.info(f'Metric: {self.metric}, Score: {score}')
@@ -228,9 +227,24 @@ class AutoMLClassifier(BaseAutoML):
         :param split_strategy_kwargs: Additional arguments for splitting_strategy
         """
 
+        self.label_enconder = LabelEncoder()
         task = 'CLASSIFICATION'
-        BaseAutoML.__init__(self, output_folder, time_bound, metric, split_strategy, time_bound_run, task,
-                            metric_kwargs, split_strategy_kwargs, verbose)
+        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, metric_kwargs,
+                         split_strategy_kwargs, verbose)
+
+    def fit(self, X, y):
+        y = self.label_enconder.fit_transform(y)
+        super().fit(X, y)
+
+    def predict(self, X):
+        predictions = super().predict(X)
+
+        return self.label_enconder.inverse_transform(predictions)
+
+    def score(self, X, y):
+        y = self.label_enconder.transform(y)
+
+        return super().score(X, y)
 
 
 class AutoMLRegressor(BaseAutoML):
@@ -251,5 +265,5 @@ class AutoMLRegressor(BaseAutoML):
         """
 
         task = 'REGRESSION'
-        BaseAutoML.__init__(self, output_folder, time_bound, metric, split_strategy, time_bound_run, task,
-                            metric_kwargs, split_strategy_kwargs, verbose)
+        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, metric_kwargs,
+                         split_strategy_kwargs, verbose)
