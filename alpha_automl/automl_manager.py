@@ -57,7 +57,7 @@ class AutoMLManager():
             automl_hyperparams['new_primitives'] = NEW_PRIMITIVES
 
         X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE)
-        splitting_strategy = make_splitter(SPLITTING_STRATEGY, y)
+        splitting_strategy = make_splitter(SPLITTING_STRATEGY)
 
         queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=search_pipelines_proc,
@@ -97,23 +97,3 @@ class AutoMLManager():
                 logger.info(f'Found {found_pipelines} pipelines')
                 logger.info('Reached search timeout')
                 break
-
-    def search_pipelines_fake(self, X, y, scoring, splitting_strategy):
-        from alpha_automl.utils import score_pipeline
-        from sklearn.preprocessing import StandardScaler
-        from sklearn.linear_model import LogisticRegression
-        from sklearn.pipeline import Pipeline
-        from sklearn.svm import SVC
-
-        pipelines = []
-        pipeline1 = Pipeline(steps=[("preprocessor", StandardScaler()), ("classifier", LogisticRegression())])
-
-        score1 = score_pipeline(pipeline1, X, y, scoring, splitting_strategy)
-        pipelines.append({'pipeline_object': pipeline1, 'pipeline_score': score1})
-
-        pipeline2 = Pipeline(steps=[("preprocessor", StandardScaler()), ("classifier", SVC())])
-        score2 = score_pipeline(pipeline2, X, y, scoring, splitting_strategy)
-        pipelines.append({'pipeline_object': pipeline2, 'pipeline_score': score2})
-
-        for pipeline in pipelines:
-            yield pipeline

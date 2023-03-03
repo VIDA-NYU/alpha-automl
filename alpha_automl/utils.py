@@ -2,9 +2,8 @@ import logging
 import importlib
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import cross_val_score
 from sklearn.metrics import SCORERS, get_scorer, make_scorer as make_scorer_sk
-from sklearn.model_selection import BaseCrossValidator, KFold, train_test_split
+from sklearn.model_selection import BaseCrossValidator, KFold, ShuffleSplit, train_test_split, cross_val_score
 from sklearn.model_selection._split import BaseShuffleSplit, _RepeatedSplits
 
 logger = logging.getLogger(__name__)
@@ -30,7 +29,7 @@ def make_scorer(metric, metric_kwargs=None):
                          f'callable object/function')
 
 
-def make_splitter(splitting_strategy, array, splitting_strategy_kwargs=None):
+def make_splitter(splitting_strategy, splitting_strategy_kwargs=None):
     if splitting_strategy_kwargs is None:
         splitting_strategy_kwargs = {}
 
@@ -41,11 +40,7 @@ def make_splitter(splitting_strategy, array, splitting_strategy_kwargs=None):
             if 'random_state' not in splitting_strategy_kwargs:
                 splitting_strategy_kwargs['random_state'] = 1
 
-            train_indices, test_indices = train_test_split(array, **splitting_strategy_kwargs)
-            if isinstance(train_indices, pd.DataFrame) and isinstance(test_indices, pd.DataFrame):
-                train_indices, test_indices = train_indices.index, test_indices.index
-
-            holdout_split = [(train_indices, test_indices)]
+            holdout_split = ShuffleSplit(n_splits=1, **splitting_strategy_kwargs)
 
             return holdout_split
 
@@ -83,6 +78,7 @@ def create_object(import_path, class_params=None):
 
 def score_pipeline(pipeline, X, y, scoring, splitting_strategy, verbose=True):
     score = None
+
     try:
         scores = cross_val_score(pipeline, X, y, cv=splitting_strategy, scoring=scoring, error_score='raise')
         score = np.average(scores)
