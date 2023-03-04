@@ -1,12 +1,13 @@
 import logging
 import importlib
 import numpy as np
-import pandas as pd
 from sklearn.metrics import SCORERS, get_scorer, make_scorer as make_scorer_sk
 from sklearn.model_selection import BaseCrossValidator, KFold, ShuffleSplit, train_test_split, cross_val_score
 from sklearn.model_selection._split import BaseShuffleSplit, _RepeatedSplits
 
 logger = logging.getLogger(__name__)
+
+RANDOM_SEED = 0
 
 
 def make_scorer(metric, metric_kwargs=None):
@@ -38,7 +39,7 @@ def make_splitter(splitting_strategy, splitting_strategy_kwargs=None):
             if 'test_size' not in splitting_strategy_kwargs:
                 splitting_strategy_kwargs['test_size'] = 0.25
             if 'random_state' not in splitting_strategy_kwargs:
-                splitting_strategy_kwargs['random_state'] = 1
+                splitting_strategy_kwargs['random_state'] = RANDOM_SEED
 
             holdout_split = ShuffleSplit(n_splits=1, **splitting_strategy_kwargs)
 
@@ -97,13 +98,22 @@ def sample_dataset(X, y, sample_size):
     if original_size > sample_size:
         ratio = sample_size / original_size
         try:
-            _, X_test, _, y_test = train_test_split(X, y, random_state=0, test_size=ratio, stratify=y)
+            _, X_test, _, y_test = train_test_split(X, y, random_state=RANDOM_SEED, test_size=ratio, stratify=y)
         except:
             # Not using stratified sampling when the minority class has few instances, not enough for all the folds
-            _, X_test, _, y_test = train_test_split(X, y, random_state=0, test_size=ratio)
+            _, X_test, _, y_test = train_test_split(X, y, random_state=RANDOM_SEED, test_size=ratio)
         logger.info(f'Sampling down data from {original_size} to {len(X_test)}')
         return X_test, y_test, True
 
     else:
         logger.info('Not doing sampling for small dataset (size = %d)', original_size)
         return X, y, False
+
+
+def make_str_metric(metric):
+    if isinstance(metric, str):
+        return metric
+    elif callable(metric):
+        return metric.__name__
+    else:
+        return str(metric)

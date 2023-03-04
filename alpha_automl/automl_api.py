@@ -5,7 +5,7 @@ import warnings
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from alpha_automl.automl_manager import AutoMLManager
-from alpha_automl.utils import make_scorer, make_splitter, make_pipelineprofiler_inputs
+from alpha_automl.utils import make_scorer, make_splitter, make_str_metric
 from alpha_automl.visualization import plot_comparison_pipelines
 
 
@@ -95,8 +95,8 @@ class BaseAutoML():
                                            'pipeline_summary': pipeline_summary}
 
             leaderboard_data.append([index, pipeline_summary, pipeline_data['pipeline_score']])
-            metric_str = str(self.metric).capitalize()
-            self.leaderboard = pd.DataFrame(leaderboard_data, columns=['Ranking', 'Summary', metric_str])
+            metric_str = make_str_metric(self.metric)
+            self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'summary', metric_str])
 
         best_pipeline_id = PIPELINE_PREFIX + '1'
         self._fit(X, y, best_pipeline_id)
