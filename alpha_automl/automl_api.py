@@ -5,14 +5,16 @@ import warnings
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from alpha_automl.automl_manager import AutoMLManager
-from alpha_automl.utils import make_scorer, make_splitter
+from alpha_automl.utils import make_scorer, make_splitter, make_pipelineprofiler_inputs
+from alpha_automl.visualization import plot_comparison_pipelines
 
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
 
-id_best_pipeline = 'pipeline_1'
+AUTOML_NAME = 'AlphaAutoML'
+PIPELINE_PREFIX = 'AlphaAutoML #'
 
 
 class BaseAutoML():
@@ -86,17 +88,18 @@ class BaseAutoML():
 
         leaderboard_data = []
         for index, pipeline_data in enumerate(sorted_pipelines, start=1):
-            pipeline_id = f'pipeline_{index}'
+            pipeline_id = PIPELINE_PREFIX + str(index)
             pipeline_summary = self._get_pipeline_summary(pipeline_data['pipeline_object'].named_steps.keys())
             self.pipelines[pipeline_id] = {'pipeline_object': pipeline_data['pipeline_object'],
                                            'pipeline_score': pipeline_data['pipeline_score'],
                                            'pipeline_summary': pipeline_summary}
 
             leaderboard_data.append([index, pipeline_summary, pipeline_data['pipeline_score']])
+            metric_str = str(self.metric).capitalize()
+            self.leaderboard = pd.DataFrame(leaderboard_data, columns=['Ranking', 'Summary', metric_str])
 
-            self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'summary', self.metric])
-
-        self._fit(X, y, id_best_pipeline)
+        best_pipeline_id = PIPELINE_PREFIX + '1'
+        self._fit(X, y, best_pipeline_id)
 
     def predict(self, X):
         """
@@ -104,8 +107,9 @@ class BaseAutoML():
         :param X: The training input samples, array-like or sparse matrix of shape = [n_samples, n_features]
         :return: The predictions
         """
+        best_pipeline_id = PIPELINE_PREFIX + '1'
 
-        return self._predict(X, id_best_pipeline)
+        return self._predict(X, best_pipeline_id)
 
     def score(self, X, y):
         """
@@ -114,7 +118,9 @@ class BaseAutoML():
         :param y: The target classes, array-like, shape = [n_samples] or [n_samples, n_outputs]
         :return: A dict with metric and performance
         """
-        return self._score(X, y, id_best_pipeline)
+        best_pipeline_id = PIPELINE_PREFIX + '1'
+
+        return self._score(X, y, best_pipeline_id)
 
     def fit_pipeline(self, X, y, pipeline_id):
         """
@@ -151,9 +157,10 @@ class BaseAutoML():
         :return: A Pipeline object
         """
         if pipeline_id is None:
-            pipeline_id = id_best_pipeline
+            best_pipeline_id = PIPELINE_PREFIX + '1'
+            pipeline_id = best_pipeline_id
 
-        return self.pipelines[pipeline_id][pipeline_id]
+        return self.pipelines[pipeline_id]['pipeline_object']
 
     def add_primitives(self, new_primitives):
         for primitive_object, primitive_name, primitive_type in new_primitives:
@@ -178,11 +185,26 @@ class BaseAutoML():
         else:
             logger.info('No pipelines were found')
 
+    def plot_pipeline(self, pipeline_id=None, use_print=False):
+        """
+        Plot a pipeline, if pipeline_id is None, return the best pipeline
+        :param pipeline_id: Id of a pipeline
+        """
+        if pipeline_id is None:
+            best_pipeline_id = PIPELINE_PREFIX + '1'
+            pipeline_id = best_pipeline_id
+
+        if use_print:
+            print(self.pipelines[pipeline_id]['pipeline_object'])
+        else:
+            return self.pipelines[pipeline_id]['pipeline_object']
+
     def plot_comparison_pipelines(self):
         """
         Plot PipelineProfiler visualization
         """
-        pass
+        pipelines = make_pipelineprofiler_inputs(self.pipelines, AUTOML_NAME)
+        plot_comparison_pipelines(pipelines)
 
     def _fit(self, X, y, pipeline_id):
         self.pipelines[pipeline_id]['pipeline_object'].fit(X, y)
