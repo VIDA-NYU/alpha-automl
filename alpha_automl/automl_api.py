@@ -5,14 +5,16 @@ import warnings
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from alpha_automl.automl_manager import AutoMLManager
-from alpha_automl.utils import make_scorer, make_splitter
+from alpha_automl.utils import make_scorer, make_splitter, make_str_metric, make_pipelineprofiler_inputs
+from alpha_automl.visualization import plot_comparison_pipelines
 
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
 
-id_best_pipeline = 'pipeline_1'
+AUTOML_NAME = 'AlphaAutoML'
+PIPELINE_PREFIX = 'AlphaAutoML #'
 
 
 class BaseAutoML():
@@ -36,14 +38,14 @@ class BaseAutoML():
         self.output_folder = output_folder
         self.time_bound = time_bound
         self.time_bound_run = time_bound_run
-        self.metric = metric
+        self.metric = make_str_metric(metric)
         self.metric_kwargs = metric_kwargs
         self.split_strategy = split_strategy
         self.split_strategy_kwargs = split_strategy_kwargs
+        self.scorer = make_scorer(metric, metric_kwargs)
+        self.splitter = make_splitter(split_strategy, split_strategy_kwargs)
         self.pipelines = {}
         self.new_primitives = {}
-        self.scorer = None
-        self.splitter = None
         self.leaderboard = None
         self.automl_manager = AutoMLManager(output_folder, time_bound, time_bound_run, task)
 
@@ -61,11 +63,9 @@ class BaseAutoML():
         :param X: The training input samples, array-like or sparse matrix of shape = [n_samples, n_features]
         :param y: The target classes, array-like, shape = [n_samples] or [n_samples, n_outputs]
         """
-        self.scorer = make_scorer(self.metric, self.metric_kwargs)
-        self.splitter = make_splitter(self.split_strategy, self.split_strategy_kwargs)
         automl_hyperparams = {'new_primitives': self.new_primitives}
-        start_time = datetime.datetime.utcnow()
         pipelines = []
+        start_time = datetime.datetime.utcnow()
 
         for pipeline in self.automl_manager.search_pipelines(X, y, self.scorer, self.splitter, automl_hyperparams):
             end_time = datetime.datetime.utcnow()
@@ -86,17 +86,17 @@ class BaseAutoML():
 
         leaderboard_data = []
         for index, pipeline_data in enumerate(sorted_pipelines, start=1):
-            pipeline_id = f'pipeline_{index}'
+            pipeline_id = PIPELINE_PREFIX + str(index)
             pipeline_summary = self._get_pipeline_summary(pipeline_data['pipeline_object'].named_steps.keys())
             self.pipelines[pipeline_id] = {'pipeline_object': pipeline_data['pipeline_object'],
                                            'pipeline_score': pipeline_data['pipeline_score'],
                                            'pipeline_summary': pipeline_summary}
 
             leaderboard_data.append([index, pipeline_summary, pipeline_data['pipeline_score']])
-
             self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'summary', self.metric])
 
-        self._fit(X, y, id_best_pipeline)
+        best_pipeline_id = PIPELINE_PREFIX + '1'
+        self._fit(X, y, best_pipeline_id)
 
     def predict(self, X):
         """
@@ -104,8 +104,9 @@ class BaseAutoML():
         :param X: The training input samples, array-like or sparse matrix of shape = [n_samples, n_features]
         :return: The predictions
         """
+        best_pipeline_id = PIPELINE_PREFIX + '1'
 
-        return self._predict(X, id_best_pipeline)
+        return self._predict(X, best_pipeline_id)
 
     def score(self, X, y):
         """
@@ -114,7 +115,9 @@ class BaseAutoML():
         :param y: The target classes, array-like, shape = [n_samples] or [n_samples, n_outputs]
         :return: A dict with metric and performance
         """
-        return self._score(X, y, id_best_pipeline)
+        best_pipeline_id = PIPELINE_PREFIX + '1'
+
+        return self._score(X, y, best_pipeline_id)
 
     def fit_pipeline(self, X, y, pipeline_id):
         """
@@ -151,12 +154,14 @@ class BaseAutoML():
         :return: A Pipeline object
         """
         if pipeline_id is None:
-            pipeline_id = id_best_pipeline
+            best_pipeline_id = PIPELINE_PREFIX + '1'
+            pipeline_id = best_pipeline_id
 
-        return self.pipelines[pipeline_id][pipeline_id]
+        return self.pipelines[pipeline_id]['pipeline_object']
 
     def add_primitives(self, new_primitives):
-        for primitive_object, primitive_name, primitive_type in new_primitives:
+        for primitive_object, primitive_type in new_primitives:
+            primitive_name = f'{primitive_object.__module__}.{primitive_object.__class__.__name__}'
             self.new_primitives[primitive_name] = {'primitive_object': primitive_object, 'primitive_type': primitive_type}
 
     def get_leaderboard(self):
@@ -178,11 +183,26 @@ class BaseAutoML():
         else:
             logger.info('No pipelines were found')
 
+    def plot_pipeline(self, pipeline_id=None, use_print=False):
+        """
+        Plot a pipeline, if pipeline_id is None, return the best pipeline
+        :param pipeline_id: Id of a pipeline
+        """
+        if pipeline_id is None:
+            best_pipeline_id = PIPELINE_PREFIX + '1'
+            pipeline_id = best_pipeline_id
+
+        if use_print:
+            print(self.pipelines[pipeline_id]['pipeline_object'])
+        else:
+            return self.pipelines[pipeline_id]['pipeline_object']
+
     def plot_comparison_pipelines(self):
         """
         Plot PipelineProfiler visualization
         """
-        pass
+        pipelines, primitive_types = make_pipelineprofiler_inputs(self.pipelines, self.new_primitives, self.metric)
+        plot_comparison_pipelines(pipelines, primitive_types)
 
     def _fit(self, X, y, pipeline_id):
         self.pipelines[pipeline_id]['pipeline_object'].fit(X, y)
