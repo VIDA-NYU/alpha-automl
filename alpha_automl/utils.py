@@ -135,12 +135,12 @@ def make_pipelineprofiler_inputs(pipelines, new_primitives, metric, source_name=
 
     for primitive_name, primitive_type in PRIMITIVE_TYPES.items():
         primitive_path = '.'.join(primitive_name.split('.')[-2:])
-        primitive_name = f'auto_sklearn.primitives.{primitive_path}'
+        primitive_name = f'alpha_automl.primitives.{primitive_path}'
         primitive_types[primitive_name] = primitive_type.replace('_', ' ').title()
 
     for new_primitive in new_primitives:
         primitive_path = '.'.join(new_primitive.split('.')[-2:])
-        primitive_name = f'auto_sklearn.primitives.{primitive_path}'
+        primitive_name = f'alpha_automl.primitives.{primitive_path}'
         primitive_types[primitive_name] = new_primitives[new_primitive]['primitive_type'].replace('_', ' ').title()
 
     # TODO: Read these primitive types from grammar
@@ -155,7 +155,7 @@ def make_pipelineprofiler_inputs(pipelines, new_primitives, metric, source_name=
             'steps': [],
             'outputs': [],
             'pipeline_digest': pipeline_id,
-            'start': '2023-03-05T03:05:50.788926Z',
+            'start': '2023-03-05T03:05:50.788926Z',  # TODO: Calculate these values on scoring function
             'end': '2023-03-05T03:05:51.788926Z',
             'scores': [{'metric': {'metric': metric}, 'value': pipeline_data['pipeline_score'],
                         'normalized': pipeline_data['pipeline_score']}],
@@ -168,7 +168,7 @@ def make_pipelineprofiler_inputs(pipelines, new_primitives, metric, source_name=
             steps_in_type = []
             for step_id, step_object in pipeline_data['pipeline_object'].steps:
                 primitive_path = '.'.join(step_id.split('.')[-2:])
-                primitive_id = f'auto_sklearn.primitives.{primitive_path}'
+                primitive_id = f'alpha_automl.primitives.{primitive_path}'
                 if primitive_types[primitive_id] == primitive_type:
                     steps_in_type.append((primitive_id, step_object))
 
