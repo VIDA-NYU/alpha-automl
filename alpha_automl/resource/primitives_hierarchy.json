@@ -63,7 +63,7 @@
         "sklearn.linear_model.RidgeCV",
         "sklearn.linear_model.TheilSenRegressor"
     ],
-    "TEXT_FEATURIZER": [
+    "TEXT_ENCODER": [
         "sklearn.feature_extraction.text.CountVectorizer",
         "sklearn.feature_extraction.text.TfidfVectorizer"
     ]

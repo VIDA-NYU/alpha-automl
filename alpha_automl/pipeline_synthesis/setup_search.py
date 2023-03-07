@@ -8,7 +8,7 @@ from alpha_automl.pipeline_search.pipeline.NNet import NNetWrapper
 from alpha_automl.grammar_loader import load_manual_grammar, load_automatic_grammar
 #from alphad3m_sklearn.data_ingestion.data_profiler import get_privileged_data, select_encoders
 from alpha_automl.pipeline_synthesis.pipeline_builder import *
-from alpha_automl.utils import score_pipeline
+from alpha_automl.utils import score_pipeline, has_missing_values, select_encoders
 
 logger = logging.getLogger(__name__)
 
@@ -54,9 +54,10 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
     signal.alarm(time_bound)
 
     builder = BaseBuilder()
+    non_numeric_columns = select_encoders(X)
 
     def evaluate_pipeline(primitives, origin):
-        pipeline = builder.make_pipeline(primitives, automl_hyperparams)
+        pipeline = builder.make_pipeline(primitives, automl_hyperparams, non_numeric_columns)
         score = None
 
         if pipeline is not None:
@@ -66,8 +67,30 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
 
         return score
 
-    config_updated = update_config(task_name, scoring, output_folder, automl_hyperparams)
+    if task_name is None:
+        task_name = 'NA'
 
+    task_name_id = task_name + '_TASK'
+    use_automatic_grammar = automl_hyperparams['use_automatic_grammar']
+    include_primitives = automl_hyperparams['include_primitives']
+    exclude_primitives = automl_hyperparams['exclude_primitives']
+    new_primitives = automl_hyperparams['new_primitives']
+    grammar = None
+
+    if use_automatic_grammar:
+        logger.info('Creating an automatic grammar')
+        prioritize_primitives = automl_hyperparams['prioritize_primitives']
+        target_column = ''
+        dataset_path = ''
+        grammar = load_automatic_grammar(task_name_id, dataset_path, target_column, include_primitives, exclude_primitives, prioritize_primitives)
+
+    if grammar is None:
+        logger.info('Creating a manual grammar')
+        use_imputer = has_missing_values(X)
+        grammar = load_manual_grammar(task_name_id, non_numeric_columns, use_imputer, new_primitives, include_primitives, exclude_primitives)
+
+    metric = scoring._score_func.__name__
+    config_updated = update_config(task_name, metric, output_folder, grammar)
     game = PipelineGame(config_updated, evaluate_pipeline)
     nnet = NNetWrapper(game)
 
@@ -84,39 +107,14 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
     queue.put('DONE')
 
 
-def update_config(task_name, scoring, output_folder, automl_hyperparams):
-    dataset = f'DATASET_{task_name}'
+def update_config(task_name, metric, output_folder, grammar):
     config['PROBLEM'] = task_name
     config['DATA_TYPE'] = 'TABULAR'
-    config['METRIC'] = scoring._score_func.__name__
-    config['DATASET'] = dataset
-    config['ARGS']['stepsfile'] = join(output_folder, f'{dataset}_pipeline_steps.txt')
+    config['METRIC'] = metric
+    config['DATASET'] = f'DATASET_{task_name}'
+    config['ARGS']['stepsfile'] = join(output_folder, f'DATASET_{task_name}_pipeline_steps.txt')
     config['ARGS']['checkpoint'] = join(output_folder, 'nn_models')
     config['ARGS']['load_folder_file'] = join(output_folder, 'nn_models', 'best.pth.tar')
-
-    if task_name is None:
-        task_name = 'NA'
-
-    task_name_id = task_name + '_TASK'
-    use_automatic_grammar = automl_hyperparams['use_automatic_grammar']
-    include_primitives = automl_hyperparams['include_primitives']
-    exclude_primitives = automl_hyperparams['exclude_primitives']
-    new_primitives = automl_hyperparams['new_primitives']
-    grammar = None
-
-    if use_automatic_grammar:
-        logger.info('Creating an automatic grammar')
-        prioritize_primitives = automl_hyperparams['prioritize_primitives']
-        dataset_path = join(dirname(dataset[7:]), 'tables', 'learningData.csv')
-        target_column = ''
-        grammar = load_automatic_grammar(task_name_id, dataset_path, target_column, include_primitives, exclude_primitives, prioritize_primitives)
-
-    if grammar is None:
-        logger.info('Creating a manual grammar')
-        encoders = []#select_encoders(metadata['only_attribute_types'])
-        use_imputer = True
-        grammar = load_manual_grammar(task_name_id, encoders, use_imputer, new_primitives, include_primitives, exclude_primitives)
-
     config['GRAMMAR'] = grammar
     # metafeatures_extractor = ComputeMetafeatures(dataset, targets, features, DBSession)
     config['DATASET_METAFEATURES'] = [0] * 50  # metafeatures_extractor.compute_metafeatures('AlphaD3M_compute_metafeatures')
