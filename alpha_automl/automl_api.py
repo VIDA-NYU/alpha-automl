@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 AUTOML_NAME = 'AlphaAutoML'
-PIPELINE_PREFIX = 'AlphaAutoML #'
+PIPELINE_PREFIX = 'Pipeline #'
 
 
 class BaseAutoML():
@@ -46,6 +46,8 @@ class BaseAutoML():
         self.splitter = make_splitter(split_strategy, split_strategy_kwargs)
         self.pipelines = {}
         self.new_primitives = {}
+        self.X = None
+        self.y = None
         self.leaderboard = None
         self.automl_manager = AutoMLManager(output_folder, time_bound, time_bound_run, task)
 
@@ -63,6 +65,8 @@ class BaseAutoML():
         :param X: The training input samples, array-like or sparse matrix of shape = [n_samples, n_features]
         :param y: The target classes, array-like, shape = [n_samples] or [n_samples, n_outputs]
         """
+        self.X = X
+        self.y = y
         automl_hyperparams = {'new_primitives': self.new_primitives}
         pipelines = []
         start_time = datetime.datetime.utcnow()
@@ -119,14 +123,12 @@ class BaseAutoML():
 
         return self._score(X, y, best_pipeline_id)
 
-    def fit_pipeline(self, X, y, pipeline_id):
+    def fit_pipeline(self, pipeline_id):
         """
         Fit a pipeline given its id
-        :param X: The training input samples, array-like or sparse matrix of shape = [n_samples, n_features]
-        :param y: The target classes, array-like, shape = [n_samples] or [n_samples, n_outputs]
         :param pipeline_id: Id of a pipeline
         """
-        self._fit(X, y, pipeline_id)
+        self._fit(self.X, self.y, pipeline_id)
 
     def predict_pipeline(self, X, pipeline_id):
         """
@@ -135,6 +137,7 @@ class BaseAutoML():
         :param pipeline_id: Id of a pipeline
         :return: The predictions
         """
+        self._fit(self.X, self.y, pipeline_id)
         return self._predict(X, pipeline_id)
 
     def score_pipeline(self, X, y, pipeline_id):
@@ -145,6 +148,7 @@ class BaseAutoML():
         :param pipeline_id: Id of a pipeline
         :return: A dict with metric and performance
         """
+        self._fit(self.X, self.y, pipeline_id)
         return self._score(X, y, pipeline_id)
 
     def get_pipeline(self, pipeline_id=None):
@@ -266,6 +270,19 @@ class AutoMLClassifier(BaseAutoML):
         y = self.label_enconder.transform(y)
 
         return super().score(X, y)
+
+    def fit_pipeline(self, pipeline_id):
+        super().fit_pipeline(pipeline_id)
+
+    def predict_pipeline(self, X, pipeline_id):
+        predictions = super().predict_pipeline(X, pipeline_id)
+
+        return self.label_enconder.inverse_transform(predictions)
+
+    def score_pipeline(self, X, y, pipeline_id):
+        y = self.label_enconder.transform(y)
+
+        return super().score_pipeline(X, y, pipeline_id)
 
 
 class AutoMLRegressor(BaseAutoML):
