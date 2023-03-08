@@ -162,6 +162,7 @@ class BaseAutoML():
     def add_primitives(self, new_primitives):
         for primitive_object, primitive_type in new_primitives:
             primitive_name = f'{primitive_object.__module__}.{primitive_object.__class__.__name__}'
+            primitive_name = primitive_name.replace('__', '')  # Sklearn restriction on estimator names
             self.new_primitives[primitive_name] = {'primitive_object': primitive_object, 'primitive_type': primitive_type}
 
     def get_leaderboard(self):
