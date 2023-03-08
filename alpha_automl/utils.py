@@ -3,6 +3,7 @@ import inspect
 import importlib
 import datamart_profiler
 import numpy as np
+from sklearn.compose import ColumnTransformer
 from sklearn.metrics import SCORERS, get_scorer, make_scorer as make_scorer_sk
 from sklearn.model_selection import BaseCrossValidator, KFold, ShuffleSplit, train_test_split, cross_val_score
 from sklearn.model_selection._split import BaseShuffleSplit, _RepeatedSplits
@@ -137,7 +138,7 @@ def make_pipelineprofiler_inputs(pipelines, new_primitives, metric, source_name=
         primitive_types[primitive_name] = new_primitives[new_primitive]['primitive_type'].replace('_', ' ').title()
 
     # TODO: Read these primitive types from grammar
-    ordered_types = ['IMPUTATION', 'TEXT_FEATURIZER', 'DATETIME_ENCODER', 'CATEGORICAL_ENCODER',
+    ordered_types = ['IMPUTATION', 'TEXT_ENCODER', 'DATETIME_ENCODER', 'CATEGORICAL_ENCODER',
                      'FEATURE_SCALING', 'FEATURE_SELECTION', 'REGRESSION', 'CLASSIFICATION']
     ordered_types = [i.replace('_', ' ').title() for i in ordered_types]
 
@@ -182,6 +183,8 @@ def make_pipelineprofiler_inputs(pipelines, new_primitives, metric, source_name=
                     'hyperparams': {}
                 }
 
+                if isinstance(step_object, ColumnTransformer):
+                    step_object = step_object.transformers[0][1]  # Get the actual transformer object
                 for param_name, param_value in get_primitive_params(step_object).items():
                     step['hyperparams'][param_name] = {
                         'type': 'VALUE',
