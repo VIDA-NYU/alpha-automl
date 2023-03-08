@@ -44,9 +44,13 @@ class BaseBuilder:
             if primitive_name.startswith('sklearn.'):  # It's a regular sklearn primitive
                 primitive_object = create_object(primitive)
             else:
-                primitive_object = deepcopy(automl_hyperparams['new_primitives'][primitive_name]['primitive_object'])
+                primitive_object = automl_hyperparams['new_primitives'][primitive_name]['primitive_object']
 
-            primitive_type = PRIMITIVE_TYPES[primitive_name]
+            if primitive_name in PRIMITIVE_TYPES:
+                primitive_type = PRIMITIVE_TYPES[primitive_name]
+            else:
+                primitive_type = automl_hyperparams['new_primitives'][primitive_name]['primitive_type']
+
             if primitive_type in non_numeric_columns:  # Add a transformer
                 primitive_object = self.add_transformer(primitive_object, primitive_type, non_numeric_columns)
 
