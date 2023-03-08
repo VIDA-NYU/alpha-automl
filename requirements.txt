@@ -4,3 +4,4 @@ torch>=1.7
 nltk
 pipelineprofiler
 pandas
+datamart_profiler
