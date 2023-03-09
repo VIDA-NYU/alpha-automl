@@ -10,19 +10,17 @@ from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 logger = logging.getLogger(__name__)
 
 
-def change_default_hyperparams(pipeline_primitives):
-    for i in range(len(pipeline_primitives)):
-        if isinstance(pipeline_primitives[i], OneHotEncoder):
-            pipeline_primitives[i] = OneHotEncoder(handle_unknown='ignore')
-        elif isinstance(pipeline_primitives[i], SimpleImputer):
-            pipeline_primitives[i] = SimpleImputer(strategy='most_frequent', error_on_no_input=False)
+def change_default_hyperparams(primitive_object):
+    if isinstance(primitive_object, OneHotEncoder):
+        primitive_object.set_params(handle_unknown='ignore')
+    elif isinstance(primitive_object, SimpleImputer):
+        primitive_object.set_params(strategy='most_frequent')
 
 
 class BaseBuilder:
 
     def make_pipeline(self, primitives, automl_hyperparams, non_numeric_columns):
         pipeline_primitives = self.format_primitves(primitives, automl_hyperparams, non_numeric_columns)
-        change_default_hyperparams(pipeline_primitives)
         pipeline = self.make_linear_pipeline(pipeline_primitives)
         logger.info(f'New pipelined created:\n{pipeline}')
 
@@ -38,6 +36,7 @@ class BaseBuilder:
 
     def format_primitves(self, primitives, automl_hyperparams, non_numeric_columns):
         pipeline_primitives = []
+        transformers = []
 
         for primitive in primitives:
             primitive_name = primitive
@@ -46,28 +45,32 @@ class BaseBuilder:
             else:
                 primitive_object = automl_hyperparams['new_primitives'][primitive_name]['primitive_object']
 
+            change_default_hyperparams(primitive_object)
+
             if primitive_name in PRIMITIVE_TYPES:
                 primitive_type = PRIMITIVE_TYPES[primitive_name]
             else:
                 primitive_type = automl_hyperparams['new_primitives'][primitive_name]['primitive_type']
 
             if primitive_type in non_numeric_columns:  # Add a transformer
-                primitive_object = self.add_transformer(primitive_object, primitive_type, non_numeric_columns)
-
-            pipeline_primitives.append((primitive_name, primitive_object))
+                transformers += self.create_transformers(primitive_object, primitive_type, non_numeric_columns)
+            else:
+                if len(transformers) > 0:  # Add previous transformers
+                    transformer_obj = ColumnTransformer(transformers, remainder='passthrough')
+                    pipeline_primitives.append(('ColumnTransformer', transformer_obj))
+                    transformers = []
+                pipeline_primitives.append((primitive_name, primitive_object))
 
         return pipeline_primitives
 
-    def add_transformer(self, primitive_object, primitive_type, non_numeric_columns):
-        column_transformer = None
+    def create_transformers(self, primitive_object, primitive_type, non_numeric_columns):
+        column_transformers = []
 
         if primitive_type == 'TEXT_ENCODER':
-            column_transformer = ColumnTransformer([(f'column_{column}', primitive_object, column)
-                                                    for column in non_numeric_columns[primitive_type]],
-                                                   remainder='passthrough')
+            column_transformers = [(f'column_{col_name}', primitive_object, col_index) for col_index, col_name in
+                                  non_numeric_columns[primitive_type]]
         elif primitive_type == 'CATEGORICAL_ENCODER':
-            column_transformer = ColumnTransformer([('categorical_encoder', primitive_object,
-                                                     non_numeric_columns[primitive_type])],
-                                                   remainder='passthrough')
+            column_transformers = [('categorical_encoder', primitive_object, [col_index for col_index, _ in
+                                                                             non_numeric_columns[primitive_type]])]
 
-        return column_transformer
+        return column_transformers
