@@ -4,6 +4,7 @@ import datetime
 import warnings
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
+from sklearn.compose import ColumnTransformer
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.utils import make_scorer, make_splitter, make_str_metric, make_pipelineprofiler_inputs
 from alpha_automl.visualization import plot_comparison_pipelines
@@ -91,7 +92,7 @@ class BaseAutoML():
         leaderboard_data = []
         for index, pipeline_data in enumerate(sorted_pipelines, start=1):
             pipeline_id = PIPELINE_PREFIX + str(index)
-            pipeline_summary = self._get_pipeline_summary(pipeline_data['pipeline_object'].named_steps.keys())
+            pipeline_summary = self._get_pipeline_summary(pipeline_data['pipeline_object'].named_steps)
             self.pipelines[pipeline_id] = {'pipeline_object': pipeline_data['pipeline_object'],
                                            'pipeline_score': pipeline_data['pipeline_score'],
                                            'pipeline_summary': pipeline_summary}
@@ -228,9 +229,14 @@ class BaseAutoML():
     def _get_pipeline_summary(self, pipeline_steps):
         step_names = []
 
-        for step in pipeline_steps:
-            step_name = step.split('.')[-1]
+        for step_name, step_object in pipeline_steps.items():
+            step_name = step_name.split('.')[-1]
             step_names.append(step_name)
+            if isinstance(step_object, ColumnTransformer):
+                for transformer_name, _, _ in step_object.transformers:
+                    step_name = transformer_name.split('-')[0].split('.')[-1]
+                    if step_name not in step_names:
+                        step_names.append(step_name)
 
         return ', '.join(step_names)
 
