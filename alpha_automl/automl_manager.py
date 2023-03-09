@@ -1,6 +1,7 @@
 import logging
 import time
 import multiprocessing
+from multiprocessing import set_start_method
 from alpha_automl.pipeline_synthesis.setup_search import search_pipelines as search_pipelines_proc
 from alpha_automl.utils import *
 
@@ -59,12 +60,18 @@ class AutoMLManager():
         X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE)
         splitting_strategy = make_splitter(SPLITTING_STRATEGY)
 
+        try:
+            set_start_method('spawn')
+        except RuntimeError:
+            pass
+
         queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=search_pipelines_proc,
                                                  args=(X, y, self.scoring, splitting_strategy, self.task,
                                                        self.time_bound, automl_hyperparams, self.output_folder, queue
                                                        )
                                                  )
+
         search_process.start()
         found_pipelines = 0
 
