@@ -107,7 +107,7 @@ def sample_dataset(X, y, sample_size):
             # Not using stratified sampling when the minority class has few instances, not enough for all the folds
             _, X_test, _, y_test = train_test_split(X, y, random_state=RANDOM_SEED, test_size=ratio)
         logger.info(f'Sampling down data from {original_size} to {len(X_test)}')
-        return X_test, y_test, True
+        return X_test.reset_index(drop=True), y_test.reset_index(drop=True), True
 
     else:
         logger.info('Not doing sampling for small dataset (size = %d)', original_size)
