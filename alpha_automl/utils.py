@@ -138,8 +138,8 @@ def make_pipelineprofiler_inputs(pipelines, new_primitives, metric, source_name=
         primitive_types[primitive_name] = new_primitives[new_primitive]['primitive_type'].replace('_', ' ').title()
 
     # TODO: Read these primitive types from grammar
-    ordered_types = ['IMPUTATION', 'TEXT_ENCODER', 'DATETIME_ENCODER', 'CATEGORICAL_ENCODER',
-                     'FEATURE_SCALING', 'FEATURE_SELECTION', 'REGRESSION', 'CLASSIFICATION']
+    ordered_types = ['IMPUTATION', 'COLUMN_TRANSFORMER', 'TEXT_ENCODER', 'DATETIME_ENCODER', 'CATEGORICAL_ENCODER',
+                     'FEATURE_SCALING', 'FEATURE_SELECTION', 'REGRESSION', 'CLUSTERING', 'CLASSIFICATION']
     ordered_types = [i.replace('_', ' ').title() for i in ordered_types]
 
     for pipeline_id, pipeline_data in pipelines.items():
@@ -155,12 +155,21 @@ def make_pipelineprofiler_inputs(pipelines, new_primitives, metric, source_name=
                         'normalized': pipeline_data['pipeline_score']}],
             'pipeline_source': {'name': source_name},
         }
+
+        all_steps = []
+        for step_id, step_object in pipeline_data['pipeline_object'].steps:
+            all_steps.append((step_id, step_object))
+            if isinstance(step_object, ColumnTransformer):
+                for transformer_name, transformer_object, _ in step_object.transformers:
+                    step_id = transformer_name.split('-')[0]
+                    all_steps.append((step_id, transformer_object))
+
         #  The code below is based on the function "import_autosklearn" of PipelineProfiler
         prev_list = ['inputs.0']
         cur_step_idx = 0
         for primitive_type in ordered_types:
             steps_in_type = []
-            for step_id, step_object in pipeline_data['pipeline_object'].steps:
+            for step_id, step_object in all_steps:
                 primitive_path = '.'.join(step_id.split('.')[-2:])
                 primitive_id = f'alpha_automl.primitives.{primitive_path}'
                 if primitive_types[primitive_id] == primitive_type:
@@ -183,13 +192,15 @@ def make_pipelineprofiler_inputs(pipelines, new_primitives, metric, source_name=
                     'hyperparams': {}
                 }
 
-                if isinstance(step_object, ColumnTransformer):
-                    step_object = step_object.transformers[0][1]  # Get the actual transformer object
                 for param_name, param_value in get_primitive_params(step_object).items():
                     step['hyperparams'][param_name] = {
                         'type': 'VALUE',
                         'data': param_value
                     }
+
+                if isinstance(step_object, ColumnTransformer):
+                    step['hyperparams'] = {}  # Ignore hyperparameters of ColumnTransformer
+
                 for idx, prev in enumerate(prev_list):
                     cur_argument_idx = f'input{idx}'
                     step['arguments'][cur_argument_idx] = {
