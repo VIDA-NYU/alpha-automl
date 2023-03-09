@@ -9,6 +9,8 @@ from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 
 logger = logging.getLogger(__name__)
 
+COLUMN_TRANSFORMER_ID = 'sklearn.compose.ColumnTransformer'
+
 
 def change_default_hyperparams(primitive_object):
     if isinstance(primitive_object, OneHotEncoder):
@@ -53,24 +55,24 @@ class BaseBuilder:
                 primitive_type = automl_hyperparams['new_primitives'][primitive_name]['primitive_type']
 
             if primitive_type in non_numeric_columns:  # Add a transformer
-                transformers += self.create_transformers(primitive_object, primitive_type, non_numeric_columns)
+                transformers += self.create_transformers(primitive_object, primitive_name, primitive_type, non_numeric_columns)
             else:
                 if len(transformers) > 0:  # Add previous transformers
                     transformer_obj = ColumnTransformer(transformers, remainder='passthrough')
-                    pipeline_primitives.append(('ColumnTransformer', transformer_obj))
+                    pipeline_primitives.append((COLUMN_TRANSFORMER_ID, transformer_obj))
                     transformers = []
                 pipeline_primitives.append((primitive_name, primitive_object))
 
         return pipeline_primitives
 
-    def create_transformers(self, primitive_object, primitive_type, non_numeric_columns):
+    def create_transformers(self, primitive_object, primitive_name, primitive_type, non_numeric_columns):
         column_transformers = []
 
         if primitive_type == 'TEXT_ENCODER':
-            column_transformers = [(f'column_{col_name}', primitive_object, col_index) for col_index, col_name in
-                                  non_numeric_columns[primitive_type]]
+            column_transformers = [(f'{primitive_name}-{col_name}', primitive_object, col_index) for
+                                   col_index, col_name in non_numeric_columns[primitive_type]]
         elif primitive_type == 'CATEGORICAL_ENCODER':
-            column_transformers = [('categorical_encoder', primitive_object, [col_index for col_index, _ in
-                                                                             non_numeric_columns[primitive_type]])]
+            column_transformers = [(primitive_name, primitive_object, [col_index for col_index, _
+                                                                       in non_numeric_columns[primitive_type]])]
 
         return column_transformers
