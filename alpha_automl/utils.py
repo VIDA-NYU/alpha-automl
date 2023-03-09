@@ -247,6 +247,6 @@ def select_encoders(X):
                 encoder = mapping_encoders[semantic_type]
                 if encoder not in selected_encoders:
                     selected_encoders[encoder] = []
-                selected_encoders[encoder].append(column_name)
+                selected_encoders[encoder].append((index, column_name))
 
     return selected_encoders
