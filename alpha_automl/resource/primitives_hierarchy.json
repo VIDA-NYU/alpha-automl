@@ -66,5 +66,8 @@
     "TEXT_ENCODER": [
         "sklearn.feature_extraction.text.CountVectorizer",
         "sklearn.feature_extraction.text.TfidfVectorizer"
+    ],
+    "COLUMN_TRANSFORMER": [
+        "sklearn.compose.ColumnTransformer"
     ]
 }
