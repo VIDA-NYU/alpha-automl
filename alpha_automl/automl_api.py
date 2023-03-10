@@ -203,12 +203,15 @@ class BaseAutoML():
         else:
             return self.pipelines[pipeline_id]['pipeline_object']
 
-    def plot_comparison_pipelines(self):
+    def plot_comparison_pipelines(self, precomputed_pipelines=None, precomputed_primitive_types=None):
         """
         Plot PipelineProfiler visualization
         """
-        pipelines, primitive_types = make_pipelineprofiler_inputs(self.pipelines, self.new_primitives, self.metric)
-        plot_comparison_pipelines(pipelines, primitive_types)
+        if precomputed_pipelines is None and precomputed_primitive_types is None:
+            pipelines, primitive_types = make_pipelineprofiler_inputs(self.pipelines, self.new_primitives, self.metric)
+            plot_comparison_pipelines(pipelines, primitive_types)
+        else:
+            plot_comparison_pipelines(precomputed_pipelines, precomputed_primitive_types)
 
     def _fit(self, X, y, pipeline_id):
         self.pipelines[pipeline_id]['pipeline_object'].fit(X, y)
