@@ -32,7 +32,7 @@ setuptools.setup(
     version=version,
     packages=setuptools.find_packages(),
     install_requires=req,
-    description="AlphaAutoML: NYU's AutoML System",
+    description="Alpha-AutoML: NYU's AutoML System",
     long_description=long_description,
     long_description_content_type='text/markdown',
     url='https://github.com/VIDA-NYU/alphad3m_sklearn',
