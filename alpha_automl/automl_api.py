@@ -98,7 +98,7 @@ class BaseAutoML():
                                            'pipeline_summary': pipeline_summary}
 
             leaderboard_data.append([index, pipeline_summary, pipeline_data['pipeline_score']])
-            self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'summary', self.metric])
+            self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'pipeline', self.metric])
 
         best_pipeline_id = PIPELINE_PREFIX + '1'
         self._fit(X, y, best_pipeline_id)
