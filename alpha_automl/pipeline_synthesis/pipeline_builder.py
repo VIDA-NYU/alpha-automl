@@ -10,6 +10,7 @@ from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 logger = logging.getLogger(__name__)
 
 COLUMN_TRANSFORMER_ID = 'sklearn.compose.ColumnTransformer'
+COLUMN_SELECTOR_ID = 'ColumnSelector'
 
 
 def change_default_hyperparams(primitive_object):
@@ -23,8 +24,19 @@ def change_default_hyperparams(primitive_object):
 
 class BaseBuilder:
 
-    def make_pipeline(self, primitives, automl_hyperparams, non_numeric_columns):
-        pipeline_primitives = self.format_primitves(primitives, automl_hyperparams, non_numeric_columns)
+    def __init__(self, metadata, automl_hyperparams):
+        self.metadata = metadata
+        self.automl_hyperparams = automl_hyperparams
+        self.all_primitives = {}
+
+        for primitive_name in PRIMITIVE_TYPES:
+            self.all_primitives[primitive_name] = PRIMITIVE_TYPES[primitive_name]
+
+        for primitive_name in automl_hyperparams['new_primitives']:
+            self.all_primitives[primitive_name] = automl_hyperparams['new_primitives'][primitive_name]['primitive_type']
+
+    def make_pipeline(self, primitives):
+        pipeline_primitives = self.make_primitive_objects(primitives)
         pipeline = self.make_linear_pipeline(pipeline_primitives)
         logger.info(f'New pipelined created:\n{pipeline}')
 
@@ -38,28 +50,33 @@ class BaseBuilder:
     def make_graph_pipeline(self, pipeline_primitives):
         pass
 
-    def format_primitves(self, primitives, automl_hyperparams, non_numeric_columns):
+    def make_primitive_objects(self, primitives):
         pipeline_primitives = []
         transformers = []
+        nonnumeric_columns = self.metadata['nonnumeric_columns']
+        useless_columns = self.metadata['useless_columns']
+
+        if len(useless_columns) > 0:  # There are useless columns (e.g. empty columns)
+            transformers.append((COLUMN_SELECTOR_ID, 'drop', [col_index for col_index, _ in useless_columns]))
+            if len(nonnumeric_columns) == 0:  # Add the transformer to the first step of the pipeline
+                transformer_obj = ColumnTransformer(transformers, remainder='passthrough')
+                pipeline_primitives.append((COLUMN_TRANSFORMER_ID, transformer_obj))
+                transformers = []
 
         for primitive in primitives:
             primitive_name = primitive
             if primitive_name.startswith('sklearn.'):  # It's a regular sklearn primitive
                 primitive_object = create_object(primitive)
             else:
-                primitive_object = automl_hyperparams['new_primitives'][primitive_name]['primitive_object']
+                primitive_object = self.automl_hyperparams['new_primitives'][primitive_name]['primitive_object']
 
             change_default_hyperparams(primitive_object)
+            primitive_type = self.all_primitives[primitive_name]
 
-            if primitive_name in PRIMITIVE_TYPES:
-                primitive_type = PRIMITIVE_TYPES[primitive_name]
+            if primitive_type in nonnumeric_columns:  # Create a  new transformer and add it to the list
+                transformers += self.create_transformers(primitive_object, primitive_name, primitive_type)
             else:
-                primitive_type = automl_hyperparams['new_primitives'][primitive_name]['primitive_type']
-
-            if primitive_type in non_numeric_columns:  # Add a transformer
-                transformers += self.create_transformers(primitive_object, primitive_name, primitive_type, non_numeric_columns)
-            else:
-                if len(transformers) > 0:  # Add previous transformers
+                if len(transformers) > 0:  # Add previous transformers to the pipeline
                     transformer_obj = ColumnTransformer(transformers, remainder='passthrough')
                     pipeline_primitives.append((COLUMN_TRANSFORMER_ID, transformer_obj))
                     transformers = []
@@ -67,14 +84,15 @@ class BaseBuilder:
 
         return pipeline_primitives
 
-    def create_transformers(self, primitive_object, primitive_name, primitive_type, non_numeric_columns):
+    def create_transformers(self, primitive_object, primitive_name, primitive_type):
         column_transformers = []
+        nonnumeric_columns = self.metadata['nonnumeric_columns']
 
         if primitive_type == 'TEXT_ENCODER':
             column_transformers = [(f'{primitive_name}-{col_name}', primitive_object, col_index) for
-                                   col_index, col_name in non_numeric_columns[primitive_type]]
+                                   col_index, col_name in nonnumeric_columns[primitive_type]]
         elif primitive_type == 'CATEGORICAL_ENCODER' or primitive_type == 'DATETIME_ENCODER':
             column_transformers = [(primitive_name, primitive_object, [col_index for col_index, _
-                                                                       in non_numeric_columns[primitive_type]])]
+                                                                       in nonnumeric_columns[primitive_type]])]
 
         return column_transformers

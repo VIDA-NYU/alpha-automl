@@ -53,12 +53,12 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
     signal.signal(signal.SIGALRM, lambda signum, frame: signal_handler(queue))
     signal.alarm(time_bound)
 
-    builder = BaseBuilder()
+
     metadata = profile_data(X)
-    nonnumeric_columns = metadata['nonnumeric_columns']
+    builder = BaseBuilder(metadata, automl_hyperparams)
 
     def evaluate_pipeline(primitives, origin):
-        pipeline = builder.make_pipeline(primitives, automl_hyperparams, nonnumeric_columns)
+        pipeline = builder.make_pipeline(primitives)
         score = None
 
         if pipeline is not None:
@@ -83,12 +83,15 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
         prioritize_primitives = automl_hyperparams['prioritize_primitives']
         target_column = ''
         dataset_path = ''
-        grammar = load_automatic_grammar(task_name_id, dataset_path, target_column, include_primitives, exclude_primitives, prioritize_primitives)
+        grammar = load_automatic_grammar(task_name_id, dataset_path, target_column, include_primitives,
+                                         exclude_primitives, prioritize_primitives)
 
     if grammar is None:
         logger.info('Creating a manual grammar')
         use_imputer = metadata['missing_values']
-        grammar = load_manual_grammar(task_name_id, nonnumeric_columns, use_imputer, new_primitives, include_primitives, exclude_primitives)
+        nonnumeric_columns = metadata['nonnumeric_columns']
+        grammar = load_manual_grammar(task_name_id, nonnumeric_columns, use_imputer, new_primitives, include_primitives,
+                                      exclude_primitives)
 
     metric = scoring._score_func.__name__
     config_updated = update_config(task_name, metric, output_folder, grammar)
@@ -118,6 +121,6 @@ def update_config(task_name, metric, output_folder, grammar):
     config['ARGS']['load_folder_file'] = join(output_folder, 'nn_models', 'best.pth.tar')
     config['GRAMMAR'] = grammar
     # metafeatures_extractor = ComputeMetafeatures(dataset, targets, features, DBSession)
-    config['DATASET_METAFEATURES'] = [0] * 50  # metafeatures_extractor.compute_metafeatures('AlphaD3M_compute_metafeatures')
+    config['DATASET_METAFEATURES'] = [0] * 50  # metafeatures_extractor.compute_metafeatures('Compute_metafeatures')
 
     return config
