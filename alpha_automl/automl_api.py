@@ -6,7 +6,8 @@ import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.compose import ColumnTransformer
 from alpha_automl.automl_manager import AutoMLManager
-from alpha_automl.utils import make_scorer, make_splitter, make_str_metric, make_pipelineprofiler_inputs
+from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric
+from alpha_automl.utils import make_pipelineprofiler_inputs
 from alpha_automl.visualization import plot_comparison_pipelines
 
 

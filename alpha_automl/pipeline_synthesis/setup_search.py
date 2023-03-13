@@ -1,14 +1,14 @@
 import signal
 import os
 import logging
-from os.path import join, dirname
+from os.path import join
 from alpha_automl.pipeline_search.Coach import Coach
 from alpha_automl.pipeline_search.pipeline.PipelineGame import PipelineGame
 from alpha_automl.pipeline_search.pipeline.NNet import NNetWrapper
 from alpha_automl.grammar_loader import load_manual_grammar, load_automatic_grammar
-#from alphad3m_sklearn.data_ingestion.data_profiler import get_privileged_data, select_encoders
 from alpha_automl.pipeline_synthesis.pipeline_builder import *
-from alpha_automl.utils import score_pipeline, has_missing_values, select_encoders
+from alpha_automl.scorer import score_pipeline
+from alpha_automl.data_profiler import has_missing_values, select_encoders
 
 logger = logging.getLogger(__name__)
 

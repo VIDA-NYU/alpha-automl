@@ -2,8 +2,10 @@ import logging
 import time
 import multiprocessing
 from multiprocessing import set_start_method
+from alpha_automl.utils import sample_dataset
+from alpha_automl.scorer import make_splitter, score_pipeline
 from alpha_automl.pipeline_synthesis.setup_search import search_pipelines as search_pipelines_proc
-from alpha_automl.utils import *
+
 
 USE_AUTOMATIC_GRAMMAR = False
 PRIORITIZE_PRIMITIVES = False
