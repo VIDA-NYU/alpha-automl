@@ -7,7 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.compose import ColumnTransformer
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric
-from alpha_automl.utils import make_pipelineprofiler_inputs
+from alpha_automl.utils import make_pipelineprofiler_inputs, COLUMN_SELECTOR_ID
 from alpha_automl.visualization import plot_comparison_pipelines
 
 
@@ -240,6 +240,7 @@ class BaseAutoML():
             step_names.append(step_name)
             if isinstance(step_object, ColumnTransformer):
                 for transformer_name, _, _ in step_object.transformers:
+                    if transformer_name == COLUMN_SELECTOR_ID: continue  # Don't show column selector
                     step_name = transformer_name.split('-')[0].split('.')[-1]
                     if step_name not in step_names:
                         step_names.append(step_name)

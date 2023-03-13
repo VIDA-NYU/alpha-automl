@@ -8,6 +8,8 @@ from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 
 logger = logging.getLogger(__name__)
 
+COLUMN_TRANSFORMER_ID = 'sklearn.compose.ColumnTransformer'
+COLUMN_SELECTOR_ID = 'ColumnSelector'
 RANDOM_SEED = 0
 
 

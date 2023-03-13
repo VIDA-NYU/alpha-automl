@@ -4,13 +4,10 @@ from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
 from sklearn.compose import ColumnTransformer
-from alpha_automl.utils import create_object
+from alpha_automl.utils import create_object, COLUMN_TRANSFORMER_ID, COLUMN_SELECTOR_ID
 from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 
 logger = logging.getLogger(__name__)
-
-COLUMN_TRANSFORMER_ID = 'sklearn.compose.ColumnTransformer'
-COLUMN_SELECTOR_ID = 'ColumnSelector'
 
 
 def change_default_hyperparams(primitive_object):
