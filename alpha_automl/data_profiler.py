@@ -1,35 +1,52 @@
 import logging
 import datamart_profiler
 
+CATEGORICAL_COLUMN = 'http://schema.org/Enumeration'
+DATETIME_COLUMN = 'http://schema.org/DateTime'
+TEXT_COLUMN = 'http://schema.org/Text'
+EMPTY_COLUMN = 'https://metadata.datadrivendiscovery.org/types/MissingData'
+
+
 logger = logging.getLogger(__name__)
 
 
-def has_missing_values(X):
-    return X.isnull().values.any()
+def profile_data(X):
+    metadata = {'nonnumeric_columns': {}, 'empty_columns': [], 'missing_values': False}
+    mapping_encoders = {CATEGORICAL_COLUMN: 'CATEGORICAL_ENCODER', DATETIME_COLUMN: 'DATETIME_ENCODER',
+                        TEXT_COLUMN: 'TEXT_ENCODER'}
+
+    profiled_data = datamart_profiler.process_dataset(X, coverage=False)
+
+    for index_column, profiled_column in enumerate(profiled_data['columns']):
+        column_name = profiled_column['name']
+        if EMPTY_COLUMN == profiled_column['structural_type']:
+            metadata['empty_columns'].append((index_column, column_name))
+            continue
+
+        if CATEGORICAL_COLUMN in profiled_column['semantic_types']:
+            column_type = mapping_encoders[CATEGORICAL_COLUMN]
+            add_nonnumeric_column(column_type, metadata, index_column, column_name)
+
+        elif DATETIME_COLUMN in profiled_column['semantic_types']:
+            column_type = mapping_encoders[DATETIME_COLUMN]
+            add_nonnumeric_column(column_type, metadata, index_column, column_name)
+
+        elif TEXT_COLUMN == profiled_column['structural_type']:
+            column_type = mapping_encoders[TEXT_COLUMN]
+            add_nonnumeric_column(column_type, metadata, index_column, column_name)
+
+        if 'missing_values_ratio' in profiled_column:
+            metadata['missing_values_ratio'] = True
+
+    logger.info(f'Results of profiling data: non-numeric features = {str(metadata["nonnumeric_columns"].keys())}, '
+                f'empty columns = {str(metadata["empty_columns"])}, '
+                f'missing values = {str(metadata["missing_values"])}')
+
+    return metadata
 
 
-def select_encoders(X):
-    selected_encoders = {}
-    mapping_encoders = {'http://schema.org/Enumeration': 'CATEGORICAL_ENCODER',
-                        'http://schema.org/Text': 'TEXT_ENCODER',
-                        'http://schema.org/DateTime': 'DATETIME_ENCODER'}
+def add_nonnumeric_column(column_type, metadata, index_column, column_name):
+    if column_type not in metadata['nonnumeric_columns']:
+        metadata['nonnumeric_columns'][column_type] = []
 
-    data_profile = datamart_profiler.process_dataset(X, coverage=False)
-
-    for index, column_profile in enumerate(data_profile['columns']):
-        column_name = column_profile['name']
-        semantic_types = column_profile['semantic_types'] if len(column_profile['semantic_types']) > 0 else [column_profile['structural_type']]
-
-        for semantic_type in semantic_types:
-            if semantic_type == 'http://schema.org/identifier':
-                semantic_type = 'http://schema.org/Integer'
-            elif semantic_type in {'http://schema.org/longitude', 'http://schema.org/latitude'}:
-                semantic_type = 'http://schema.org/Float'
-
-            if semantic_type in mapping_encoders:
-                encoder = mapping_encoders[semantic_type]
-                if encoder not in selected_encoders:
-                    selected_encoders[encoder] = []
-                selected_encoders[encoder].append((index, column_name))
-
-    return selected_encoders
+    metadata['nonnumeric_columns'][column_type].append((index_column, column_name))

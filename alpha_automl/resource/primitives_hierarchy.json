@@ -25,6 +25,7 @@
         "sklearn.cluster.AgglomerativeClustering"
     ],
     "DATETIME_ENCODER": [
+        "sklearn.preprocessing.OrdinalEncoder"
     ],
     "FEATURE_SCALING": [
         "sklearn.preprocessing.MaxAbsScaler",

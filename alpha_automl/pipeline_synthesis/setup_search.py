@@ -8,7 +8,7 @@ from alpha_automl.pipeline_search.pipeline.NNet import NNetWrapper
 from alpha_automl.grammar_loader import load_manual_grammar, load_automatic_grammar
 from alpha_automl.pipeline_synthesis.pipeline_builder import *
 from alpha_automl.scorer import score_pipeline
-from alpha_automl.data_profiler import has_missing_values, select_encoders
+from alpha_automl.data_profiler import profile_data
 
 logger = logging.getLogger(__name__)
 
@@ -54,10 +54,11 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
     signal.alarm(time_bound)
 
     builder = BaseBuilder()
-    non_numeric_columns = select_encoders(X)
+    metadata = profile_data(X)
+    nonnumeric_columns = metadata['nonnumeric_columns']
 
     def evaluate_pipeline(primitives, origin):
-        pipeline = builder.make_pipeline(primitives, automl_hyperparams, non_numeric_columns)
+        pipeline = builder.make_pipeline(primitives, automl_hyperparams, nonnumeric_columns)
         score = None
 
         if pipeline is not None:
@@ -86,8 +87,8 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
 
     if grammar is None:
         logger.info('Creating a manual grammar')
-        use_imputer = has_missing_values(X)
-        grammar = load_manual_grammar(task_name_id, non_numeric_columns, use_imputer, new_primitives, include_primitives, exclude_primitives)
+        use_imputer = metadata['missing_values']
+        grammar = load_manual_grammar(task_name_id, nonnumeric_columns, use_imputer, new_primitives, include_primitives, exclude_primitives)
 
     metric = scoring._score_func.__name__
     config_updated = update_config(task_name, metric, output_folder, grammar)
