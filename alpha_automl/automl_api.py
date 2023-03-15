@@ -7,7 +7,7 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.compose import ColumnTransformer
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric
-from alpha_automl.utils import make_pipelineprofiler_inputs, COLUMN_SELECTOR_ID
+from alpha_automl.utils import make_d3m_pipelines, COLUMN_SELECTOR_ID
 from alpha_automl.visualization import plot_comparison_pipelines
 
 
@@ -211,7 +211,7 @@ class BaseAutoML():
         Plot PipelineProfiler visualization
         """
         if precomputed_pipelines is None and precomputed_primitive_types is None:
-            pipelines, primitive_types = make_pipelineprofiler_inputs(self.pipelines, self.new_primitives, self.metric)
+            pipelines, primitive_types = make_d3m_pipelines(self.pipelines, self.new_primitives, self.metric)
             plot_comparison_pipelines(pipelines, primitive_types)
         else:
             plot_comparison_pipelines(precomputed_pipelines, precomputed_primitive_types)

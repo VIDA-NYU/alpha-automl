@@ -50,8 +50,8 @@ def sample_dataset(X, y, sample_size):
         return X, y, False
 
 
-def make_pipelineprofiler_inputs(pipelines, new_primitives, metric, source_name='Pipeline'):
-    profiler_inputs = []
+def make_d3m_pipelines(pipelines, new_primitives, metric, source_name='Pipeline'):
+    d3m_pipelines = []
     primitive_types = {}
 
     for primitive_name, primitive_type in PRIMITIVE_TYPES.items():
@@ -64,13 +64,8 @@ def make_pipelineprofiler_inputs(pipelines, new_primitives, metric, source_name=
         primitive_name = f'alpha_automl.primitives.{primitive_path}'
         primitive_types[primitive_name] = new_primitives[new_primitive]['primitive_type'].replace('_', ' ').title()
 
-    # TODO: Read these primitive types from grammar
-    ordered_types = ['IMPUTATION', 'COLUMN_TRANSFORMER', 'TEXT_ENCODER', 'DATETIME_ENCODER', 'CATEGORICAL_ENCODER',
-                     'FEATURE_SCALING', 'FEATURE_SELECTION', 'REGRESSION', 'CLUSTERING', 'CLASSIFICATION']
-    ordered_types = [i.replace('_', ' ').title() for i in ordered_types]
-
     for pipeline_id, pipeline_data in pipelines.items():
-        profiler_data = {
+        new_pipeline = {
             'pipeline_id': pipeline_id,
             'inputs': [{'name': 'input dataset'}],
             'steps': [],
@@ -83,68 +78,72 @@ def make_pipelineprofiler_inputs(pipelines, new_primitives, metric, source_name=
             'pipeline_source': {'name': source_name},
         }
 
-        all_steps = []
-        for step_id, step_object in pipeline_data['pipeline_object'].steps:
-            all_steps.append((step_id, step_object))
-            if isinstance(step_object, ColumnTransformer):
-                for transformer_name, transformer_object, _ in step_object.transformers:
-                    step_id = transformer_name.split('-')[0]
-                    all_steps.append((step_id, transformer_object))
-
-        #  The code below is based on the function "import_autosklearn" of PipelineProfiler
+        #  The code below is an adaptation of the function "import_autosklearn" of PipelineProfiler
         prev_list = ['inputs.0']
         cur_step_idx = 0
-        for primitive_type in ordered_types:
-            steps_in_type = []
-            for step_id, step_object in all_steps:
-                primitive_path = '.'.join(step_id.split('.')[-2:])
-                primitive_id = f'alpha_automl.primitives.{primitive_path}'
-                if primitive_types[primitive_id] == primitive_type:
-                    steps_in_type.append((primitive_id, step_object))
 
-            if len(steps_in_type) == 0:
-                continue
+        for step_id, step_object in pipeline_data['pipeline_object'].steps:
+            steps_in_type = []
+            primitive_path = '.'.join(step_id.split('.')[-2:])
+            primitive_id = f'alpha_automl.primitives.{primitive_path}'
+            steps_in_type.append((primitive_id, step_object))
 
             new_prev_list = []
-            for step_id, step_object in steps_in_type:
-                step_ref = f'steps.{cur_step_idx}.produce'
-                cur_step_idx += 1
-                new_prev_list.append(step_ref)
-
-                step = {
-                    'primitive': {'python_path': step_id, 'name': ''},
-                    'arguments': {},
-                    'outputs': [{'id': 'produce'}],
-                    'reference': {'type': 'CONTAINER', 'data': step_ref},
-                    'hyperparams': {}
-                }
-
-                for param_name, param_value in get_primitive_params(step_object).items():
-                    step['hyperparams'][param_name] = {
-                        'type': 'VALUE',
-                        'data': param_value
-                    }
-
-                if isinstance(step_object, ColumnTransformer):
-                    step['hyperparams'] = {}  # Ignore hyperparameters of ColumnTransformer
-
-                for idx, prev in enumerate(prev_list):
-                    cur_argument_idx = f'input{idx}'
-                    step['arguments'][cur_argument_idx] = {
-                        'data': prev
-                    }
-                profiler_data['steps'].append(step)
-
+            cur_step_idx = add_d3m_step(steps_in_type, cur_step_idx, prev_list, new_prev_list, new_pipeline)
             prev_list = new_prev_list
 
+            if isinstance(step_object, ColumnTransformer):
+                steps_in_type = []
+                for transformer_name, transformer_object, _ in step_object.transformers:
+                    if transformer_name == COLUMN_SELECTOR_ID: continue
+                    primitive_path = '.'.join(transformer_name.split('-')[0].split('.')[-2:])
+                    primitive_id = f'alpha_automl.primitives.{primitive_path}'
+                    steps_in_type.append((primitive_id, transformer_object))
 
-        profiler_data['outputs'] = []
+                new_prev_list = []
+                cur_step_idx = add_d3m_step(steps_in_type, cur_step_idx, prev_list, new_prev_list, new_pipeline)
+                prev_list = new_prev_list
+
+        new_pipeline['outputs'] = []
         for prev in prev_list:
-            profiler_data['outputs'].append({'data': prev})
+            new_pipeline['outputs'].append({'data': prev})
 
-        profiler_inputs.append(profiler_data)
+        d3m_pipelines.append(new_pipeline)
 
-    return profiler_inputs, primitive_types
+    return d3m_pipelines, primitive_types
+
+
+def add_d3m_step(steps_in_group, cur_step_idx, prev_list, new_prev_list, new_pipeline):
+    for step_id, step_object in steps_in_group:
+        step_ref = f'steps.{cur_step_idx}.produce'
+        cur_step_idx += 1
+        new_prev_list.append(step_ref)
+
+        step = {
+            'primitive': {'python_path': step_id, 'name': 'primitive'},
+            'arguments': {},
+            'outputs': [{'id': 'produce'}],
+            'reference': {'type': 'CONTAINER', 'data': step_ref},
+            'hyperparams': {}
+        }
+
+        for param_name, param_value in get_primitive_params(step_object).items():
+            step['hyperparams'][param_name] = {
+                'type': 'VALUE',
+                'data': param_value
+            }
+
+        if isinstance(step_object, ColumnTransformer):
+            step['hyperparams'] = {}  # Ignore hyperparameters of ColumnTransformer
+
+        for idx, prev in enumerate(prev_list):
+            cur_argument_idx = f'input{idx}'
+            step['arguments'][cur_argument_idx] = {
+                'data': prev
+            }
+        new_pipeline['steps'].append(step)
+
+    return cur_step_idx
 
 
 def get_primitive_params(primitive_object):
