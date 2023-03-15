@@ -4,10 +4,9 @@ import datetime
 import warnings
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
-from sklearn.compose import ColumnTransformer
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric
-from alpha_automl.utils import make_d3m_pipelines, COLUMN_SELECTOR_ID
+from alpha_automl.utils import make_d3m_pipelines
 from alpha_automl.visualization import plot_comparison_pipelines
 
 
@@ -73,14 +72,16 @@ class BaseAutoML():
         pipelines = []
         start_time = datetime.datetime.utcnow()
 
-        for pipeline in self.automl_manager.search_pipelines(X, y, self.scorer, self.splitter, automl_hyperparams):
+        for pipeline_data in self.automl_manager.search_pipelines(X, y, self.scorer, self.splitter, automl_hyperparams):
             end_time = datetime.datetime.utcnow()
+            pipeline = pipeline_data['pipeline']
+            message = pipeline_data['message']
 
-            if pipeline['message'] == 'FOUND':
+            if message == 'FOUND':
                 duration = str(end_time - start_time).split('.')[0]
                 logger.info(f'Found pipeline, time={duration}, scoring...')
-            elif pipeline['message'] == 'SCORED':
-                logger.info(f'Scored pipeline, score={pipeline["pipeline_score"]}')
+            elif message == 'SCORED':
+                logger.info(f'Scored pipeline, score={pipeline.get_score()}')
                 pipelines.append(pipeline)
 
         if len(pipelines) == 0:
@@ -88,19 +89,16 @@ class BaseAutoML():
             return
 
         logger.info(f'Found {len(pipelines)} pipelines')
-        # TODO: Improve this sorting
-        sorted_pipelines = sorted(pipelines, key=lambda x: x['pipeline_score'], reverse=True)
+        sorted_pipelines = sorted(pipelines, key=lambda x: x.get_score(), reverse=True)  # TODO: Improve this sorting
 
         leaderboard_data = []
-        for index, pipeline_data in enumerate(sorted_pipelines, start=1):
+        for index, pipeline in enumerate(sorted_pipelines, start=1):
             pipeline_id = PIPELINE_PREFIX + str(index)
-            pipeline_summary = self._get_pipeline_summary(pipeline_data['pipeline_object'].named_steps)
-            self.pipelines[pipeline_id] = {'pipeline_object': pipeline_data['pipeline_object'],
-                                           'pipeline_score': pipeline_data['pipeline_score'],
-                                           'pipeline_summary': pipeline_summary}
+            self.pipelines[pipeline_id] = pipeline
 
-            leaderboard_data.append([index, pipeline_summary, pipeline_data['pipeline_score']])
-            self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'pipeline', self.metric])
+            leaderboard_data.append([index, pipeline.get_summary(), pipeline.get_score()])
+
+        self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'pipeline', self.metric])
 
         best_pipeline_id = PIPELINE_PREFIX + '1'
         self._fit(X, y, best_pipeline_id)
@@ -164,7 +162,7 @@ class BaseAutoML():
             best_pipeline_id = PIPELINE_PREFIX + '1'
             pipeline_id = best_pipeline_id
 
-        return self.pipelines[pipeline_id]['pipeline_object']
+        return self.pipelines[pipeline_id].get_pipeline()
 
     def add_primitives(self, new_primitives):
         for primitive_object, primitive_type in new_primitives:
@@ -202,9 +200,9 @@ class BaseAutoML():
             pipeline_id = best_pipeline_id
 
         if use_print:
-            print(self.pipelines[pipeline_id]['pipeline_object'])
+            print(self.pipelines[pipeline_id].get_pipeline())
         else:
-            return self.pipelines[pipeline_id]['pipeline_object']
+            return self.pipelines[pipeline_id].get_pipeline()
 
     def plot_comparison_pipelines(self, precomputed_pipelines=None, precomputed_primitive_types=None):
         """
@@ -217,35 +215,20 @@ class BaseAutoML():
             plot_comparison_pipelines(precomputed_pipelines, precomputed_primitive_types)
 
     def _fit(self, X, y, pipeline_id):
-        self.pipelines[pipeline_id]['pipeline_object'].fit(X, y)
+        self.pipelines[pipeline_id].get_pipeline().fit(X, y)
 
     def _predict(self, X, pipeline_id):
-        predictions = self.pipelines[pipeline_id]['pipeline_object'].predict(X)
+        predictions = self.pipelines[pipeline_id].get_pipeline().predict(X)
 
         return predictions
 
     def _score(self, X, y, pipeline_id):
-        predictions = self.pipelines[pipeline_id]['pipeline_object'].predict(X)
+        predictions = self.pipelines[pipeline_id].get_pipeline().predict(X)
         score = self.scorer._score_func(y, predictions)
 
         logger.info(f'Metric: {self.metric}, Score: {score}')
 
         return {'metric': self.metric, 'score': score}
-
-    def _get_pipeline_summary(self, pipeline_steps):
-        step_names = []
-
-        for step_name, step_object in pipeline_steps.items():
-            step_name = step_name.split('.')[-1]
-            step_names.append(step_name)
-            if isinstance(step_object, ColumnTransformer):
-                for transformer_name, _, _ in step_object.transformers:
-                    if transformer_name == COLUMN_SELECTOR_ID: continue  # Don't show column selector
-                    step_name = transformer_name.split('-')[0].split('.')[-1]
-                    if step_name not in step_names:
-                        step_names.append(step_name)
-
-        return ', '.join(step_names)
 
 
 class AutoMLClassifier(BaseAutoML):

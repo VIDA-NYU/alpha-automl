@@ -64,17 +64,16 @@ def make_d3m_pipelines(pipelines, new_primitives, metric, source_name='Pipeline'
         primitive_name = f'alpha_automl.primitives.{primitive_path}'
         primitive_types[primitive_name] = new_primitives[new_primitive]['primitive_type'].replace('_', ' ').title()
 
-    for pipeline_id, pipeline_data in pipelines.items():
+    for pipeline_id, pipeline in pipelines.items():
         new_pipeline = {
             'pipeline_id': pipeline_id,
             'inputs': [{'name': 'input dataset'}],
             'steps': [],
             'outputs': [],
             'pipeline_digest': pipeline_id,
-            'start': '2023-03-05T03:05:50.788926Z',  # TODO: Calculate these values on scoring function
-            'end': '2023-03-05T03:05:51.788926Z',
-            'scores': [{'metric': {'metric': metric}, 'value': pipeline_data['pipeline_score'],
-                        'normalized': pipeline_data['pipeline_score']}],
+            'start': pipeline.get_start_time(),
+            'end': pipeline.get_end_time(),
+            'scores': [{'metric': {'metric': metric}, 'value': pipeline.get_score(), 'normalized': pipeline.get_score()}],
             'pipeline_source': {'name': source_name},
         }
 
@@ -82,7 +81,7 @@ def make_d3m_pipelines(pipelines, new_primitives, metric, source_name='Pipeline'
         prev_list = ['inputs.0']
         cur_step_idx = 0
 
-        for step_id, step_object in pipeline_data['pipeline_object'].steps:
+        for step_id, step_object in pipeline.get_pipeline().steps:
             steps_in_type = []
             primitive_path = '.'.join(step_id.split('.')[-2:])
             primitive_id = f'alpha_automl.primitives.{primitive_path}'

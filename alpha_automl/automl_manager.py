@@ -43,7 +43,7 @@ class AutoMLManager():
             yield pipeline_data
 
     def _search_pipelines(self, automl_hyperparams):
-        start_time = time.time()
+        search_start_time = time.time()
         if 'use_automatic_grammar' not in automl_hyperparams:
             automl_hyperparams['use_automatic_grammar'] = USE_AUTOMATIC_GRAMMAR
 
@@ -60,7 +60,7 @@ class AutoMLManager():
             automl_hyperparams['new_primitives'] = NEW_PRIMITIVES
 
         X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE)
-        splitting_strategy = make_splitter(SPLITTING_STRATEGY)
+        internal_splitting_strategy = make_splitter(SPLITTING_STRATEGY)
 
         try:
             set_start_method('spawn')
@@ -69,7 +69,7 @@ class AutoMLManager():
 
         queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=search_pipelines_proc,
-                                                 args=(X, y, self.scoring, splitting_strategy, self.task,
+                                                 args=(X, y, self.scoring, internal_splitting_strategy, self.task,
                                                        self.time_bound, automl_hyperparams, self.output_folder, queue
                                                        )
                                                  )
@@ -87,20 +87,24 @@ class AutoMLManager():
                 logger.info('Search done')
                 break
 
-            pipeline_object = result[0]
-            pipeline_score = result[1]
+            pipeline = result
+            score = pipeline.get_score()
             logger.info('Found new pipeline')
-            yield {'pipeline_object': pipeline_object, 'pipeline_score': pipeline_score, 'message': 'FOUND'}
+            yield {'pipeline': pipeline, 'message': 'FOUND'}
 
-            if is_sample:
-                pipeline_score = score_pipeline(pipeline_object, self.X, self.y, self.scoring, self.splitting_strategy)
+            if is_sample and internal_splitting_strategy != self.splitting_strategy:
+                score, start_time, end_time = score_pipeline(pipeline.get_pipeline(), self.X, self.y, self.scoring,
+                                                             self.splitting_strategy)
+                pipeline.set_score(score)
+                pipeline.set_start_time(start_time)
+                pipeline.set_end_time(end_time)
 
-            if pipeline_score is not None:
-                logger.info(f'Pipeline scored successfully, score={pipeline_score}')
+            if score is not None:
+                logger.info(f'Pipeline scored successfully, score={score}')
                 found_pipelines += 1
-                yield {'pipeline_object': pipeline_object, 'pipeline_score': pipeline_score, 'message': 'SCORED'}
+                yield {'pipeline': pipeline, 'message': 'SCORED'}
 
-            if time.time() > start_time + self.time_bound:
+            if time.time() > search_start_time + self.time_bound:
                 search_process.terminate()
                 search_process.join(30)
                 logger.info(f'Found {found_pipelines} pipelines')

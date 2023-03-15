@@ -2,13 +2,15 @@ import signal
 import os
 import logging
 from os.path import join
+from alpha_automl.scorer import score_pipeline
+from alpha_automl.data_profiler import profile_data
+from alpha_automl.pipeline import Pipeline
 from alpha_automl.pipeline_search.Coach import Coach
 from alpha_automl.pipeline_search.pipeline.PipelineGame import PipelineGame
 from alpha_automl.pipeline_search.pipeline.NNet import NNetWrapper
 from alpha_automl.grammar_loader import load_manual_grammar, load_automatic_grammar
-from alpha_automl.pipeline_synthesis.pipeline_builder import *
-from alpha_automl.scorer import score_pipeline
-from alpha_automl.data_profiler import profile_data
+from alpha_automl.pipeline_synthesis.pipeline_builder import BaseBuilder
+
 
 logger = logging.getLogger(__name__)
 
@@ -62,9 +64,10 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
         score = None
 
         if pipeline is not None:
-            score = score_pipeline(pipeline, X, y, scoring, splitting_strategy)
+            score, start_time, end_time = score_pipeline(pipeline, X, y, scoring, splitting_strategy)
             if score is not None:
-                queue.put((pipeline, score))  # Only send valid pipelines
+                pipeline_alphaautoml = Pipeline(pipeline, score, start_time, end_time)
+                queue.put(pipeline_alphaautoml)  # Only send valid pipelines
 
         return score
 
