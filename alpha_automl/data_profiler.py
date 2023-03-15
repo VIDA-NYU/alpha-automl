@@ -36,7 +36,7 @@ def profile_data(X):
             add_nonnumeric_column(column_type, metadata, index_column, column_name)
 
         if 'missing_values_ratio' in profiled_column:
-            metadata['missing_values_ratio'] = True
+            metadata['missing_values'] = True
 
     logger.info(f'Results of profiling data: non-numeric features = {str(metadata["nonnumeric_columns"].keys())}, '
                 f'useless columns = {str(metadata["useless_columns"])}, '
