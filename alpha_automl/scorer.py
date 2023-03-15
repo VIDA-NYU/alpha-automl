@@ -1,4 +1,5 @@
 import logging
+import datetime
 import numpy as np
 from sklearn.metrics import SCORERS, get_scorer, make_scorer as make_scorer_sk
 from sklearn.model_selection import BaseCrossValidator, KFold, ShuffleSplit, train_test_split, cross_val_score
@@ -64,9 +65,13 @@ def make_splitter(splitting_strategy, splitting_strategy_kwargs=None):
 
 def score_pipeline(pipeline, X, y, scoring, splitting_strategy, verbose=True):
     score = None
+    start_time = None
+    end_time = None
 
     try:
+        start_time = datetime.datetime.utcnow().isoformat() + 'Z'
         scores = cross_val_score(pipeline, X, y, cv=splitting_strategy, scoring=scoring, error_score='raise')
+        end_time = datetime.datetime.utcnow().isoformat() + 'Z'
         score = np.average(scores)
         logger.info(f'Score: {score}')
     except Exception:
@@ -74,7 +79,7 @@ def score_pipeline(pipeline, X, y, scoring, splitting_strategy, verbose=True):
         if verbose:
             logger.warning('Detailed error:', exc_info=True)
 
-    return score
+    return score, start_time, end_time
 
 
 def make_str_metric(metric):
