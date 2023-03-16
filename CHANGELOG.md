@@ -1,5 +1,8 @@
 Changelog
 =========
+0.3.0.dev0 (yyyy-mm-dd)
+-----------------------
+
 
 0.2.0 (2023-03-16)
 ------------------
@@ -7,6 +10,7 @@ Changelog
 * Add support for PipelineProfiler.
 * Add a encoder and decoder of labels for classification tasks.
 * Implement a `Pipeline` class.
+
 
 0.1.0 (2023-03-03)
 ------------------
