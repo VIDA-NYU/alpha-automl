@@ -53,12 +53,10 @@ class BaseBuilder:
         nonnumeric_columns = self.metadata['nonnumeric_columns']
         useless_columns = self.metadata['useless_columns']
 
-        if len(useless_columns) > 0:  # There are useless columns (e.g. empty columns)
-            transformers.append((COLUMN_SELECTOR_ID, 'drop', [col_index for col_index, _ in useless_columns]))
-            if len(nonnumeric_columns) == 0:  # Add the transformer to the first step of the pipeline
-                transformer_obj = ColumnTransformer(transformers, remainder='passthrough')
-                pipeline_primitives.append((COLUMN_TRANSFORMER_ID, transformer_obj))
-                transformers = []
+        if len(useless_columns) > 0 and len(nonnumeric_columns) == 0:  # Add the transformer to the first step
+            selector = (COLUMN_SELECTOR_ID, 'drop', [col_index for col_index, _ in useless_columns])
+            transformer_obj = ColumnTransformer([selector], remainder='passthrough')
+            pipeline_primitives.append((COLUMN_TRANSFORMER_ID, transformer_obj))
 
         for primitive in primitives:
             primitive_name = primitive
@@ -74,6 +72,9 @@ class BaseBuilder:
                 transformers += self.create_transformers(primitive_object, primitive_name, primitive_type)
             else:
                 if len(transformers) > 0:  # Add previous transformers to the pipeline
+                    if len(useless_columns) > 0:
+                        selector = (COLUMN_SELECTOR_ID, 'drop', [col_index for col_index, _ in useless_columns])
+                        transformers = [selector] + transformers
                     transformer_obj = ColumnTransformer(transformers, remainder='passthrough')
                     pipeline_primitives.append((COLUMN_TRANSFORMER_ID, transformer_obj))
                     transformers = []
