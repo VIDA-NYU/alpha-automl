@@ -2,7 +2,7 @@ import logging
 import time
 import multiprocessing
 from multiprocessing import set_start_method
-from alpha_automl.utils import sample_dataset
+from alpha_automl.utils import sample_dataset, is_equal_splitting
 from alpha_automl.scorer import make_splitter, score_pipeline
 from alpha_automl.pipeline_synthesis.setup_search import search_pipelines as search_pipelines_proc
 
@@ -61,6 +61,10 @@ class AutoMLManager():
 
         X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE)
         internal_splitting_strategy = make_splitter(SPLITTING_STRATEGY)
+        need_rescoring = True
+
+        if not is_sample and is_equal_splitting(internal_splitting_strategy, self.splitting_strategy):
+            need_rescoring = False
 
         try:
             set_start_method('spawn')
@@ -92,7 +96,7 @@ class AutoMLManager():
             logger.info('Found new pipeline')
             yield {'pipeline': pipeline, 'message': 'FOUND'}
 
-            if is_sample and internal_splitting_strategy != self.splitting_strategy:
+            if need_rescoring:
                 score, start_time, end_time = score_pipeline(pipeline.get_pipeline(), self.X, self.y, self.scoring,
                                                              self.splitting_strategy)
                 pipeline.set_score(score)

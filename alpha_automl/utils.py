@@ -50,6 +50,13 @@ def sample_dataset(X, y, sample_size):
         return X, y, False
 
 
+def is_equal_splitting(strategy1, strategy2):
+    if strategy1.__class__ == strategy2.__class__ and strategy1.__dict__ == strategy2.__dict__:
+        return True
+    else:
+        return False
+
+
 def make_d3m_pipelines(pipelines, new_primitives, metric, source_name='Pipeline'):
     d3m_pipelines = []
     primitive_types = {}
