@@ -1,25 +1,30 @@
-from alpha_automl import AutoMLRegressor
 import pandas as pd
+from os.path import join, dirname
+from alpha_automl.utils import create_object, sample_dataset
 
-if __name__ == '__main__':
-    # Read the datasets
-    output_path = '/Users/rlopez/D3M/tmp/'
-    train_dataset = pd.read_csv('/Users/rlopez/D3M/examples/datasets/196_autoMpg/train_data.csv')
-    test_dataset = pd.read_csv('/Users/rlopez/D3M/examples/datasets/196_autoMpg/test_data.csv')
 
-    X_train = train_dataset.drop(columns=['class'])
-    y_train = train_dataset[['class']]
-    X_test = test_dataset.drop(columns=['class'])
-    y_test = test_dataset[['class']]
+def test_create_object():
+    from sklearn.ensemble import RandomForestClassifier
+    import_path = 'sklearn.ensemble.RandomForestClassifier'
 
-    # Add settings
-    automl = AutoMLRegressor(output_path, time_bound=10)
+    actual_object = create_object(import_path)
+    expected_object = RandomForestClassifier()
 
-    # Perform the search
-    automl.fit(X_train, y_train)
+    assert type(actual_object) == type(expected_object)
 
-    # Plot leaderboard
-    automl.plot_leaderboard(use_print=True)
 
-    # Evaluate best model
-    automl.score(X_test, y_test)
+def test_sample_dataset():
+    dataset_path = join(dirname(__file__), './test_data/movies.csv')
+    dataset = pd.read_csv(dataset_path)
+    X = dataset.drop(columns=['rating'])
+    y = dataset[['rating']]
+    sample_size = 10
+
+    actual_X, actual_y, actual_is_sampled = sample_dataset(X, y, sample_size)
+    expected_X_len = sample_size
+    expected_y_len = sample_size
+    expected_is_sampled = True
+
+    assert actual_is_sampled == expected_is_sampled
+    assert len(actual_X) == expected_X_len
+    assert len(actual_y) == expected_y_len
