@@ -1,13 +1,8 @@
-import numpy as np
-import copy
 import logging
 
 logger = logging.getLogger(__name__)
-
 NUM_IT = 5
-import logging
 
-logger = logging.getLogger(__name__)
 
 class Arena():
     """
@@ -29,7 +24,7 @@ class Arena():
         self.player2 = player2
         self.game = game
         self.display = display
-        if not logfile is None:
+        if logfile is not None:
             self.f = open(logfile, 'a')
 
     def playGame(self, verbose=False):
@@ -43,26 +38,26 @@ class Arena():
         curPlayer = 1
         board = self.game.getInitBoard()
         it = 0
-        while self.game.getGameEnded(board, curPlayer)==0 and it <= NUM_IT:
-            it+=1
+        while self.game.getGameEnded(board, curPlayer) == 0 and it <= NUM_IT:
+            it += 1
             if verbose:
-                self.f.write(','.join(self.game.get_pipeline_primitives(board))+'\n')
-                assert(self.display)
-                logger.info("Turn %s",it)
+                self.f.write(','.join(self.game.get_pipeline_primitives(board)) + '\n')
+                assert self.display
+                logger.info("Turn %s", it)
                 logger.info("Player %s", curPlayer)
                 self.display(board)
             action = players[curPlayer+1](self.game.getCanonicalForm(board, curPlayer))
-            #print('ACTION ', action)
-            valids = self.game.getValidMoves(self.game.getCanonicalForm(board, curPlayer),1)
+            # print('ACTION ', action)
+            valids = self.game.getValidMoves(self.game.getCanonicalForm(board, curPlayer), 1)
 
-            #print('VALIDS ', valids)
-            if valids[action]!=0:
-                #print(action)
-                assert valids[action] >0
+            # print('VALIDS ', valids)
+            if valids[action] != 0:
+                # print(action)
+                assert valids[action] > 0
             board, curPlayer = self.game.getNextState(board, curPlayer, action)
         if verbose:
-            self.f.write(','.join(self.game.get_pipeline_primitives(board))+'\n')            
-            assert(self.display)
+            self.f.write(','.join(self.game.get_pipeline_primitives(board)) + '\n')
+            assert self.display
             logger.info("Turn %s", it)
             logger.info("Player %s", curPlayer)
             self.display(board)
@@ -72,7 +67,7 @@ class Arena():
                 self.f.write('Working Pipeline\n')
             elif game_ended == 2:
                 self.f.write('Non-Working Pipeline\n')
-        #return game_ended==1 and curPlayer == 1
+        # return game_ended==1 and curPlayer == 1
         return self.game.getGameEnded(board, 1)
 
     def playGames(self, num, verbose=False):
@@ -92,18 +87,18 @@ class Arena():
         for i in range(num):
             if verbose:
                 self.f.write('Game '+str(i)+'\n')
-            if self.playGame(verbose=verbose)==1:
-                oneWon+=1
+            if self.playGame(verbose=verbose) == 1:
+                oneWon += 1
             else:
-                twoWon+=1
+                twoWon += 1
         self.player1, self.player2 = self.player2, self.player1
         if verbose:
             self.f.write('Round 2 - Players Swapped\n')
         for i in range(num):
             if verbose:
                 self.f.write('Game '+str(i)+'\n')
-            if self.playGame(verbose=verbose)==-1:
-                oneWon+=1
+            if self.playGame(verbose=verbose) == -1:
+                oneWon += 1
             else:
-                twoWon+=1
+                twoWon += 1
         return oneWon, twoWon

@@ -3,7 +3,7 @@ import inspect
 import importlib
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.model_selection import BaseCrossValidator, KFold, ShuffleSplit, train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split
 from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ def sample_dataset(X, y, sample_size):
         ratio = sample_size / original_size
         try:
             _, X_test, _, y_test = train_test_split(X, y, random_state=RANDOM_SEED, test_size=ratio, stratify=y)
-        except:
+        except Exception:
             # Not using stratified sampling when the minority class has few instances, not enough for all the folds
             _, X_test, _, y_test = train_test_split(X, y, random_state=RANDOM_SEED, test_size=ratio)
         logger.info(f'Sampling down data from {original_size} to {len(X_test)}')
@@ -80,7 +80,8 @@ def make_d3m_pipelines(pipelines, new_primitives, metric, source_name='Pipeline'
             'pipeline_digest': pipeline_id,
             'start': pipeline.get_start_time(),
             'end': pipeline.get_end_time(),
-            'scores': [{'metric': {'metric': metric}, 'value': pipeline.get_score(), 'normalized': pipeline.get_score()}],
+            'scores': [{'metric': {'metric': metric}, 'value': pipeline.get_score(),
+                        'normalized': pipeline.get_score()}],
             'pipeline_source': {'name': source_name},
         }
 
@@ -101,7 +102,8 @@ def make_d3m_pipelines(pipelines, new_primitives, metric, source_name='Pipeline'
             if isinstance(step_object, ColumnTransformer):
                 steps_in_type = []
                 for transformer_name, transformer_object, _ in step_object.transformers:
-                    if transformer_name == COLUMN_SELECTOR_ID: continue
+                    if transformer_name == COLUMN_SELECTOR_ID:
+                        continue
                     primitive_path = '.'.join(transformer_name.split('-')[0].split('.')[-2:])
                     primitive_id = f'alpha_automl.primitives.{primitive_path}'
                     steps_in_type.append((primitive_id, transformer_object))

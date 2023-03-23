@@ -26,8 +26,8 @@ def load_related_pipelines(dataset_path, target_column, task_keywords):
                     primitives = [available_primitives[p] for p in primitive_ids]  # Use the current names of primitives
                     score = pipeline_performances['score'][index]
                     metric = pipeline_performances['metric'][index]
-                    task_pipelines.append({'pipeline': primitives, 'score': score, 'metric': metric, 'dataset': similar_dataset,
-                                           'pipeline_repr': '_'.join(primitives)})
+                    task_pipelines.append({'pipeline': primitives, 'score': score, 'metric': metric,
+                                           'dataset': similar_dataset, 'pipeline_repr': '_'.join(primitives)})
 
     logger.info('Found %d related pipelines', len(task_pipelines))
 
@@ -66,7 +66,8 @@ def format_grammar(task_name, patterns, empty_elements):
     return grammar
 
 
-def extract_patterns(pipelines, max_nro_patterns=15, min_frequency=3, adtm_threshold=0.5, mean_score_threshold=0.5, ratio_datasets=0.2):
+def extract_patterns(pipelines, max_nro_patterns=15, min_frequency=3, adtm_threshold=0.5, mean_score_threshold=0.5,
+                     ratio_datasets=0.2):
     available_primitives = load_primitives_by_name()
     pipelines = calculate_adtm(pipelines)
     patterns = {}
@@ -79,7 +80,8 @@ def extract_patterns(pipelines, max_nro_patterns=15, min_frequency=3, adtm_thres
         primitive_types = [available_primitives[p]['type'] for p in pipeline_data['pipeline']]
         pattern_id = ' '.join(primitive_types)
         if pattern_id not in patterns:
-            patterns[pattern_id] = {'structure': primitive_types, 'primitives': set(), 'datasets': set(), 'pipelines': [], 'scores': [], 'adtms': [], 'frequency': 0}
+            patterns[pattern_id] = {'structure': primitive_types, 'primitives': set(), 'datasets': set(),
+                                    'pipelines': [], 'scores': [], 'adtms': [], 'frequency': 0}
         patterns[pattern_id]['primitives'].update(pipeline_data['pipeline'])
         patterns[pattern_id]['datasets'].add(pipeline_data['dataset'])
         patterns[pattern_id]['pipelines'].append(pipeline_data['pipeline'])
@@ -133,7 +135,8 @@ def extract_patterns(pipelines, max_nro_patterns=15, min_frequency=3, adtm_thres
     # Make deterministic the order of the patterns
     patterns = sorted(patterns.values(), key=lambda x: x['mean_score'], reverse=True)
     logger.info('Patterns:\n%s', patterns_repr(patterns))
-    logger.info('Hierarchy:\n%s', '\n'.join(['%s:\n%s' % (k, ', '.join(v)) for k, v in primitive_info['hierarchy'].items()]))
+    logger.info('Hierarchy:\n%s', '\n'.join(['%s:\n%s' % (k, ', '.join(v)) for k, v in
+                                             primitive_info['hierarchy'].items()]))
     patterns = [p['structure'] for p in patterns]
 
     return patterns, primitive_info
@@ -179,9 +182,11 @@ def add_correlations(patterns, available_primitives):
     for pattern, pattern_data in patterns.items():  # Use the mean adtm values as probabilities for the patterns
         global_probabilities['S'][pattern] = 1 - pattern_data['mean_adtm']
 
-    primitive_probabilities = {'global': global_probabilities, 'local': local_probabilities, 'types': available_primitives}
+    primitive_probabilities = {'global': global_probabilities, 'local': local_probabilities,
+                               'types': available_primitives}
     # Make deterministic the order of the hierarchy
-    primitive_hierarchy = OrderedDict({k: sorted(v) for k, v in sorted(primitive_hierarchy.items(), key=lambda x: x[0])})
+    primitive_hierarchy = OrderedDict({k: sorted(v) for k, v in
+                                       sorted(primitive_hierarchy.items(), key=lambda x: x[0])})
     primitive_info = {'hierarchy': primitive_hierarchy, 'probabilities': primitive_probabilities}
 
     return primitive_info

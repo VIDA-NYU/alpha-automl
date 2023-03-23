@@ -51,10 +51,10 @@ def signal_handler(queue):
     # TODO: Should it save the last status of the NN model?
 
 
-def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, automl_hyperparams, output_folder, queue):
+def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, automl_hyperparams, output_folder,
+                     queue):
     signal.signal(signal.SIGALRM, lambda signum, frame: signal_handler(queue))
     signal.alarm(time_bound)
-
 
     metadata = profile_data(X)
     builder = BaseBuilder(metadata, automl_hyperparams)

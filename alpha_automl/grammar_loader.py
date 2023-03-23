@@ -1,10 +1,9 @@
-import os
 import logging
 import itertools
 from os.path import join, dirname
 from nltk.grammar import Production, Nonterminal, CFG, is_terminal, is_nonterminal
 from alpha_automl.primitive_loader import load_primitives_hierarchy
-#from alphad3m_sklearn.metalearning.grammar_builder import create_metalearningdb_grammar
+# from alphad3m_sklearn.metalearning.grammar_builder import create_metalearningdb_grammar
 
 logger = logging.getLogger(__name__)
 BASE_GRAMMAR_PATH = join(dirname(__file__), 'resource/base_grammar.bnf')
@@ -135,7 +134,7 @@ def load_manual_grammar(task, encoders, use_imputer, new_primitives, include_pri
         primitive_type = new_primitives[primitive_name]['primitive_type']
         primitives[primitive_type].append(primitive_name)
 
-    #primitives = modify_search_space(primitives, include_primitives, exclude_primitives)
+    # primitives = modify_search_space(primitives, include_primitives, exclude_primitives)
     grammar_string = modify_manual_grammar(encoders, use_imputer)
     global_grammar = create_global_grammar(grammar_string, primitives)
     task_grammar = create_task_grammar(global_grammar, task)
@@ -146,7 +145,8 @@ def load_manual_grammar(task, encoders, use_imputer, new_primitives, include_pri
 
 def load_automatic_grammar(task, dataset_path, target_column, include_primitives, exclude_primitives,
                            use_probabilities):
-    grammar_string, primitives = create_metalearningdb_grammar(task, dataset_path, target_column, 'task_keywords')
+    grammar_string, primitives = None, None
+    # grammar_string, primitives = create_metalearningdb_grammar(task, dataset_path, target_column, 'task_keywords')
     if grammar_string is None:
         return None
 
@@ -162,7 +162,7 @@ def load_automatic_grammar(task, dataset_path, target_column, include_primitives
 
 
 def modify_search_space(primitives, include_primitives, exclude_primitives):
-    primitives_types = load_primitives_types()
+    primitives_types = {}  # load_primitives_types()
 
     for exclude_primitive in exclude_primitives:
         primitive_type = primitives_types.get(exclude_primitive, None)

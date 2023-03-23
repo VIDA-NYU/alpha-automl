@@ -5,8 +5,6 @@ from ConfigSpace.hyperparameters import IntegerHyperparameter, FloatHyperparamet
     OrdinalHyperparameter
 from smac.facade.smac_ac_facade import SMAC4AC
 from smac.scenario.scenario import Scenario
-from alphad3m.hyperparameter_tuning.primitive_config import load_primitive_configspace, load_hyperparameters
-
 
 MAX_RUNS = 100
 logger = logging.getLogger(__name__)
@@ -16,13 +14,13 @@ def build_configspace(primitives):
     # Build Configuration Space which defines all parameters and their ranges
     configspace = ConfigurationSpace()
     for primitive in primitives:
-        load_primitive_configspace(configspace, primitive)
+        pass  # load_primitive_configspace(configspace, primitive)
 
     return configspace
 
 
 def get_new_hyperparameters(primitive_name, configspace):
-    hyperparameters = load_hyperparameters(primitive_name)
+    hyperparameters = {}  # load_hyperparameters(primitive_name)
     new_hyperparameters = {}
 
     for hyperparameter_name in hyperparameters:
@@ -65,7 +63,8 @@ class HyperparameterTuning(object):
 
     def tune(self, runner, wallclock, output_dir):
         # Scenario object
-        cutoff = wallclock / (self.runcount / 10)  # Allow long pipelines to try to execute one fourth of the iterations limit
+        # Allow long pipelines to try to execute one fourth of the iterations limit
+        cutoff = wallclock / (self.runcount / 10)
         scenario = Scenario({'run_obj': 'quality',  # We optimize quality (alternatively runtime)
                              'runcount-limit': self.runcount,  # Maximum function evaluations
                              'wallclock-limit': wallclock,

@@ -1,17 +1,8 @@
-import argparse
 import os
-import shutil
-import time
-import random
 import numpy as np
-import sys
 import logging
-
-#from alphad3m.pipeline_search.utils import Bar, AverageMeter
 from alpha_automl.pipeline_search.NeuralNet import NeuralNet
-
 import torch
-import torch.nn as nn
 import torch.optim as optim
 from torch.autograd import Variable
 
@@ -27,6 +18,7 @@ args = dict({
     'cuda': False,
     'num_channels': 512,
 })
+
 
 class NNetWrapper(NeuralNet):
     def __init__(self, game):
@@ -45,14 +37,14 @@ class NNetWrapper(NeuralNet):
         for epoch in range(args.get('epochs')):
             logger.info('EPOCH ::: %s', str(epoch+1))
             self.nnet.train()
-            #data_time = AverageMeter()
-            #batch_time = AverageMeter()
-            #pi_losses = AverageMeter()
-            #v_losses = AverageMeter()
-            #end = time.time()
+            # data_time = AverageMeter()
+            # batch_time = AverageMeter()
+            # pi_losses = AverageMeter()
+            # v_losses = AverageMeter()
+            # end = time.time()
 
             batch_size = args.get('batch_size')
-            #bar = Bar('Training Net', max=int(len(examples)/batch_size))
+            # bar = Bar('Training Net', max=int(len(examples)/batch_size))
             batch_idx = 0
 
             while batch_idx < int(len(examples)/batch_size):
@@ -64,24 +56,25 @@ class NNetWrapper(NeuralNet):
 
                 #  predict
                 if args.get('cuda'):
-                    boards, target_pis, target_vs = Variable(boards.contiguous().cuda(),requires_grad=True), Variable(target_pis.contiguous().cuda(), requires_grad=True), Variable(target_vs.contiguous().cuda(),requires_grad=True)
+                    boards, target_pis, target_vs = Variable(boards.contiguous().cuda(), requires_grad=True), \
+                                                    Variable(target_pis.contiguous().cuda(), requires_grad=True), \
+                                                    Variable(target_vs.contiguous().cuda(), requires_grad=True)
                 else:
                     boards, target_pis, target_vs = Variable(boards), Variable(target_pis),  Variable(target_vs)
 
-
                 # measure data loading time
-                #data_time.update(time.time() - end)
+                # data_time.update(time.time() - end)
 
                 # compute output
-                #print(boards)
+                # print(boards)
                 out_pi, out_v = self.nnet(boards)
                 l_pi = self.loss_pi(target_pis, out_pi)
                 l_v = self.loss_v(target_vs, out_v)
                 total_loss = l_pi + l_v
 
                 # record loss
-                #pi_losses.update(l_pi.data, boards.size(0))
-                #v_losses.update(l_v.data, boards.size(0))
+                # pi_losses.update(l_pi.data, boards.size(0))
+                # v_losses.update(l_v.data, boards.size(0))
 
                 # compute gradient and do SGD step
                 optimizer.zero_grad()
@@ -89,47 +82,34 @@ class NNetWrapper(NeuralNet):
                 optimizer.step()
 
                 # measure elapsed time
-                #batch_time.update(time.time() - end)
-                end = time.time()
+                # batch_time.update(time.time() - end)
+                # end = time.time()
                 batch_idx += 1
-
-                # plot progress
-                #bar.suffix  = '({batch}/{size}) Data: {data:.3f}s | Batch: {bt:.3f}s | Total: {total:} | ETA: {eta:} | Loss_pi: {lpi:.4f} | Loss_v: {lv:.3f}'.format(
-                #            batch=batch_idx,
-                #            size=int(len(examples)/batch_size),
-                #            data=data_time.avg,
-                #            bt=batch_time.avg,
-                #            total=bar.elapsed_td,
-                #            eta=bar.eta_td,
-                #            lpi=pi_losses.avg,
-                #            lv=v_losses.avg,
-                #            )
-                #bar.next()
-            #bar.finish()
-
 
     def predict(self, board):
         """
         board: np array with board
         """
         # timing
-        start = time.time()
-        #print('BOARD\n', board)
+        # start = time.time()
+        # print('BOARD\n', board)
 
         # preparing input
-        board = torch.from_numpy(np.array(board[0:self.board_size], dtype='f')).cuda().float() if args.get('cuda') else torch.from_numpy(np.array(board[0:self.board_size], dtype='f'))
-        #board = torch.FloatTensor(board[0:self.board_x])
-        if args.get('cuda'): board = board.contiguous().cuda()
+        board = torch.from_numpy(np.array(board[0:self.board_size], dtype='f')).cuda().float() if args.get('cuda') \
+            else torch.from_numpy(np.array(board[0:self.board_size], dtype='f'))
+        # board = torch.FloatTensor(board[0:self.board_x])
+        if args.get('cuda'):
+            board = board.contiguous().cuda()
         board = Variable(board, volatile=True)
         board = board.view(1, self.board_size)
 
         self.nnet.eval()
         pi, v = self.nnet(board)
 
-        #print('PROBABILITY ', torch.exp(pi).data.cpu().numpy()[0])
-        #print('VALUE ',  v.data.cpu().numpy()[0])
+        # print('PROBABILITY ', torch.exp(pi).data.cpu().numpy()[0])
+        # print('VALUE ',  v.data.cpu().numpy()[0])
 
-        #logger.info('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
+        # logger.info('PREDICTION TIME TAKEN : {0:03f}'.format(time.time()-start))
         return torch.exp(pi).data.cpu().numpy()[0], v.data.cpu().numpy()[0][0]
 
     def loss_pi(self, targets, outputs):
@@ -146,14 +126,14 @@ class NNetWrapper(NeuralNet):
         else:
             logger.info("Checkpoint Directory exists! ")
         torch.save({
-            'state_dict' : self.nnet.state_dict(),
+            'state_dict': self.nnet.state_dict(),
         }, filepath)
 
     def load_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
         # https://github.com/pytorch/examples/blob/master/imagenet/main.py#L98
         filepath = os.path.join(folder, filename)
         if not os.path.exists(filepath):
-            raise("No model in path {}".format(folder))
+            raise ("No model in path {}".format(folder))
 
         checkpoint = torch.load(filepath)
         self.nnet.load_state_dict(checkpoint['state_dict'])
