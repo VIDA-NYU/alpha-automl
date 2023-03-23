@@ -1,10 +1,10 @@
-[![PyPI version](https://badge.fury.io/py/alpha-automl.svg)](https://badge.fury.io/py/alpha-automl)
+[![PyPI version](https://badge.fury.io/py/alpha-automl.svg)](https://pypi.org/project/alpha-automl/0.2.0/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-![Tests](https://github.com/VIDA-NYU/alpha-automl/actions/workflows/build.yml/badge.svg)
+[![Tests](https://github.com/VIDA-NYU/alpha-automl/actions/workflows/build.yml/badge.svg)](https://github.com/VIDA-NYU/alpha-automl/actions/workflows/build.yml)
 
 
 Alpha-AutoML
-===========
+============
 
 Alpha-AutoML is an AutoML system that automatically searches for models and derives end-to-end pipelines that read, 
 pre-process the data, and train the model. Alpha-AutoML leverages recent advances in deep reinforcement learning and is 
@@ -32,4 +32,11 @@ To install the latest development version:
 
 ```
 $ pip install git+https://github.com/VIDA-NYU/alpha-automl@devel
+```
+
+To develop:
+```
+$ git clone https://github.com/VIDA-NYU/alpha-automl.git
+$ cd alpha-automl/
+$ pip install -e .
 ```
