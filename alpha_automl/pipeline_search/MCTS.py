@@ -137,15 +137,21 @@ class MCTS():
                 metalearning_weights[a] = correlation
 
                 if (s, a) in self.Qsa:
-                    u = self.Qsa[(s, a)] + self.args.get('cpuct') * (alpha * self.Ps[s][a] + (1 - alpha) * correlation) * math.sqrt(self.Ns[s]) / (1 + self.Nsa[(s, a)])
-                    # u = (global_proba + local_proba) + self.Qsa[(s, a)] + self.args.get('cpuct') * math.sqrt(self.Ns[s]) / (1 + self.Nsa[(s, a)])
-                    # u = self.Qsa[(s, a)] + self.args.get('cpuct') * self.Ps[s][a] * math.sqrt(self.Ns[s]) / (1 + self.Nsa[(s, a)])
+                    u = self.Qsa[(s, a)] + \
+                        self.args.get('cpuct') * (alpha * self.Ps[s][a] + (1 - alpha) * correlation) * \
+                        math.sqrt(self.Ns[s]) / (1 + self.Nsa[(s, a)])
+                    # u = (global_proba + local_proba) + self.Qsa[(s, a)] + self.args.get('cpuct') *
+                    # math.sqrt(self.Ns[s]) / (1 + self.Nsa[(s, a)])
+                    # u = self.Qsa[(s, a)] + self.args.get('cpuct') * self.Ps[s][a] *
+                    # math.sqrt(self.Ns[s]) / (1 + self.Nsa[(s, a)])
                 else:
-                    u = self.args.get('cpuct') * (alpha * self.Ps[s][a] + (1 - alpha) * correlation) * math.sqrt(self.Ns[s])  # Q = 0 ?
+                    u = self.args.get('cpuct') * \
+                        (alpha * self.Ps[s][a] + (1 - alpha) * correlation) * math.sqrt(self.Ns[s])  # Q = 0 ?
                     # u = (global_proba + local_proba) + self.args.get('cpuct') * math.sqrt(self.Ns[s]) # Q = 0 ?
                     # u = self.args.get('cpuct') * self.Ps[s][a] * math.sqrt(self.Ns[s])  # Q = 0 ?
-                #print('Production:', self.game.grammar['RULES_PROBA']['GLOBAL'].get(a + 1, ('None', 0))[0], correlation)
-                #print('Value of u:', u)
+                # print('Production:', self.game.grammar['RULES_PROBA']['GLOBAL']
+                # .get(a + 1, ('None', 0))[0], correlation)
+                # print('Value of u:', u)
                 if u > cur_best:
                     cur_best = u
                     best_act = a
@@ -159,13 +165,15 @@ class MCTS():
             a = np.random.choice(np.asarray(actions))
         else:
             a = best_act
-        #print('>>>>>>>>>>best a=%d' % a, 'local', self.game.grammar['RULES_PROBA']['LOCAL'].get(current_pattern, {}).get(a + 1, ('None', 0)))
-        #print('>>>>>>>>>>best a=%d' % a, 'total',  self.game.grammar['RULES_PROBA']['GLOBAL'].get(a+1, (0, 0))[1] * self.game.grammar['RULES_PROBA']['LOCAL'].get(current_pattern, {}).get(a + 1, (0, 0))[1])
+        # print('>>>>>>>>>>best a=%d' % a, 'local', self.game.grammar['RULES_PROBA']['LOCAL']
+        # .get(current_pattern, {}).get(a + 1, ('None', 0)))
+        # print('>>>>>>>>>>best a=%d' % a, 'total',  self.game.grammar['RULES_PROBA']['GLOBAL'].get(a+1, (0, 0))[1]
+        # * self.game.grammar['RULES_PROBA']['LOCAL'].get(current_pattern, {}).get(a + 1, (0, 0))[1])
         # logger.info('BEST ACTIONS %s', actions)
         # logger.info('MCTS BEST ACTION %s', best_act)
         next_s, next_player = self.game.getNextState(canonicalBoard, player, a)
         next_s = self.game.getCanonicalForm(next_s, next_player)
-        #self.game.display(next_s)
+        # self.game.display(next_s)
 
         # logger.info('NEXT STATE SEARCH RECURSION')
         v = self.search(next_s, next_player)

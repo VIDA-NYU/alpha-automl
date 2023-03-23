@@ -2,7 +2,7 @@ import logging
 import datetime
 import numpy as np
 from sklearn.metrics import SCORERS, get_scorer, make_scorer as make_scorer_sk
-from sklearn.model_selection import BaseCrossValidator, KFold, ShuffleSplit, train_test_split, cross_val_score
+from sklearn.model_selection import BaseCrossValidator, KFold, ShuffleSplit, cross_val_score
 from sklearn.model_selection._split import BaseShuffleSplit, _RepeatedSplits
 from alpha_automl.utils import RANDOM_SEED
 

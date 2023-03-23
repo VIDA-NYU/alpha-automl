@@ -67,10 +67,11 @@ def create_csv_data(metalearningdb_pickle_path, pipelines_csv_path,  use_primiti
                 if use_primitive_names:
                     pipeline_primitives = [primitives_by_id[p] for p in pipeline_primitives]
                 pipeline_stages = generate_pipeline_stages(pipeline_primitives, pipeline_primitive_types)
-                pipeline_stages = [[' '.join(ps), task_keywords, semantic_types, metric, score] + metafeatures for ps in pipeline_stages]
+                pipeline_stages = [[' '.join(ps), task_keywords, semantic_types, metric, score] + metafeatures
+                                   for ps in pipeline_stages]
                 train_pipelines += pipeline_stages
                 total_pipelines += 1
-            except:
+            except Exception:
                 logger.warning(f'Primitives "{str(pipeline_primitives)}" are not longer available')
 
     logger.info(f'Loaded {len(all_pipelines)} pipelines')

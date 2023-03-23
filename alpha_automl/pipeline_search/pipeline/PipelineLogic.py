@@ -23,16 +23,15 @@ class Board():
         self.non_terminals = grammar['NON_TERMINALS']
         self.start = grammar['START']
         self.m = m  # Number of metafeatures
-        self.p = pipeline_size #max length of pipeline
+        self.p = pipeline_size  # max length of pipeline
         self.valid_moves = [i for i, j in sorted(grammar['RULES'].items(), key=lambda x: x[1])]
         self.rules = grammar['RULES']
         self.rules_lookup = grammar['RULES_LOOKUP']
-        #logger.info('NUMBER of VALID MOVES %s', len(self.valid_moves))
-        
+        # logger.info('NUMBER of VALID MOVES %s', len(self.valid_moves))
+
         # Create the empty board array.
         self.pieces_m = [0] * self.m
-        start_pipeline = [self.terminals[p] if p in self.terminals else self.non_terminals[p] for p in
-                    [self.start]]
+        start_pipeline = [self.terminals[p] if p in self.terminals else self.non_terminals[p] for p in [self.start]]
 
         self.pieces_p = [0] * (self.p - len(start_pipeline)) + start_pipeline
 
@@ -61,7 +60,7 @@ class Board():
             if p != 0 and p in list(self.non_terminals.values()):  # Empty symbol ID = 0
                 return False
         return True
-    
+
     def findWin(self, player, eval_val=None):
         """Find win of the given color in row, column, or diagonal
         (1 for x, -1 for o)"""
@@ -71,7 +70,7 @@ class Board():
             return False
 
         return eval_val >= self.win_threshold
-    
+
     def get_legal_moves(self):
         """Returns all the legal moves.
         """
@@ -81,7 +80,7 @@ class Board():
 
         for p in pipeline:
             if p in list(self.non_terminals.values()):
-                #logger.info('GET LEGAL MOVES %s', p)
+                # logger.info('GET LEGAL MOVES %s', p)
                 rules = []
                 for key in self.rules_lookup[list(self.non_terminals.keys())[p - 1]]:
                     if len(self.next_state(self.rules[key] - 1)) <= self.p:
@@ -90,20 +89,21 @@ class Board():
                 np.put(valid_moves, rules, [1]*len(rules))
 
         return valid_moves.tolist()
-        
+
     def has_legal_moves(self):
         return len(np.where(np.asarray(self.get_legal_moves()) == 1)[0]) > 0
 
     def next_state(self, action):
         s = self.valid_moves[action]
         nt = self.non_terminals[s[:s.index('-')].strip()]
-        r = [self.non_terminals[p] if p in self.non_terminals.keys() else self.terminals[p] for p in s[s.index('-')+2:].strip().split(' ')]
+        r = [self.non_terminals[p] if p in self.non_terminals.keys() else
+             self.terminals[p] for p in s[s.index('-')+2:].strip().split(' ')]
         r = [x for x in r if x != 0]
         s = []
         for p in self.pieces_p:
             if p == 0:
                 continue
-            
+
             if p == nt:
                 s += r
             else:
@@ -112,32 +112,33 @@ class Board():
         return s
 
     def get_pipeline_primitives(self, pipeline):
-        #logger.info('PIPELINE PRIMITIVES FOR %s', pipeline)
-        return [list(self.terminals.keys())[list(self.terminals.values()).index(i)] if i in list(self.terminals.values()) else list(self.non_terminals.keys())[list(self.non_terminals.values()).index(i)] for i in pipeline if not i == 0]
+        # logger.info('PIPELINE PRIMITIVES FOR %s', pipeline)
+        return [list(self.terminals.keys())[list(self.terminals.values()).index(i)]
+                if i in list(self.terminals.values()) else
+                list(self.non_terminals.keys())[list(self.non_terminals.values()).index(i)]
+                for i in pipeline if not i == 0]
 
     def get_train_board(self):
-        #logger.info('TRAIN BOARD: %s', '|'.join(self.get_pipeline_primitives(self.pieces_p)))
+        # logger.info('TRAIN BOARD: %s', '|'.join(self.get_pipeline_primitives(self.pieces_p)))
         pipeline = [0]*(len(self.terminals)+len(self.non_terminals))
 
         for p in self.pieces_p:
             if p != 0:
-                 pipeline[p] = 1
-            #pipeline[p-1] = 1
+                pipeline[p] = 1
+            # pipeline[p-1] = 1
 
         return self.pieces_m + pipeline
 
     def get_board_size(self):
         return self.m+(len(self.terminals)+len(self.non_terminals))
-    
+
     def execute_move(self, action, player):
         """Perform the given move on the board;
         color gives the color of the piece to play (1=x,-1=o)
         """
         logger.info('MOVE ACTION: %s', self.valid_moves[action])
         s = self.next_state(action)
-        
+
         s = [0] * (self.p - len(s)) + s
 
         self.pieces_p = s
-
-

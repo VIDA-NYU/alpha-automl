@@ -201,7 +201,7 @@ def filter_primitives(pipeline_steps, ignore_primitives):
 
     for pipeline_step in pipeline_steps:
         if pipeline_step['primitive']['id'] not in ignore_primitives:
-                primitives.append(pipeline_step['primitive']['id'])
+            primitives.append(pipeline_step['primitive']['id'])
 
     if len(primitives) > 0 and primitives[0] == '7ddf2fd8-2f7f-4e53-96a7-0d9f5aeecf93':
         # Special case: Primitive to_numeric.DSBOX

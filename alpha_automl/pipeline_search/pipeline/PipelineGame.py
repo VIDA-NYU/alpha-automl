@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 class PipelineGame(Game):
     # FIXEME: Maybe the input parameters can be in json
-    def __init__(self, input={}, eval_pipeline=None):
+    def __init__(self, input={}, eval_pipeline=None, args=None):
         self.steps = 0
         self.args = input['ARGS']
         self.evaluations = {}
@@ -35,7 +35,7 @@ class PipelineGame(Game):
         self.dataset_metafeatures = input['DATASET_METAFEATURES']
         if self.dataset_metafeatures is None:
             metafeatures_path = args.get('metafeatures_path')
-            if not metafeatures_path is None:
+            if metafeatures_path is not None:
                 metafeatures_file = os.path.join(metafeatures_path, args['dataset'] + '_metafeatures.pkl')
                 if os.path.isfile(metafeatures_file):
                     m_f = open(metafeatures_file, 'rb')
@@ -46,15 +46,16 @@ class PipelineGame(Game):
             self.dataset_metafeatures = []
         else:
             self.dataset_metafeatures = list(np.nan_to_num(np.asarray(self.dataset_metafeatures)))
-            
+
         self.m = len(self.dataset_metafeatures)+2
         self.p = input['PIPELINE_SIZE']
         self.action_size = 0
-                
+
     def getInitBoard(self):
         # return initial board (numpy board)
         b = Board(self.m, self.grammar, self.pipeline_size, self.metric)
-        b.set_metafeatures(self.dataset_metafeatures+[self.data_types[self.data_type]]+[self.problem_types[self.problem]])
+        b.set_metafeatures(self.dataset_metafeatures +
+                           [self.data_types[self.data_type]] + [self.problem_types[self.problem]])
         self.action_size = len(b.valid_moves)
         return b.pieces_m + b.pieces_p
 
@@ -74,9 +75,9 @@ class PipelineGame(Game):
         b = Board(self.m, self.grammar, self.pipeline_size, self.metric)
         b.set_metafeatures(board)
         b.set_pipeline(board)
-        #logger.info('PREV STATE %s', b.pieces_p)
+        # logger.info('PREV STATE %s', b.pieces_p)
         b.execute_move(action, player)
-        #logger.info('NEXT STATE %s', b.pieces_p)
+        # logger.info('NEXT STATE %s', b.pieces_p)
         return (b.pieces_m+b.pieces_p, -player)
 
     def getValidMoves(self, board, player):
@@ -84,9 +85,9 @@ class PipelineGame(Game):
         b = Board(self.m, self.grammar, self.pipeline_size, self.metric)
         b.set_metafeatures(board)
         b.set_pipeline(board)
-        #logger.info('CURR STATE %s', b.pieces_p)
+        # logger.info('CURR STATE %s', b.pieces_p)
         legalMoves = b.get_legal_moves()
-        #logger.info('VALID MOVES %s', [b.valid_moves[i] for i in range(0, len(legalMoves)) if legalMoves[i] == 1])
+        # logger.info('VALID MOVES %s', [b.valid_moves[i] for i in range(0, len(legalMoves)) if legalMoves[i] == 1])
         return np.array(legalMoves)
 
     def getEvaluation(self, board):
@@ -102,7 +103,7 @@ class PipelineGame(Game):
             self.steps = self.steps + 1
             try:
                 eval_val = self.eval_pipeline(pipeline, 'AlphaAutoML')
-            except:
+            except Exception:
                 logger.warning('Error in Pipeline Execution %s', eval_val)
                 traceback.print_exc()
             if eval_val is None:
@@ -111,7 +112,7 @@ class PipelineGame(Game):
             self.eval_times[",".join(pipeline)] = time.time()
 
         return eval_val
-    
+
     def getGameEnded(self, board, player, eval_val=None):
         # return 0 if not ended, 1 if x won, -1 if x lost
         # player = 1
@@ -125,9 +126,9 @@ class PipelineGame(Game):
             sorted_evals = sorted([eval for eval in list(self.evaluations.values()) if eval != float('inf')])
             if len(sorted_evals) > 0:
                 if 'error' in self.metric.lower():
-                   win_threshold = sorted_evals[0]
+                    win_threshold = sorted_evals[0]
                 else:
-                   win_threshold = sorted_evals[-1]
+                    win_threshold = sorted_evals[-1]
                 b.win_threshold = win_threshold
 
         eval_val = self.getEvaluation(board)
@@ -158,7 +159,7 @@ class PipelineGame(Game):
         return b.get_train_board()
 
     def getTrainExamples(self, board, pi):
-        assert(len(pi) == self.getActionSize())  # 1 for pass
+        assert (len(pi) == self.getActionSize())  # 1 for pass
         b = Board(self.m, self.grammar, self.pipeline_size, self.metric)
         b.set_metafeatures(board)
         b.set_pipeline(board)
@@ -168,14 +169,15 @@ class PipelineGame(Game):
             eval_val = self.getEvaluation(board)
         train_board = b.get_train_board()
         if 'error' in self.metric.lower():
-            return (train_board, pi, eval_val if eval_val!= float('inf') and eval_val <= math.pow(10,15) else math.pow(10,15))
+            return train_board, pi, eval_val if eval_val != float('inf') \
+                                                and eval_val <= math.pow(10, 15) else math.pow(10, 15)
         else:
-            return (train_board, pi, eval_val if eval_val != float('inf') else 0)
+            return train_board, pi, eval_val if eval_val != float('inf') else 0
 
     def get_pipeline_primitives(self, board):
         b = Board(self.m, self.grammar, self.pipeline_size, self.metric)
         return b.get_pipeline_primitives(b.get_pipeline(board))
-        
+
     def display(self, b):
         board = self.get_pipeline_primitives(b)
         logger.info("PIPELINE: %s", '|'.join(e for e in board))

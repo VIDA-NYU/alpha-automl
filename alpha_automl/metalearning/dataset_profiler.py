@@ -5,19 +5,7 @@ from metalearn import Metafeatures
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_METAFEATURES = ['NumberOfInstances', 'NumberOfFeatures', 'NumberOfNumericFeatures', 'NumberOfCategoricalFeatures',
-                        'RatioOfNumericFeatures', 'RatioOfCategoricalFeatures', 'NumberOfClasses', 'MeanClassProbability',
-                        'StdevClassProbability', 'SkewClassProbability', 'KurtosisClassProbability', 'MinClassProbability',
-                        'Quartile1ClassProbability', 'Quartile2ClassProbability', 'Quartile3ClassProbability', 'MaxClassProbability',
-                        'MinorityClassSize', 'MajorityClassSize', 'Dimensionality', 'NumberOfMissingValues', 'RatioOfMissingValues',
-                        'NumberOfInstancesWithMissingValues', 'RatioOfInstancesWithMissingValues', 'NumberOfFeaturesWithMissingValues',
-                        'RatioOfFeaturesWithMissingValues', 'MeanCardinalityOfCategoricalFeatures', 'StdevCardinalityOfCategoricalFeatures',
-                        'SkewCardinalityOfCategoricalFeatures', 'KurtosisCardinalityOfCategoricalFeatures', 'MinCardinalityOfCategoricalFeatures',
-                        'Quartile1CardinalityOfCategoricalFeatures', 'Quartile2CardinalityOfCategoricalFeatures',
-                        'Quartile3CardinalityOfCategoricalFeatures', 'MaxCardinalityOfCategoricalFeatures', 'MeanCardinalityOfNumericFeatures',
-                        'StdevCardinalityOfNumericFeatures', 'SkewCardinalityOfNumericFeatures', 'KurtosisCardinalityOfNumericFeatures',
-                        'MinCardinalityOfNumericFeatures', 'Quartile1CardinalityOfNumericFeatures', 'Quartile2CardinalityOfNumericFeatures',
-                        'Quartile3CardinalityOfNumericFeatures', 'MaxCardinalityOfNumericFeatures']
+DEFAULT_METAFEATURES = []
 
 
 def extract_metafeatures(dataset_path, target_column):

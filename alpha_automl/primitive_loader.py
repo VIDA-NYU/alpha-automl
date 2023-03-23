@@ -38,4 +38,3 @@ PRIMITIVE_TYPES = load_primitives_types()
 if __name__ == '__main__':
     # Run this to create the files for the list and hierarchy of primitives
     create_primitives_hierarchy()
-
