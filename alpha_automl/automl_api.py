@@ -24,7 +24,7 @@ class BaseAutoML():
     def __init__(self, output_folder, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
                  metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
         """
-        Create/instantiate an BaseAutoML object
+        Create/instantiate an BaseAutoML object.
 
         :param output_folder: Path to the output directory
         :param time_bound: Limit time in minutes to perform the search
@@ -64,7 +64,7 @@ class BaseAutoML():
 
     def fit(self, X, y):
         """
-        Search for pipelines and fit the best pipeline
+        Search for pipelines and fit the best pipeline.
 
         :param X: The training input samples, array-like or sparse matrix of shape = [n_samples, n_features]
         :param y: The target classes, array-like, shape = [n_samples] or [n_samples, n_outputs]
@@ -108,7 +108,8 @@ class BaseAutoML():
 
     def predict(self, X):
         """
-        Predict classes for X using the best pipeline
+        Predict classes for X using the best pipeline.
+
         :param X: The training input samples, array-like or sparse matrix of shape = [n_samples, n_features]
         :return: The predictions
         """
@@ -119,6 +120,7 @@ class BaseAutoML():
     def score(self, X, y):
         """
         Return the performance (using the chosen metric) on the given test data and labels using the best pipeline.
+
         :param X: The training input samples, array-like or sparse matrix of shape = [n_samples, n_features]
         :param y: The target classes, array-like, shape = [n_samples] or [n_samples, n_outputs]
         :return: A dict with metric and performance
@@ -129,14 +131,16 @@ class BaseAutoML():
 
     def fit_pipeline(self, pipeline_id):
         """
-        Fit a pipeline given its id
+        Fit a pipeline given its id.
+
         :param pipeline_id: Id of a pipeline
         """
         self._fit(self.X, self.y, pipeline_id)
 
     def predict_pipeline(self, X, pipeline_id):
         """
-        Predict classes for X given the id of a pipeline
+        Predict classes for X given the id of a pipeline.
+
         :param X: The training input samples, array-like or sparse matrix of shape = [n_samples, n_features]
         :param pipeline_id: Id of a pipeline
         :return: The predictions
@@ -147,6 +151,7 @@ class BaseAutoML():
     def score_pipeline(self, X, y, pipeline_id):
         """
         Return the performance (using the chosen metric) on the given test data and labels using a given pipeline.
+
         :param X: The training input samples, array-like or sparse matrix of shape = [n_samples, n_features]
         :param y: The target classes, array-like, shape = [n_samples] or [n_samples, n_outputs]
         :param pipeline_id: Id of a pipeline
@@ -157,7 +162,8 @@ class BaseAutoML():
 
     def get_pipeline(self, pipeline_id=None):
         """
-        Return a pipeline, if pipeline_id is None, return the best pipeline
+        Return a pipeline given its pipeline id, if pipeline_id is None, return the best pipeline.
+
         :param pipeline_id: Id of a pipeline
         :return: A Pipeline object
         """
@@ -168,6 +174,11 @@ class BaseAutoML():
         return self.pipelines[pipeline_id].get_pipeline()
 
     def add_primitives(self, new_primitives):
+        """
+        Add new primitives.
+
+        :param new_primitives: Set of new primitives, tuples of name and object primitive
+        """
         for primitive_object, primitive_type in new_primitives:
             primitive_name = f'{primitive_object.__module__}.{primitive_object.__class__.__name__}'
             primitive_name = primitive_name.replace('__', '')  # Sklearn restriction on estimator names
@@ -176,15 +187,19 @@ class BaseAutoML():
 
     def get_leaderboard(self):
         """
-        Return the leaderboard
+        Return the leaderboard.
+
+        :return: The leaderboard
         """
         return self.leaderboard
 
     def plot_leaderboard(self, use_print=False):
         """
-        Plot the leaderboard
-        """
+        Plot the leaderboard.
 
+        :param use_print: Whether or not to use a regular print
+        :return: The leaderboard
+        """
         if len(self.pipelines) > 0:
             if use_print:
                 print(self.leaderboard.to_string(index=False))
@@ -195,8 +210,10 @@ class BaseAutoML():
 
     def plot_pipeline(self, pipeline_id=None, use_print=False):
         """
-        Plot a pipeline, if pipeline_id is None, return the best pipeline
+        Plot a pipeline, if pipeline_id is None, return the best pipeline.
+
         :param pipeline_id: Id of a pipeline
+        :param use_print: Whether or not to use a regular print
         """
         if pipeline_id is None:
             best_pipeline_id = PIPELINE_PREFIX + '1'
@@ -209,7 +226,10 @@ class BaseAutoML():
 
     def plot_comparison_pipelines(self, precomputed_pipelines=None, precomputed_primitive_types=None):
         """
-        Plot PipelineProfiler visualization
+        Plot PipelineProfiler visualization.
+
+        :param precomputed_pipelines: Pre-calculated list of pipelines
+        :param precomputed_primitive_types: Pre-calculated list of primitive types
         """
         if precomputed_pipelines is None and precomputed_primitive_types is None:
             pipelines, primitive_types = make_d3m_pipelines(self.pipelines, self.new_primitives, self.metric)
