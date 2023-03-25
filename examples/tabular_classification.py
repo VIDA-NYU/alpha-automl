@@ -1,11 +1,12 @@
 from alpha_automl import AutoMLClassifier
+from os.path import join, dirname
 import pandas as pd
 
 if __name__ == '__main__':
     # Read the datasets
-    output_path = '/Users/rlopez/D3M/tmp/'
-    train_dataset = pd.read_csv('/Users/rlopez/D3M/examples/datasets/299_libras_move/train_data.csv')
-    test_dataset = pd.read_csv('/Users/rlopez/D3M/examples/datasets/299_libras_move/test_data.csv')
+    output_path = join(dirname(__file__), 'tmp/')
+    train_dataset = pd.read_csv(join(dirname(__file__), 'datasets/299_libras_move/train_data.csv'))
+    test_dataset = pd.read_csv(join(dirname(__file__), 'datasets/299_libras_move/test_data.csv'))
 
     X_train = train_dataset.drop(columns=['class'])
     y_train = train_dataset[['class']]

@@ -1,11 +1,12 @@
 from alpha_automl import AutoMLRegressor
+from os.path import join, dirname
 import pandas as pd
 
 if __name__ == '__main__':
     # Read the datasets
-    output_path = '/Users/rlopez/D3M/tmp/'
-    train_dataset = pd.read_csv('/Users/rlopez/D3M/examples/datasets/196_autoMpg/train_data.csv')
-    test_dataset = pd.read_csv('/Users/rlopez/D3M/examples/datasets/196_autoMpg/test_data.csv')
+    output_path = join(dirname(__file__), 'tmp/')
+    train_dataset = pd.read_csv(join(dirname(__file__), 'datasets/196_autoMpg/train_data.csv'))
+    test_dataset = pd.read_csv(join(dirname(__file__), 'datasets/196_autoMpg/test_data.csv'))
 
     X_train = train_dataset.drop(columns=['class'])
     y_train = train_dataset[['class']]
