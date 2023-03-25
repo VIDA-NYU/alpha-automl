@@ -1,3 +1,4 @@
+import os
 import sys
 import logging
 import datetime
@@ -58,6 +59,8 @@ class BaseAutoML():
             for logger_name in logging.root.manager.loggerDict:
                 if logger_name not in ['alpha_automl', 'alpha_automl.automl_api']:
                     logging.getLogger(logger_name).setLevel(logging.CRITICAL)
+
+        os.makedirs(output_folder, exist_ok=True)
 
     def fit(self, X, y):
         """
