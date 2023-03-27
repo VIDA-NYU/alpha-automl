@@ -2,6 +2,7 @@ import signal
 import os
 import logging
 from os.path import join
+from alpha_automl.utils import hide_logs
 from alpha_automl.scorer import score_pipeline
 from alpha_automl.pipeline import Pipeline
 from alpha_automl.pipeline_search.Coach import Coach
@@ -51,7 +52,9 @@ def signal_handler(queue):
 
 
 def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, automl_hyperparams, metadata,
-                     output_folder, queue):
+                     output_folder, verbose, queue):
+    if not verbose:
+        hide_logs() # Hide logs here too, since multiprocessing has some issues with loggers
     signal.signal(signal.SIGALRM, lambda signum, frame: signal_handler(queue))
     signal.alarm(time_bound)
 

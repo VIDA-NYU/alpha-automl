@@ -1,5 +1,6 @@
 import logging
 import inspect
+import warnings
 import importlib
 import pandas as pd
 from sklearn.compose import ColumnTransformer
@@ -165,3 +166,10 @@ def get_primitive_params(primitive_object):
             params[param_name] = param_value
 
     return params
+
+def hide_logs():
+    # Hide all warnings and logs
+    warnings.filterwarnings('ignore')
+    for logger_name in logging.root.manager.loggerDict:
+        if logger_name not in ['alpha_automl', 'alpha_automl.automl_api']:
+            logging.getLogger(logger_name).setLevel(logging.CRITICAL)

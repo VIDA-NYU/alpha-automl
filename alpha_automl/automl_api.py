@@ -2,12 +2,11 @@ import os
 import sys
 import logging
 import datetime
-import warnings
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric
-from alpha_automl.utils import make_d3m_pipelines
+from alpha_automl.utils import make_d3m_pipelines, hide_logs
 from alpha_automl.visualization import plot_comparison_pipelines
 
 
@@ -51,14 +50,10 @@ class BaseAutoML():
         self.X = None
         self.y = None
         self.leaderboard = None
-        self.automl_manager = AutoMLManager(output_folder, time_bound, time_bound_run, task)
+        self.automl_manager = AutoMLManager(output_folder, time_bound, time_bound_run, task, verbose)
 
         if not verbose:
-            # Hide all warnings and logs
-            warnings.filterwarnings('ignore')
-            for logger_name in logging.root.manager.loggerDict:
-                if logger_name not in ['alpha_automl', 'alpha_automl.automl_api']:
-                    logging.getLogger(logger_name).setLevel(logging.CRITICAL)
+            hide_logs()
 
         os.makedirs(output_folder, exist_ok=True)
 

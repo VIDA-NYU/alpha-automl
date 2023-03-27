@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class AutoMLManager():
 
-    def __init__(self, output_folder, time_bound, time_bound_run, task):
+    def __init__(self, output_folder, time_bound, time_bound_run, task, verbose):
         self.output_folder = output_folder
         self.time_bound = time_bound * 60
         self.time_bound_run = time_bound_run * 60
@@ -30,6 +30,7 @@ class AutoMLManager():
         self.y = None
         self.scoring = None
         self.splitting_strategy = None
+        self.verbose = verbose
 
     def search_pipelines(self, X, y, scoring, splitting_strategy, automl_hyperparams=None):
         if automl_hyperparams is None:
@@ -77,7 +78,7 @@ class AutoMLManager():
         search_process = multiprocessing.Process(target=search_pipelines_proc,
                                                  args=(X, y, self.scoring, internal_splitting_strategy, self.task,
                                                        self.time_bound, automl_hyperparams, metadata,
-                                                       self.output_folder, queue
+                                                       self.output_folder, self.verbose, queue
                                                        )
                                                  )
 
