@@ -8,10 +8,11 @@ if __name__ == '__main__':
     train_dataset = pd.read_csv(join(dirname(__file__), 'datasets/196_autoMpg/train_data.csv'))
     test_dataset = pd.read_csv(join(dirname(__file__), 'datasets/196_autoMpg/test_data.csv'))
 
-    X_train = train_dataset.drop(columns=['class'])
-    y_train = train_dataset[['class']]
-    X_test = test_dataset.drop(columns=['class'])
-    y_test = test_dataset[['class']]
+    target_column = 'class'
+    X_train = train_dataset.drop(columns=[target_column])
+    y_train = train_dataset[[target_column]]
+    X_test = test_dataset.drop(columns=[target_column])
+    y_test = test_dataset[[target_column]]
 
     # Add settings
     automl = AutoMLRegressor(output_path, time_bound=10)

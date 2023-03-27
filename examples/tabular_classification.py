@@ -8,10 +8,11 @@ if __name__ == '__main__':
     train_dataset = pd.read_csv(join(dirname(__file__), 'datasets/299_libras_move/train_data.csv'))
     test_dataset = pd.read_csv(join(dirname(__file__), 'datasets/299_libras_move/test_data.csv'))
 
-    X_train = train_dataset.drop(columns=['class'])
-    y_train = train_dataset[['class']]
-    X_test = test_dataset.drop(columns=['class'])
-    y_test = test_dataset[['class']]
+    target_column = 'class'
+    X_train = train_dataset.drop(columns=[target_column])
+    y_train = train_dataset[[target_column]]
+    X_test = test_dataset.drop(columns=[target_column])
+    y_test = test_dataset[[target_column]]
 
     # Add settings
     automl = AutoMLClassifier(output_path, time_bound=10)
