@@ -2,8 +2,9 @@ import logging
 import time
 import multiprocessing
 from multiprocessing import set_start_method
-from alpha_automl.utils import sample_dataset, is_equal_splitting
+from alpha_automl.data_profiler import profile_data
 from alpha_automl.scorer import make_splitter, score_pipeline
+from alpha_automl.utils import sample_dataset, is_equal_splitting
 from alpha_automl.pipeline_synthesis.setup_search import search_pipelines as search_pipelines_proc
 
 
@@ -59,6 +60,7 @@ class AutoMLManager():
         if 'new_primitives' not in automl_hyperparams or automl_hyperparams['new_primitives'] is None:
             automl_hyperparams['new_primitives'] = NEW_PRIMITIVES
 
+        metadata = profile_data(self.X)
         X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE)
         internal_splitting_strategy = make_splitter(SPLITTING_STRATEGY)
         need_rescoring = True
@@ -74,7 +76,8 @@ class AutoMLManager():
         queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=search_pipelines_proc,
                                                  args=(X, y, self.scoring, internal_splitting_strategy, self.task,
-                                                       self.time_bound, automl_hyperparams, self.output_folder, queue
+                                                       self.time_bound, automl_hyperparams, metadata,
+                                                       self.output_folder, queue
                                                        )
                                                  )
 
