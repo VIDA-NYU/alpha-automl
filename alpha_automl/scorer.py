@@ -63,7 +63,7 @@ def make_splitter(splitting_strategy, splitting_strategy_kwargs=None):
                          f'instance of BaseCrossValidator, BaseShuffleSplit, RepeatedSplits.')
 
 
-def score_pipeline(pipeline, X, y, scoring, splitting_strategy, verbose=True):
+def score_pipeline(pipeline, X, y, scoring, splitting_strategy):
     score = None
     start_time = None
     end_time = None
@@ -76,8 +76,7 @@ def score_pipeline(pipeline, X, y, scoring, splitting_strategy, verbose=True):
         logger.info(f'Score: {score}')
     except Exception:
         logger.warning('Exception scoring a pipeline')
-        if verbose:
-            logger.warning('Detailed error:', exc_info=True)
+        logger.warning('Detailed error:', exc_info=True)
 
     return score, start_time, end_time
 
