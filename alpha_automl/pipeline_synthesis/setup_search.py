@@ -54,7 +54,7 @@ def signal_handler(queue):
 def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, automl_hyperparams, metadata,
                      output_folder, verbose, queue):
     if not verbose:
-        hide_logs() # Hide logs here too, since multiprocessing has some issues with loggers
+        hide_logs()  # Hide logs here too, since multiprocessing has some issues with loggers
     signal.signal(signal.SIGALRM, lambda signum, frame: signal_handler(queue))
     signal.alarm(time_bound)
 

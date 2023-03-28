@@ -167,6 +167,7 @@ def get_primitive_params(primitive_object):
 
     return params
 
+
 def hide_logs():
     # Hide all warnings and logs
     warnings.filterwarnings('ignore')
