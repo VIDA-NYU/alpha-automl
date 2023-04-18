@@ -21,7 +21,7 @@ PIPELINE_PREFIX = 'Pipeline #'
 class BaseAutoML():
 
     def __init__(self, output_folder, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
-                 metric_kwargs=None, split_strategy_kwargs=None, verbose=True):
+                 metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
         """
         Create/instantiate an BaseAutoML object.
 
@@ -83,7 +83,7 @@ class BaseAutoML():
                 pipelines.append(pipeline)
 
         if len(pipelines) == 0:
-            logger.info('No pipelines were found')
+            logger.warning('No pipelines were found')
             return
 
         logger.info(f'Found {len(pipelines)} pipelines')
@@ -108,6 +108,10 @@ class BaseAutoML():
         :param X: The training input samples, array-like or sparse matrix of shape = [n_samples, n_features]
         :return: The predictions
         """
+        if len(self.pipelines) == 0:
+            logger.warning('No pipelines were found')
+            return
+
         best_pipeline_id = PIPELINE_PREFIX + '1'
 
         return self._predict(X, best_pipeline_id)
@@ -120,6 +124,10 @@ class BaseAutoML():
         :param y: The target classes, array-like, shape = [n_samples] or [n_samples, n_outputs]
         :return: A dict with metric and performance
         """
+        if len(self.pipelines) == 0:
+            logger.warning('No pipelines were found')
+            return
+
         best_pipeline_id = PIPELINE_PREFIX + '1'
 
         return self._score(X, y, best_pipeline_id)
@@ -252,7 +260,7 @@ class BaseAutoML():
 class AutoMLClassifier(BaseAutoML):
 
     def __init__(self, output_folder, time_bound=15, metric='accuracy', split_strategy='holdout', time_bound_run=5,
-                 metric_kwargs=None, split_strategy_kwargs=None, verbose=True):
+                 metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
         """
         Create/instantiate an AutoMLClassifier object
 
