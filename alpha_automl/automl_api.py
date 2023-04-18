@@ -21,7 +21,7 @@ PIPELINE_PREFIX = 'Pipeline #'
 class BaseAutoML():
 
     def __init__(self, output_folder, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
-                 metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
+                 metric_kwargs=None, split_strategy_kwargs=None, verbose=True):
         """
         Create/instantiate an BaseAutoML object.
 
@@ -252,7 +252,7 @@ class BaseAutoML():
 class AutoMLClassifier(BaseAutoML):
 
     def __init__(self, output_folder, time_bound=15, metric='accuracy', split_strategy='holdout', time_bound_run=5,
-                 metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
+                 metric_kwargs=None, split_strategy_kwargs=None, verbose=True):
         """
         Create/instantiate an AutoMLClassifier object
 
