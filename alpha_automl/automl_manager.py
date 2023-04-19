@@ -46,20 +46,7 @@ class AutoMLManager():
 
     def _search_pipelines(self, automl_hyperparams):
         search_start_time = time.time()
-        if 'use_automatic_grammar' not in automl_hyperparams:
-            automl_hyperparams['use_automatic_grammar'] = USE_AUTOMATIC_GRAMMAR
-
-        if 'prioritize_primitives' not in automl_hyperparams:
-            automl_hyperparams['prioritize_primitives'] = PRIORITIZE_PRIMITIVES
-
-        if 'include_primitives' not in automl_hyperparams or automl_hyperparams['include_primitives'] is None:
-            automl_hyperparams['include_primitives'] = INCLUDE_PRIMITIVES
-
-        if 'exclude_primitives' not in automl_hyperparams or automl_hyperparams['exclude_primitives'] is None:
-            automl_hyperparams['exclude_primitives'] = EXCLUDE_PRIMITIVES
-
-        if 'new_primitives' not in automl_hyperparams or automl_hyperparams['new_primitives'] is None:
-            automl_hyperparams['new_primitives'] = NEW_PRIMITIVES
+        automl_hyperparams = self.check_automl_hyperparams(automl_hyperparams)
 
         metadata = profile_data(self.X)
         X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE)
@@ -118,3 +105,21 @@ class AutoMLManager():
                 logger.info(f'Found {found_pipelines} pipelines')
                 logger.info('Reached search timeout')
                 break
+
+    def check_automl_hyperparams(self, automl_hyperparams):
+        if 'use_automatic_grammar' not in automl_hyperparams:
+            automl_hyperparams['use_automatic_grammar'] = USE_AUTOMATIC_GRAMMAR
+
+        if 'prioritize_primitives' not in automl_hyperparams:
+            automl_hyperparams['prioritize_primitives'] = PRIORITIZE_PRIMITIVES
+
+        if 'include_primitives' not in automl_hyperparams or automl_hyperparams['include_primitives'] is None:
+            automl_hyperparams['include_primitives'] = INCLUDE_PRIMITIVES
+
+        if 'exclude_primitives' not in automl_hyperparams or automl_hyperparams['exclude_primitives'] is None:
+            automl_hyperparams['exclude_primitives'] = EXCLUDE_PRIMITIVES
+
+        if 'new_primitives' not in automl_hyperparams or automl_hyperparams['new_primitives'] is None:
+            automl_hyperparams['new_primitives'] = NEW_PRIMITIVES
+
+        return automl_hyperparams
