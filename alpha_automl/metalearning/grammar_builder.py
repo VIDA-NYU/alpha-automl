@@ -237,6 +237,12 @@ def calculate_adtm(pipelines):
             if pipeline_data['score'] > pipeline_performances[id_pipeline][id_dataset]:
                 pipeline_performances[id_pipeline][id_dataset] = pipeline_data['score']
 
+    add_adtm(pipelines, pipeline_performances, dataset_performaces)
+
+    return pipelines
+
+
+def add_adtm(pipelines, pipeline_performances, dataset_performaces):
     for pipeline_data in pipelines:
         id_pipeline = pipeline_data['pipeline_repr']
         id_dataset_pipeline = pipeline_data['dataset'] + '_' + pipeline_data['metric']
@@ -256,8 +262,6 @@ def calculate_adtm(pipelines):
 
         adtm = dtm / len(pipeline_performances[id_pipeline])
         pipeline_data['adtm'] = adtm
-
-    return pipelines
 
 
 def merge_patterns(grammar_patterns):
