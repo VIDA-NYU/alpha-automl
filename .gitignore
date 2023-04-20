@@ -52,3 +52,6 @@ desktop.ini
 
 # Vagrant
 .vagrant
+
+# nn_cache
+tmp

@@ -25,7 +25,10 @@
         "sklearn.cluster.AgglomerativeClustering"
     ],
     "DATETIME_ENCODER": [
-        "sklearn.preprocessing.OrdinalEncoder"
+        "sklearn.preprocessing.OrdinalEncoder",
+	    "alpha_automl.builtin_primitives.CyclicalFeature",
+        "alpha_automl.builtin_primitives.Datetime64ExpandEncoder",
+        "alpha_automl.builtin_primitives.DummyEncoder"
     ],
     "FEATURE_SCALING": [
         "sklearn.preprocessing.MaxAbsScaler",
