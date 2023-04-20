@@ -15,7 +15,7 @@ def profile_data(X):
     mapping_encoders = {CATEGORICAL_COLUMN: 'CATEGORICAL_ENCODER', DATETIME_COLUMN: 'DATETIME_ENCODER',
                         TEXT_COLUMN: 'TEXT_ENCODER'}
 
-    profiled_data = datamart_profiler.process_dataset(X, coverage=False)
+    profiled_data = datamart_profiler.process_dataset(X, coverage=False, indexes=False)
 
     for index_column, profiled_column in enumerate(profiled_data['columns']):
         column_name = profiled_column['name']
