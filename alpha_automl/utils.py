@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 
 COLUMN_TRANSFORMER_ID = 'sklearn.compose.ColumnTransformer'
 COLUMN_SELECTOR_ID = 'ColumnSelector'
+NATIVE_PRIMITIVE = 'native'
+ADDED_PRIMITIVE = 'added'
 RANDOM_SEED = 0
 
 

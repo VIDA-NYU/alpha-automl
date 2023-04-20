@@ -4,7 +4,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
 from sklearn.compose import ColumnTransformer
-from alpha_automl.utils import create_object, COLUMN_TRANSFORMER_ID, COLUMN_SELECTOR_ID
+from alpha_automl.utils import create_object, COLUMN_TRANSFORMER_ID, COLUMN_SELECTOR_ID, NATIVE_PRIMITIVE, \
+    ADDED_PRIMITIVE
 from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 
 logger = logging.getLogger(__name__)
@@ -27,10 +28,12 @@ class BaseBuilder:
         self.all_primitives = {}
 
         for primitive_name in PRIMITIVE_TYPES:
-            self.all_primitives[primitive_name] = PRIMITIVE_TYPES[primitive_name]
+            primitive_type = PRIMITIVE_TYPES[primitive_name]
+            self.all_primitives[primitive_name] = {'type': primitive_type, 'origin': NATIVE_PRIMITIVE}
 
         for primitive_name in automl_hyperparams['new_primitives']:
-            self.all_primitives[primitive_name] = automl_hyperparams['new_primitives'][primitive_name]['primitive_type']
+            primitive_type = automl_hyperparams['new_primitives'][primitive_name]['primitive_type']
+            self.all_primitives[primitive_name] = {'type': primitive_type, 'origin': ADDED_PRIMITIVE}
 
     def make_pipeline(self, primitives):
         pipeline_primitives = self.make_primitive_objects(primitives)
@@ -60,13 +63,13 @@ class BaseBuilder:
 
         for primitive in primitives:
             primitive_name = primitive
-            if primitive_name.startswith('sklearn.'):  # It's a regular sklearn primitive
+            if self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
                 primitive_object = create_object(primitive)
             else:
                 primitive_object = self.automl_hyperparams['new_primitives'][primitive_name]['primitive_object']
 
             change_default_hyperparams(primitive_object)
-            primitive_type = self.all_primitives[primitive_name]
+            primitive_type = self.all_primitives[primitive_name]['type']
 
             if primitive_type in nonnumeric_columns:  # Create a  new transformer and add it to the list
                 transformers += self.create_transformers(primitive_object, primitive_name, primitive_type)
