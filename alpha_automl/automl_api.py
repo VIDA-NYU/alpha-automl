@@ -5,7 +5,7 @@ import datetime
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from alpha_automl.automl_manager import AutoMLManager
-from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric
+from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting
 from alpha_automl.utils import make_d3m_pipelines, hide_logs
 from alpha_automl.visualization import plot_comparison_pipelines
 
@@ -21,19 +21,22 @@ PIPELINE_PREFIX = 'Pipeline #'
 class BaseAutoML():
 
     def __init__(self, output_folder, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
-                 metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
+                 score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
         """
         Create/instantiate an BaseAutoML object.
 
         :param output_folder: Path to the output directory
         :param time_bound: Limit time in minutes to perform the search
-        :param metric: A str (see model evaluation documentation in sklearn) or a scorer callable object/function
-        :param split_strategy: Method to score the pipeline: `holdout, cross_validation or an instance of
-            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits`
+        :param metric: A str (see model evaluation documentation in sklearn) or a callable object/function
+        :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
+            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits
         :param time_bound_run: Limit time in minutes to score a pipeline
         :param task: The task to be solved
+        :param score_sorting: The sort used to order the scores. It could be `auto` or `ascending` or `descending`.
+            `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
         :param metric_kwargs: Additional arguments for metric
         :param split_strategy_kwargs: Additional arguments for splitting_strategy
+        :param verbose: Whether or not to show additional logs
         """
 
         self.output_folder = output_folder
@@ -44,6 +47,7 @@ class BaseAutoML():
         self.split_strategy = split_strategy
         self.split_strategy_kwargs = split_strategy_kwargs
         self.scorer = make_scorer(metric, metric_kwargs)
+        self.score_sorting = score_sorting
         self.splitter = make_splitter(split_strategy, split_strategy_kwargs)
         self.pipelines = {}
         self.new_primitives = {}
@@ -87,7 +91,8 @@ class BaseAutoML():
             return
 
         logger.info(f'Found {len(pipelines)} pipelines')
-        sorted_pipelines = sorted(pipelines, key=lambda x: x.get_score(), reverse=True)  # TODO: Improve this sorting
+        sign = get_sign_sorting(self.scorer._score_func, self.score_sorting)
+        sorted_pipelines = sorted(pipelines, key=lambda x: x.get_score() * sign, reverse=True)
 
         leaderboard_data = []
         for index, pipeline in enumerate(sorted_pipelines, start=1):
@@ -207,7 +212,8 @@ class BaseAutoML():
             if use_print:
                 print(self.leaderboard.to_string(index=False))
             else:
-                return self.leaderboard.style.hide_index()
+                decimal_format = {self.metric: '{:.3f}'}
+                return self.leaderboard.style.format(decimal_format).hide_index()
         else:
             logger.info('No pipelines were found')
 
@@ -235,7 +241,8 @@ class BaseAutoML():
         :param precomputed_primitive_types: Pre-calculated list of primitive types
         """
         if precomputed_pipelines is None and precomputed_primitive_types is None:
-            pipelines, primitive_types = make_d3m_pipelines(self.pipelines, self.new_primitives, self.metric)
+            sign = get_sign_sorting(self.scorer._score_func, self.score_sorting)
+            pipelines, primitive_types = make_d3m_pipelines(self.pipelines, self.new_primitives, self.metric, sign)
             plot_comparison_pipelines(pipelines, primitive_types)
         else:
             plot_comparison_pipelines(precomputed_pipelines, precomputed_primitive_types)
@@ -259,25 +266,28 @@ class BaseAutoML():
 
 class AutoMLClassifier(BaseAutoML):
 
-    def __init__(self, output_folder, time_bound=15, metric='accuracy', split_strategy='holdout', time_bound_run=5,
-                 metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
+    def __init__(self, output_folder, time_bound=15, metric='accuracy_score', split_strategy='holdout',
+                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
         """
-        Create/instantiate an AutoMLClassifier object
+        Create/instantiate an AutoMLClassifier object.
 
         :param output_folder: Path to the output directory
         :param time_bound: Limit time in minutes to perform the search
-        :param metric: A str (see model evaluation documentation in sklearn) or a scorer callable object/function
-        :param split_strategy: Method to score the pipeline: `holdout, cross_validation or an instance of
-            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits. `
+        :param metric: A str (see model evaluation documentation in sklearn) or a callable object/function
+        :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
+            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits
         :param time_bound_run: Limit time in minutes to score a pipeline
+        :param score_sorting: The sort used to order the scores. It could be `auto` or `ascending` or `descending`.
+            `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
         :param metric_kwargs: Additional arguments for metric
         :param split_strategy_kwargs: Additional arguments for splitting_strategy
+        :param verbose: Whether or not to show additional logs
         """
 
         self.label_enconder = LabelEncoder()
         task = 'CLASSIFICATION'
-        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, metric_kwargs,
-                         split_strategy_kwargs, verbose)
+        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
+                         metric_kwargs, split_strategy_kwargs, verbose)
 
     def fit(self, X, y):
         y = self.label_enconder.fit_transform(y)
@@ -309,21 +319,24 @@ class AutoMLClassifier(BaseAutoML):
 
 class AutoMLRegressor(BaseAutoML):
 
-    def __init__(self, output_folder, time_bound=15, metric='max_error', split_strategy='holdout', time_bound_run=5,
-                 metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
+    def __init__(self, output_folder, time_bound=15, metric='mean_absolute_error', split_strategy='holdout',
+                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
         """
-        Create/instantiate an AutoMLRegressor object
+        Create/instantiate an AutoMLRegressor object.
 
         :param output_folder: Path to the output directory
         :param time_bound: Limit time in minutes to perform the search
-        :param metric: A str (see model evaluation documentation in sklearn) or a scorer callable object/function
-        :param split_strategy: Method to score the pipeline: `holdout, cross_validation or an instance of
-            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits. `
+        :param metric: A str (see model evaluation documentation in sklearn) or a callable object/function
+        :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
+            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits
         :param time_bound_run: Limit time in minutes to score a pipeline
+        :param score_sorting: The sort used to order the scores. It could be `auto` or `ascending` or `descending`.
+            `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
         :param metric_kwargs: Additional arguments for metric
         :param split_strategy_kwargs: Additional arguments for splitting_strategy
+        :param verbose: Whether or not to show additional logs
         """
 
         task = 'REGRESSION'
-        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, metric_kwargs,
-                         split_strategy_kwargs, verbose)
+        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
+                         metric_kwargs, split_strategy_kwargs, verbose)
