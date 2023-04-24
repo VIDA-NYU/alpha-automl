@@ -7,6 +7,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split
 from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 
+
 logger = logging.getLogger(__name__)
 
 COLUMN_TRANSFORMER_ID = 'sklearn.compose.ColumnTransformer'
@@ -60,7 +61,7 @@ def is_equal_splitting(strategy1, strategy2):
         return False
 
 
-def make_d3m_pipelines(pipelines, new_primitives, metric, source_name='Pipeline'):
+def make_d3m_pipelines(pipelines, new_primitives, metric, ordering_sign, source_name='Pipeline'):
     d3m_pipelines = []
     primitive_types = {}
 
@@ -84,7 +85,7 @@ def make_d3m_pipelines(pipelines, new_primitives, metric, source_name='Pipeline'
             'start': pipeline.get_start_time(),
             'end': pipeline.get_end_time(),
             'scores': [{'metric': {'metric': metric}, 'value': pipeline.get_score(),
-                        'normalized': pipeline.get_score()}],
+                        'normalized': pipeline.get_score() * ordering_sign}],
             'pipeline_source': {'name': source_name},
         }
 
