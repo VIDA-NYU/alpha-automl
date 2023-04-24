@@ -5,3 +5,4 @@ nltk
 pipelineprofiler
 pandas
 datamart_profiler
+feature_engine
