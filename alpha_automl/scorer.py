@@ -1,22 +1,69 @@
 import logging
 import datetime
 import numpy as np
-from sklearn.metrics import SCORERS, get_scorer, make_scorer as make_scorer_sk
-from sklearn.model_selection import BaseCrossValidator, KFold, ShuffleSplit, cross_val_score
+from sklearn.metrics import make_scorer as make_scorer_sk
 from sklearn.model_selection._split import BaseShuffleSplit, _RepeatedSplits
+from sklearn.model_selection import BaseCrossValidator, KFold, ShuffleSplit, cross_val_score
 from alpha_automl.utils import RANDOM_SEED
+from sklearn.metrics import accuracy_score, f1_score, jaccard_score, precision_score, recall_score,\
+    max_error, mean_absolute_error, mean_squared_error, mean_squared_log_error, median_absolute_error, r2_score,\
+    adjusted_mutual_info_score, rand_score, mutual_info_score, normalized_mutual_info_score
+
 
 logger = logging.getLogger(__name__)
 
+METRICS = {
+    # Classification metrics
+    'accuracy_score': accuracy_score,
+    'f1_score': f1_score,
+    'precision_score': precision_score,
+    'recall_score': recall_score,
+    'jaccard_score': jaccard_score,
+    # Regression metrics
+    'max_error': max_error,
+    'mean_absolute_error': mean_absolute_error,
+    'mean_squared_error': mean_squared_error,
+    'mean_squared_log_error': mean_squared_log_error,
+    'median_absolute_error': median_absolute_error,
+    'r2_score': r2_score,
+    # Clustering metrics
+    'adjusted_mutual_info_score': adjusted_mutual_info_score,
+    'rand_score': rand_score,
+    'mutual_info_score': mutual_info_score,
+    'normalized_mutual_info_score': normalized_mutual_info_score
+}
+
+# How metrics should be order to get the best scores
+METRICS_ORDERING = {
+    # Classification metrics
+    accuracy_score: 'ascending',
+    f1_score: 'ascending',
+    precision_score: 'ascending',
+    recall_score: 'ascending',
+    jaccard_score: 'ascending',
+    # Regression metrics
+    max_error: 'descending',
+    mean_absolute_error: 'descending',
+    mean_squared_error: 'descending',
+    mean_squared_log_error: 'descending',
+    median_absolute_error: 'descending',
+    r2_score: 'ascending',
+    # Clustering metrics
+    adjusted_mutual_info_score: 'ascending',
+    rand_score: 'ascending',
+    mutual_info_score: 'ascending',
+    normalized_mutual_info_score: 'ascending'
+}
+
 
 def make_scorer(metric, metric_kwargs=None):
-    if isinstance(metric, str) and metric in SCORERS.keys():
-        return get_scorer(metric)
+    if metric_kwargs is None:
+        metric_kwargs = {}
+
+    if isinstance(metric, str) and metric in METRICS:
+        return make_scorer_sk(METRICS[metric], **metric_kwargs)
 
     elif callable(metric):
-        if metric_kwargs is None:
-            metric_kwargs = {}
-
         module = getattr(metric, '__module__', '')
         if module.startswith('sklearn.metrics._scorer'):  # Heuristic to know if it is a sklearn scorer
             return metric
@@ -25,8 +72,8 @@ def make_scorer(metric, metric_kwargs=None):
             return make_scorer_sk(metric, **metric_kwargs)
 
     else:
-        raise ValueError(f'Unknown "{metric}" metric, you should choose among: {list(SCORERS.keys())} or a scorer '
-                         f'callable object/function')
+        raise ValueError(f'Unknown "{metric}" metric, you should choose among: {list(METRICS.keys())} or a callable '
+                         f'object/function')
 
 
 def make_splitter(splitting_strategy, splitting_strategy_kwargs=None):
@@ -88,3 +135,24 @@ def make_str_metric(metric):
         return metric.__name__
     else:
         return str(metric)
+
+
+def get_sign_sorting(metric, suggested_sorting_mode):
+    # This sign is used to follow the convention that higher values are better values
+    sorting_mode = None
+    if suggested_sorting_mode == 'auto' and metric in METRICS_ORDERING:
+        sorting_mode = METRICS_ORDERING[metric]
+    elif suggested_sorting_mode in {'ascending', 'descending'} and metric in METRICS_ORDERING:
+        logger.warning('You are specifying a mode to order a built-in metric')
+        sorting_mode = suggested_sorting_mode
+    elif suggested_sorting_mode == 'auto' and metric not in METRICS_ORDERING:
+        logger.warning('You should specify the mode to order the scores for your defined metric. Using "ascending".')
+        sorting_mode = 'ascending'
+    elif suggested_sorting_mode in {'ascending', 'descending'} and metric not in METRICS_ORDERING:
+        sorting_mode = suggested_sorting_mode
+    else:
+        raise ValueError(f'Unknown "{suggested_sorting_mode}" sorting mode.')
+
+    sign = 1 if sorting_mode == 'ascending' else -1
+
+    return sign
