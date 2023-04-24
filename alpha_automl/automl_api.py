@@ -27,7 +27,7 @@ class BaseAutoML():
 
         :param output_folder: Path to the output directory
         :param time_bound: Limit time in minutes to perform the search
-        :param metric: A str (see model evaluation documentation in sklearn) or a callable object/function
+        :param metric: A str (see in the documentation the list of available metrics) or a callable object/function
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
             BaseCrossValidator, BaseShuffleSplit, RepeatedSplits
         :param time_bound_run: Limit time in minutes to score a pipeline
@@ -273,7 +273,7 @@ class AutoMLClassifier(BaseAutoML):
 
         :param output_folder: Path to the output directory
         :param time_bound: Limit time in minutes to perform the search
-        :param metric: A str (see model evaluation documentation in sklearn) or a callable object/function
+        :param metric: A str (see in the documentation the list of available metrics) or a callable object/function
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
             BaseCrossValidator, BaseShuffleSplit, RepeatedSplits
         :param time_bound_run: Limit time in minutes to score a pipeline
@@ -326,7 +326,7 @@ class AutoMLRegressor(BaseAutoML):
 
         :param output_folder: Path to the output directory
         :param time_bound: Limit time in minutes to perform the search
-        :param metric: A str (see model evaluation documentation in sklearn) or a callable object/function
+        :param metric: A str (see in the documentation the list of available metrics) or a callable object/function
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
             BaseCrossValidator, BaseShuffleSplit, RepeatedSplits
         :param time_bound_run: Limit time in minutes to score a pipeline
