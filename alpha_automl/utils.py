@@ -2,6 +2,8 @@ import logging
 import inspect
 import warnings
 import importlib
+import torch
+import platform
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.model_selection import train_test_split
@@ -177,3 +179,38 @@ def hide_logs():
     for logger_name in logging.root.manager.loggerDict:
         if logger_name not in ['alpha_automl', 'alpha_automl.automl_api']:
             logging.getLogger(logger_name).setLevel(logging.CRITICAL)
+
+
+def get_start_method(suggested_method):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    operating_system = platform.system() != 'Windows'
+
+    if suggested_method == 'auto':
+        if device != 'cuda' and operating_system != 'Windows':
+            return 'fork'
+
+        elif device == 'cuda':
+            logger.info('You must run Alpha-AutoML inside "if __name__ == "__main__":" clause. If you add your custom'
+                        'metrics, splitters or primitives, they must be imported from external modules.')
+            return 'spawn'
+
+        elif operating_system == 'Windows':
+            logger.info('You must run Alpha-AutoML inside "if __name__ == "__main__":" clause. If you add your custom'
+                        'metrics, splitters or primitives, they must be imported from external modules.')
+            return 'spawn'
+
+    elif suggested_method == 'fork':
+        if device == 'cuda':
+            raise ValueError('Cuda does not support "fork" method. Use "spawn".')
+        elif operating_system == 'Windows':
+            raise ValueError('Windows does not support "fork" method. Use "spawn".')
+        else:
+            return suggested_method
+
+    elif suggested_method == 'spawn':
+        if operating_system != 'Windows':
+            logger.info('We recommend to use "fork" in non-Windows platforms.')
+            logger.info('You must run Alpha-AutoML inside "if __name__ == "__main__":" clause. If you add your custom'
+                        'metrics, splitters or primitives, they must be imported from external modules.')
+
+        return suggested_method

@@ -3,16 +3,16 @@ import sys
 import logging
 import datetime
 import pandas as pd
+from multiprocessing import set_start_method
 from sklearn.preprocessing import LabelEncoder
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting
-from alpha_automl.utils import make_d3m_pipelines, hide_logs
+from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method
 from alpha_automl.visualization import plot_comparison_pipelines
 
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 logger = logging.getLogger(__name__)
-
 
 AUTOML_NAME = 'AlphaAutoML'
 PIPELINE_PREFIX = 'Pipeline #'
@@ -21,7 +21,8 @@ PIPELINE_PREFIX = 'Pipeline #'
 class BaseAutoML():
 
     def __init__(self, output_folder, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
-                 score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
+                 score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, start_mode='auto',
+                 verbose=False):
         """
         Create/instantiate an BaseAutoML object.
 
@@ -32,10 +33,11 @@ class BaseAutoML():
             BaseCrossValidator, BaseShuffleSplit, RepeatedSplits
         :param time_bound_run: Limit time in minutes to score a pipeline
         :param task: The task to be solved
-        :param score_sorting: The sort used to order the scores. It could be `auto` or `ascending` or `descending`.
+        :param score_sorting: The sort used to order the scores. It could be `auto`, `ascending` or `descending`.
             `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
         :param metric_kwargs: Additional arguments for metric
-        :param split_strategy_kwargs: Additional arguments for splitting_strategy
+        :param split_strategy_kwargs: Additional arguments for splitting_strategy.
+        :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: Whether or not to show additional logs
         """
 
@@ -60,6 +62,8 @@ class BaseAutoML():
             hide_logs()
 
         os.makedirs(output_folder, exist_ok=True)
+        start_method = get_start_method(start_mode)
+        set_start_method(start_method, force=True)
 
     def fit(self, X, y):
         """
@@ -267,27 +271,29 @@ class BaseAutoML():
 class AutoMLClassifier(BaseAutoML):
 
     def __init__(self, output_folder, time_bound=15, metric='accuracy_score', split_strategy='holdout',
-                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
+                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
+                 start_mode='auto', verbose=False):
         """
         Create/instantiate an AutoMLClassifier object.
 
-        :param output_folder: Path to the output directory
-        :param time_bound: Limit time in minutes to perform the search
-        :param metric: A str (see in the documentation the list of available metrics) or a callable object/function
+        :param output_folder: Path to the output directory.
+        :param time_bound: Limit time in minutes to perform the search.
+        :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
-            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits
-        :param time_bound_run: Limit time in minutes to score a pipeline
-        :param score_sorting: The sort used to order the scores. It could be `auto` or `ascending` or `descending`.
+            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits.
+        :param time_bound_run: Limit time in minutes to score a pipeline.
+        :param score_sorting: The sort used to order the scores. It could be `auto`, `ascending` or `descending`.
             `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
-        :param metric_kwargs: Additional arguments for metric
-        :param split_strategy_kwargs: Additional arguments for splitting_strategy
-        :param verbose: Whether or not to show additional logs
+        :param metric_kwargs: Additional arguments for metric.
+        :param split_strategy_kwargs: Additional arguments for splitting_strategy.
+        :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
+        :param verbose: Whether or not to show additional logs.
         """
 
         self.label_enconder = LabelEncoder()
         task = 'CLASSIFICATION'
         super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
-                         metric_kwargs, split_strategy_kwargs, verbose)
+                         metric_kwargs, split_strategy_kwargs, start_mode, verbose)
 
     def fit(self, X, y):
         y = self.label_enconder.fit_transform(y)
@@ -320,23 +326,25 @@ class AutoMLClassifier(BaseAutoML):
 class AutoMLRegressor(BaseAutoML):
 
     def __init__(self, output_folder, time_bound=15, metric='mean_absolute_error', split_strategy='holdout',
-                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, verbose=False):
+                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
+                 start_mode='auto', verbose=False):
         """
         Create/instantiate an AutoMLRegressor object.
 
-        :param output_folder: Path to the output directory
-        :param time_bound: Limit time in minutes to perform the search
-        :param metric: A str (see in the documentation the list of available metrics) or a callable object/function
+        :param output_folder: Path to the output directory.
+        :param time_bound: Limit time in minutes to perform the search.
+        :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
-            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits
-        :param time_bound_run: Limit time in minutes to score a pipeline
-        :param score_sorting: The sort used to order the scores. It could be `auto` or `ascending` or `descending`.
+            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits.
+        :param time_bound_run: Limit time in minutes to score a pipeline.
+        :param score_sorting: The sort used to order the scores. It could be `auto`, `ascending` or `descending`.
             `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
-        :param metric_kwargs: Additional arguments for metric
-        :param split_strategy_kwargs: Additional arguments for splitting_strategy
-        :param verbose: Whether or not to show additional logs
+        :param metric_kwargs: Additional arguments for metric.
+        :param split_strategy_kwargs: Additional arguments for splitting_strategy.
+        :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
+        :param verbose: Whether or not to show additional logs.
         """
 
         task = 'REGRESSION'
         super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
-                         metric_kwargs, split_strategy_kwargs, verbose)
+                         metric_kwargs, split_strategy_kwargs, start_mode, verbose)
