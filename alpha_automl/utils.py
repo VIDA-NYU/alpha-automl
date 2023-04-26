@@ -182,8 +182,8 @@ def hide_logs():
 
 
 def get_start_method(suggested_method):
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    operating_system = platform.system() != 'Windows'
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    operating_system = platform.system()
 
     if suggested_method == 'auto':
         if device != 'cuda' and operating_system != 'Windows':
