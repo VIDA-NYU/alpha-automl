@@ -190,12 +190,12 @@ def get_start_method(suggested_method):
             return 'fork'
 
         elif device == 'cuda':
-            logger.info('You must run Alpha-AutoML inside "if __name__ == "__main__":" clause. If you add your custom'
+            logger.info('You must run Alpha-AutoML inside "if __name__ == "__main__":" clause. If you add your custom '
                         'metrics, splitters or primitives, they must be imported from external modules.')
             return 'spawn'
 
         elif operating_system == 'Windows':
-            logger.info('You must run Alpha-AutoML inside "if __name__ == "__main__":" clause. If you add your custom'
+            logger.info('You must run Alpha-AutoML inside "if __name__ == "__main__":" clause. If you add your custom '
                         'metrics, splitters or primitives, they must be imported from external modules.')
             return 'spawn'
 
@@ -210,7 +210,7 @@ def get_start_method(suggested_method):
     elif suggested_method == 'spawn':
         if operating_system != 'Windows':
             logger.info('We recommend to use "fork" in non-Windows platforms.')
-            logger.info('You must run Alpha-AutoML inside "if __name__ == "__main__":" clause. If you add your custom'
+            logger.info('You must run Alpha-AutoML inside "if __name__ == "__main__":" clause. If you add your custom '
                         'metrics, splitters or primitives, they must be imported from external modules.')
 
         return suggested_method
