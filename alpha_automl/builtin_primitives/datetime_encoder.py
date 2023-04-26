@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
 from feature_engine.creation import CyclicalFeatures
-from sklearn.base import BaseEstimator, TransformerMixin
+from alpha_automl.base_primitive import BasePrimitive
 
 
-class CyclicalFeature(BaseEstimator, TransformerMixin):
+class CyclicalFeature(BasePrimitive):
     """This is a datetime encoder using feature_engine.CyclicalFeatures(TM)
     Input:
         method: "cosine" or "sine", determines fitting the timestamp to cosine wave or sine wave. Cosine by default.
@@ -64,7 +64,7 @@ class CyclicalFeature(BaseEstimator, TransformerMixin):
         return df
 
 
-class Datetime64ExpandEncoder(BaseEstimator, TransformerMixin):
+class Datetime64ExpandEncoder(BasePrimitive):
     def fit(self, X, y=None):
         return self
 
@@ -88,7 +88,7 @@ class Datetime64ExpandEncoder(BaseEstimator, TransformerMixin):
         return df
 
 
-class DummyEncoder(BaseEstimator, TransformerMixin):
+class DummyEncoder(BasePrimitive):
     """dummy variables approach"""
 
     def fit(self, X, y=None):
