@@ -2,7 +2,7 @@
     "CATEGORICAL_ENCODER": [
         "sklearn.preprocessing.OneHotEncoder"
     ],
-    "CLASSIFICATION": [
+    "CLASSIFIER": [
         "sklearn.discriminant_analysis.LinearDiscriminantAnalysis",
         "sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis",
         "sklearn.ensemble.BaggingClassifier",
@@ -20,7 +20,7 @@
         "sklearn.svm.SVC",
         "sklearn.tree.DecisionTreeClassifier"
     ],
-    "CLUSTERING": [
+    "CLUSTERER": [
         "sklearn.cluster.KMeans",
         "sklearn.cluster.AgglomerativeClustering"
     ],
@@ -30,20 +30,20 @@
         "alpha_automl.builtin_primitives.Datetime64ExpandEncoder",
         "alpha_automl.builtin_primitives.DummyEncoder"
     ],
-    "FEATURE_SCALING": [
+    "FEATURE_SCALER": [
         "sklearn.preprocessing.MaxAbsScaler",
         "sklearn.preprocessing.RobustScaler",
         "sklearn.preprocessing.StandardScaler"
     ],
-    "FEATURE_SELECTION": [
+    "FEATURE_SELECTOR": [
         "sklearn.feature_selection.GenericUnivariateSelect",
         "sklearn.feature_selection.SelectPercentile",
         "sklearn.feature_selection.SelectKBest"
     ],
-    "IMPUTATION": [
+    "IMPUTER": [
         "sklearn.impute.SimpleImputer"
     ],
-    "REGRESSION": [
+    "REGRESSOR": [
         "sklearn.linear_model.ARDRegression",
         "sklearn.tree.DecisionTreeRegressor",
         "sklearn.ensemble.ExtraTreesRegressor",

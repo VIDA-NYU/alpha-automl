@@ -119,9 +119,9 @@ def modify_manual_grammar(encoders, use_imputer):
                     production_rule = f'ENCODERS -> {" ".join(encoders)}\n'
                 else:
                     production_rule = "ENCODERS -> 'E'\n"
-            elif production_rule.startswith('IMPUTATION -> '):
+            elif production_rule.startswith('IMPUTER -> '):
                 if not use_imputer:
-                    production_rule = "IMPUTATION -> 'E'\n"
+                    production_rule = "IMPUTER -> 'E'\n"
             new_grammar += production_rule
 
     return new_grammar
