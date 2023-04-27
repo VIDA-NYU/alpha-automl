@@ -5,8 +5,8 @@ from alpha_automl.pipeline_search.NeuralNet import NeuralNet
 import torch
 import torch.optim as optim
 from torch.autograd import Variable
-
 from alpha_automl.pipeline_search.pipeline.PipelineNNet import PipelineNNet as onnet
+
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +15,10 @@ args = dict({
     'dropout': 0.3,
     'epochs': 2,
     'batch_size': 64,
-    'cuda': False,
     'num_channels': 512,
 })
+
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
 class NNetWrapper(NeuralNet):
@@ -25,7 +26,7 @@ class NNetWrapper(NeuralNet):
         self.nnet = onnet(game, args)
         self.action_size = game.getActionSize()
         self.board_size = game.getBoardSize()
-        if args.get('cuda'):
+        if device == 'cuda':
             self.nnet.cuda()
 
     def train(self, examples):
@@ -55,7 +56,7 @@ class NNetWrapper(NeuralNet):
                 target_vs = torch.FloatTensor(np.array(vs).astype(np.float64))
 
                 #  predict
-                if args.get('cuda'):
+                if device == 'cuda':
                     boards, target_pis, target_vs = Variable(boards.contiguous().cuda(), requires_grad=True), \
                                                     Variable(target_pis.contiguous().cuda(), requires_grad=True), \
                                                     Variable(target_vs.contiguous().cuda(), requires_grad=True)
@@ -95,10 +96,10 @@ class NNetWrapper(NeuralNet):
         # print('BOARD\n', board)
 
         # preparing input
-        board = torch.from_numpy(np.array(board[0:self.board_size], dtype='f')).cuda().float() if args.get('cuda') \
+        board = torch.from_numpy(np.array(board[0:self.board_size], dtype='f')).cuda().float() if device == 'cuda' \
             else torch.from_numpy(np.array(board[0:self.board_size], dtype='f'))
         # board = torch.FloatTensor(board[0:self.board_x])
-        if args.get('cuda'):
+        if device == 'cuda':
             board = board.contiguous().cuda()
         board = Variable(board, volatile=True)
         board = board.view(1, self.board_size)

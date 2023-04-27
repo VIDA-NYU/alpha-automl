@@ -1,7 +1,6 @@
 import logging
 import time
 import multiprocessing
-from multiprocessing import set_start_method
 from alpha_automl.data_profiler import profile_data
 from alpha_automl.scorer import make_splitter, score_pipeline
 from alpha_automl.utils import sample_dataset, is_equal_splitting
@@ -55,11 +54,6 @@ class AutoMLManager():
 
         if not is_sample and is_equal_splitting(internal_splitting_strategy, self.splitting_strategy):
             need_rescoring = False
-
-        try:
-            set_start_method('spawn')
-        except RuntimeError:
-            pass
 
         queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=search_pipelines_proc,
