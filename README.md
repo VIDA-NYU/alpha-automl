@@ -3,8 +3,8 @@
 [![Tests](https://github.com/VIDA-NYU/alpha-automl/actions/workflows/build.yml/badge.svg)](https://github.com/VIDA-NYU/alpha-automl/actions/workflows/build.yml)
 
 
-Alpha-AutoML
-============
+<img src="https://github.com/VIDA-NYU/alpha-automl/raw/devel/Alpha-AutoML_logo.png" width=30%>
+
 
 Alpha-AutoML is an AutoML system that automatically searches for models and derives end-to-end pipelines that read, 
 pre-process the data, and train the model. Alpha-AutoML leverages recent advances in deep reinforcement learning and is 
