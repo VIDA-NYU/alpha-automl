@@ -7,7 +7,7 @@ from multiprocessing import set_start_method
 from sklearn.preprocessing import LabelEncoder
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting
-from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method
+from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing
 from alpha_automl.visualization import plot_comparison_pipelines
 
 
@@ -62,8 +62,10 @@ class BaseAutoML():
             hide_logs()
 
         os.makedirs(output_folder, exist_ok=True)
-        start_method = get_start_method(start_mode)
-        set_start_method(start_method, force=True)
+        self._start_method = get_start_method(start_mode)
+        set_start_method(self._start_method, force=True)
+        check_input_for_multiprocessing(self._start_method, self.scorer._score_func, 'metric')
+        check_input_for_multiprocessing(self._start_method, self.splitter, 'split strategy')
 
     def fit(self, X, y):
         """
@@ -192,6 +194,7 @@ class BaseAutoML():
         :param new_primitives: Set of new primitives, tuples of name and object primitive
         """
         for primitive_object, primitive_type in new_primitives:
+            check_input_for_multiprocessing(self._start_method, primitive_object, 'primitive')
             primitive_name = f'{primitive_object.__module__}.{primitive_object.__class__.__name__}'
             primitive_name = primitive_name.replace('__', '')  # Sklearn restriction on estimator names
             self.new_primitives[primitive_name] = {'primitive_object': primitive_object,

@@ -190,27 +190,33 @@ def get_start_method(suggested_method):
             return 'fork'
 
         elif device == 'cuda':
-            logger.info('You must run Alpha-AutoML inside "if __name__ == "__main__":" clause. If you add your custom '
-                        'metrics, splitters or primitives, they must be imported from external modules.')
             return 'spawn'
 
         elif operating_system == 'Windows':
-            logger.info('You must run Alpha-AutoML inside "if __name__ == "__main__":" clause. If you add your custom '
-                        'metrics, splitters or primitives, they must be imported from external modules.')
             return 'spawn'
 
     elif suggested_method == 'fork':
         if device == 'cuda':
             raise ValueError('Cuda does not support "fork" method. Use "spawn".')
+
         elif operating_system == 'Windows':
             raise ValueError('Windows does not support "fork" method. Use "spawn".')
+
         else:
             return suggested_method
 
     elif suggested_method == 'spawn':
-        if operating_system != 'Windows':
+        if device != 'cuda' and operating_system != 'Windows':
             logger.info('We recommend to use "fork" in non-Windows platforms.')
-            logger.info('You must run Alpha-AutoML inside "if __name__ == "__main__":" clause. If you add your custom '
-                        'metrics, splitters or primitives, they must be imported from external modules.')
 
         return suggested_method
+
+
+def check_input_for_multiprocessing(start_method, callable_input, input_type):
+    if start_method == 'spawn':
+        module_name = getattr(callable_input, '__module__', '')
+        object_name = getattr(callable_input, '__name__', callable_input.__class__.__name__)
+        if module_name == '__main__':
+            raise ImportError(f'The input {input_type} must be implemented in an external module and be called like '
+                              f'from my_external_module import {object_name}"')
+
