@@ -220,7 +220,10 @@ class BaseAutoML():
                 print(self.leaderboard.to_string(index=False))
             else:
                 decimal_format = {self.metric: '{:.3f}'}
-                return self.leaderboard.style.format(decimal_format).hide_index()
+                try:
+                    return self.leaderboard.style.format(decimal_format).hide_index()
+                except Exception:  # For newer version of Pandas
+                    return self.leaderboard.style.format(decimal_format).hide()
         else:
             logger.info('No pipelines were found')
 
