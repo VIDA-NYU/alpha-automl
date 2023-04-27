@@ -6,3 +6,5 @@ pipelineprofiler
 pandas
 datamart_profiler
 feature_engine
+xgboost
+lightgbm

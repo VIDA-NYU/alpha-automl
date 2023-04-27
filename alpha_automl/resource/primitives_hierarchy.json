@@ -18,7 +18,9 @@
         "sklearn.linear_model.SGDClassifier",
         "sklearn.svm.LinearSVC",
         "sklearn.svm.SVC",
-        "sklearn.tree.DecisionTreeClassifier"
+        "sklearn.tree.DecisionTreeClassifier",
+        "xgboost.XGBClassifier",
+        "lightgbm.LGBMClassifier"
     ],
     "CLUSTERER": [
         "sklearn.cluster.KMeans",
@@ -65,7 +67,9 @@
         "sklearn.linear_model.LinearRegression",
         "sklearn.linear_model.RANSACRegressor",
         "sklearn.linear_model.RidgeCV",
-        "sklearn.linear_model.TheilSenRegressor"
+        "sklearn.linear_model.TheilSenRegressor",
+        "xgboost.XGBRegressor",
+        "lightgbm.LGBMRegressor"
     ],
     "TEXT_ENCODER": [
         "sklearn.feature_extraction.text.CountVectorizer",
