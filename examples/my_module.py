@@ -1,11 +1,11 @@
-from sklearn.base import BaseEstimator, TransformerMixin
+from alpha_automl.base_primitive import BasePrimitive
 from sentence_transformers import SentenceTransformer
 import numpy as np
 
 embedder = SentenceTransformer('xlm-roberta-base')
 
 
-class MyEmbedder(BaseEstimator, TransformerMixin):
+class MyEmbedder(BasePrimitive):
 
     def fit(self, X, y=None):
         return self
