@@ -219,4 +219,3 @@ def check_input_for_multiprocessing(start_method, callable_input, input_type):
         if module_name == '__main__':
             raise ImportError(f'The input {input_type} must be implemented in an external module and be called like '
                               f'from my_external_module import {object_name}"')
-
