@@ -47,12 +47,3 @@ class FastTextEmbedderWrapper(BasePrimitive):
         embeddings = torch.from_numpy(embeddings).to(self.device)
 
         return embeddings.cpu().numpy()
-        
-#         for text in text_list:
-#             text = str(text).strip()
-#             embeddings.append(fasttext_model.get_sentence_vector(text))
-        
-#         embeddings = np.array(embeddings)
-#         embeddings = torch.from_numpy(embeddings).to(self.device)
-        
-#         return embeddings.cpu().numpy()
