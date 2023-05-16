@@ -18,6 +18,12 @@ def change_default_hyperparams(primitive_object):
         primitive_object.set_params(handle_unknown='use_encoded_value', unknown_value=-1)
     elif isinstance(primitive_object, SimpleImputer):
         primitive_object.set_params(strategy='most_frequent')
+    elif isinstance(primitive_object, StandardScaler):
+        primitive_object.set_params(with_mean=False)
+    elif isinstance(primitive_object, RobustScaler):
+        primitive_object.set_params(with_centering=False)
+    
+        
 
 
 class BaseBuilder:
