@@ -1,7 +1,5 @@
 import numpy as np
-# import fasttext
-# import torch
-# import importlib
+import torch
 from _optional_dependency import import_optional_dependency
 from base_primitive import BasePrimitive
 
@@ -20,37 +18,41 @@ class FastTextEmbedderWrapper(BasePrimitive):
 
                               fasttext.util.download_model('en', if_exists='ignore')  # English
                               fasttext_model_path = '<path_to_model>/cc.en.300.bin' 
-
     '''
     
     def __init__(self, fasttext_model_path):
-        '''
-        # Uncomment and use for cuda processing is required
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
-        
-        '''
-
+        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.fasttext_model_path = fasttext_model_path
-        self.fasttext = import_optional_dependency('fasttext')
-        self.fasttext_util = import_optional_dependency('fasttext.util')
     
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, texts):
-        fasttext_model = self.fasttext.load_model(self.fasttext_model_path)
+        
+        # load dependencies
+        fasttext = import_optional_dependency('fasttext')
+        
+        # load fasttext model
+        fasttext_model = fasttext.load_model(self.fasttext_model_path)
         embeddings = []
         text_list = texts.tolist()
-        for text in text_list:
-            text = str(text).strip()
-            embeddings.append(fasttext_model.get_sentence_vector(text))
-            
-        '''
-        # Uncomment and use the below code if cuda processing is required
-            embeddings = torch.tensor(embeddings).to(self.device)
-        return embeddings.numpy()
         
-        '''
+        embeddings = [fasttext_model.get_sentence_vector(str(text).strip()) for text in text_list]
 
-        return np.array(embeddings)
+        # Convert embeddings to numpy array
+        embeddings = np.array(embeddings)
+
+        # Move embeddings to the specified device
+        embeddings = torch.from_numpy(embeddings).to(self.device)
+
+        return embeddings.cpu().numpy()
+        
+#         for text in text_list:
+#             text = str(text).strip()
+#             embeddings.append(fasttext_model.get_sentence_vector(text))
+        
+#         embeddings = np.array(embeddings)
+#         embeddings = torch.from_numpy(embeddings).to(self.device)
+        
+#         return embeddings.cpu().numpy()
