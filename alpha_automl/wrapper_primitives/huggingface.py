@@ -1,6 +1,7 @@
 from transformers import AutoTokenizer, BertTokenizer, RobertaTokenizer, ElectraModel, BertModel, RobertaModel, AutoModel
 import torch
 from sentence_transformers import SentenceTransformer
+from sklearn.base import BaseEstimator, TransformerMixin
 
 class HuggingfaceInterface(BaseEstimator, TransformerMixin):
 
