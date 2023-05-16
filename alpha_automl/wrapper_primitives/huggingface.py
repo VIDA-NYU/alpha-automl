@@ -2,6 +2,7 @@ from transformers import AutoTokenizer, BertTokenizer, RobertaTokenizer, Electra
 import torch
 from sentence_transformers import SentenceTransformer
 from sklearn.base import BaseEstimator, TransformerMixin
+import numpy as np
 
 class HuggingfaceInterface(BaseEstimator, TransformerMixin):
 
