@@ -6,7 +6,7 @@ import torch
 from transformers import BertModel, BertTokenizer
 from transformers import RobertaTokenizer
 
-tokenizer = AutoTokenizer.from_pretrained('google/electra-small-discriminator') Only for comparison
+tokenizer = AutoTokenizer.from_pretrained('google/electra-small-discriminator') #Only for comparison
 model = ElectraModel.from_pretrained('google/electra-small-discriminator', output_hidden_states=True)
 
 tokenizer_sentiment = RobertaTokenizer.from_pretrained("allenai/reviews_roberta_base")
