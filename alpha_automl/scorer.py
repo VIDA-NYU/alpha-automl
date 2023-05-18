@@ -86,6 +86,9 @@ def make_splitter(splitting_strategy, splitting_strategy_kwargs=None):
                 splitting_strategy_kwargs['test_size'] = 0.25
             if 'random_state' not in splitting_strategy_kwargs:
                 splitting_strategy_kwargs['random_state'] = RANDOM_SEED
+            if 'n_splits' in splitting_strategy_kwargs:
+                raise ValueError('You sent the keyword argument "n_splits" for holdout, but it is not needed.'
+                                 'Use "cv" (cross-validation) or do not send it for holdout.')
 
             holdout_split = ShuffleSplit(n_splits=1, **splitting_strategy_kwargs)
 
