@@ -4,7 +4,7 @@ from alpha_automl._optional_dependency import import_optional_dependency
 from alpha_automl.base_primitive import BasePrimitive
 
 
-class FastTextEmbedderWrapper(BasePrimitive):
+class FastTextEmbedder(BasePrimitive):
     '''
     FastTextEmbedderWrapper provides word embeddings word embeddings using
     fastText is a library for efficient learning of word representations 
