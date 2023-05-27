@@ -9,4 +9,3 @@ feature_engine
 xgboost
 lightgbm
 fasttext
-pybind11
