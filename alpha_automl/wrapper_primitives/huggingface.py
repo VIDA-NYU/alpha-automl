@@ -6,13 +6,13 @@ from sentence_transformers import SentenceTransformer
 
 class HuggingfaceInterface(BaseEstimator, TransformerMixin):
 
-    def __init__(self, model, tokenizer, model_name, last_four_model_layers=False):
+    def __init__(self, model, tokenizer, name, last_four_model_layers=False):
         '''
         model: Huggingface model class object, for eg: AutoModel(), make sure output_hidden_states=True when instantiating the model class before passing into this class.
         tokenizer: Huggingface tokenizer class object, for eg: AutoTokenizer()
         ''' 
         self.last_four_model_layers = last_four_model_layers
-        self.name = model_name
+        self.name = name
         self.model = model
         self.tokenizer = tokenizer
 
