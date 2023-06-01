@@ -8,3 +8,4 @@ datamart_profiler
 feature_engine
 xgboost
 lightgbm
+fasttext
