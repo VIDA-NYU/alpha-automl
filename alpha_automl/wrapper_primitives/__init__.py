@@ -1,0 +1,1 @@
+from alpha_automl.wrapper_primitives.fasttext import FastTextEmbedder
