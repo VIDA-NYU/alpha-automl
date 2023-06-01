@@ -1,6 +1,6 @@
 from alpha_automl  import AutoMLClassifier
 import pandas as pd
-from my_module import MyEmbedder, MySentimentEmbedder, MyBERTEmbedder, MySentenceEmbedder, MyTweetEmbedder
+#from my_module import MyEmbedder, MySentimentEmbedder, MyBERTEmbedder, MySentenceEmbedder, MyTweetEmbedder
 
 from transformers import AutoTokenizer, AutoModel
 from alpha_automl.wrapper_primitives.huggingface import HuggingfaceInterface
