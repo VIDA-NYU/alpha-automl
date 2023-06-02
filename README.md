@@ -1,6 +1,7 @@
 [![PyPI version](https://badge.fury.io/py/alpha-automl.svg)](https://pypi.org/project/alpha-automl/0.2.0/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Tests](https://github.com/VIDA-NYU/alpha-automl/actions/workflows/build.yml/badge.svg)](https://github.com/VIDA-NYU/alpha-automl/actions/workflows/build.yml)
+[![Documentation Status](https://readthedocs.org/projects/alpha-automl/badge/?version=latest)](https://alpha-automl.readthedocs.io/en/latest/?badge=latest)
 
 
 <img src="https://github.com/VIDA-NYU/alpha-automl/raw/devel/Alpha-AutoML_logo.png" width=30%>
@@ -34,9 +35,4 @@ To install the latest development version:
 $ pip install git+https://github.com/VIDA-NYU/alpha-automl@devel
 ```
 
-To develop:
-```
-$ git clone https://github.com/VIDA-NYU/alpha-automl.git
-$ cd alpha-automl/
-$ pip install -e .
-```
+[Documentation is available here.](https://alpha-automl.readthedocs.io/)
