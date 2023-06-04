@@ -32,6 +32,10 @@ class HuggingfaceInterface(BaseEstimator, TransformerMixin):
         steps = total_length // batch_size
         batch_embeddings = []
 
+        #loading tokenizer and model
+        tokenizer = AutoTokenizer.from_pretrained(self.tokenizer) 
+        model = AutoModel.from_pretrained(self.model, output_hidden_states=True)
+
         for start in range(0, total_length, batch_size):
             if start == (steps * batch_size):
                 batch_texts = list_texts[start: total_length]
@@ -39,14 +43,14 @@ class HuggingfaceInterface(BaseEstimator, TransformerMixin):
             else:
                 batch_texts = list_texts[start: start + batch_size]
 
-            ids = self.tokenizer(batch_texts, padding=True, return_tensors="pt")
+            ids = stokenizer(batch_texts, padding=True, return_tensors="pt")
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
-            self.model.to(device)
+            model.to(device)
             ids = ids.to(device)
-            self.model.eval()
+            model.eval()
 
             with torch.no_grad():
-                out = self.model(
+                out = model(
                     **ids)  # model output contains last_hidden_state, pooler_output, hidden_outputs of each model layer and the embedding layer
 
             last_hidden_states = out.last_hidden_state
