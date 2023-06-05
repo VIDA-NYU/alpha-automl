@@ -7,8 +7,8 @@ from alpha_automl.wrapper_primitives.huggingface import HuggingfaceInterface
 
 if __name__ == '__main__':
     output_path = 'tmp/'
-    train_dataset = pd.read_csv('datasets/sentiment/train_data.csv')
-    test_dataset = pd.read_csv('datasets/sentiment/test_data.csv')
+    train_dataset = pd.read_csv('/scratch/lm4428/d3m_latest/alpha-automl/examples/datasets/sentiment/train_data.csv')
+    test_dataset = pd.read_csv('/scratch/lm4428/d3m_latest/alpha-automl/examples/datasets/sentiment/test_data.csv')
 
     target_column = 'sentiment'
     X_train = train_dataset.drop(columns=[target_column])
@@ -19,11 +19,16 @@ if __name__ == '__main__':
 
 
     #wrapper primitive
-    tokenizer = AutoTokenizer.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment")
-    model = AutoModel.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment", output_hidden_states=True)
+    #tokenizer = AutoTokenizer.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment")
+    #model = AutoModel.from_pretrained("cardiffnlp/twitter-roberta-base-sentiment", output_hidden_states=True)
     model_name = 'cardiffnlp/twitter-roberta-base-sentiment'
-    my_tweet_embedder = HuggingfaceInterface(model, tokenizer, 'cardiffnlp/twitter-roberta-base-sentiment', last_four_model_layers=False)
+    my_tweet_embedder = HuggingfaceInterface('cardiffnlp/twitter-roberta-base-sentiment', 'cardiffnlp/twitter-roberta-base-sentiment', 'cardiffnlp/twitter-roberta-base-sentiment', last_four_model_layers=False)
+    
+    my_sentiment_embedder = HuggingfaceInterface('allenai/reviews_roberta_base', 'allenai/reviews_roberta_base', 'allenai/reviews_roberta_base', last_four_model_layers=False)
+
+
     automl.add_primitives([(my_tweet_embedder, 'TEXT_ENCODER')])
+    automl.add_primitives([(my_sentiment_embedder, 'TEXT_ENCODER')])
     automl.fit(X_train, y_train)
     automl.plot_leaderboard(use_print=True)
     
