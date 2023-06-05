@@ -20,7 +20,7 @@ def test_sample_dataset():
     y = dataset[['rating']]
     sample_size = 10
 
-    actual_X, actual_y, actual_is_sampled = sample_dataset(X, y, sample_size)
+    actual_X, actual_y, actual_is_sampled = sample_dataset(X, y, sample_size, 'CLASSIFICATION')
     expected_X_len = sample_size
     expected_y_len = sample_size
     expected_is_sampled = True
