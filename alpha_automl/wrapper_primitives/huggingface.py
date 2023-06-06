@@ -6,15 +6,13 @@ from sentence_transformers import SentenceTransformer
 
 class HuggingfaceInterface(BaseEstimator, TransformerMixin):
 
-    def __init__(self, model, tokenizer, name, last_four_model_layers=False):
+    def __init__(self, name, last_four_model_layers=False):
         '''
         model: Huggingface model class object, for eg: AutoModel(), make sure output_hidden_states=True when instantiating the model class before passing into this class.
         tokenizer: Huggingface tokenizer class object, for eg: AutoTokenizer()
         '''
         self.last_four_model_layers = last_four_model_layers
         self.name = name
-        self.model = model
-        self.tokenizer = tokenizer
 
     def fit(self, X, y=None):
         return self
@@ -33,8 +31,8 @@ class HuggingfaceInterface(BaseEstimator, TransformerMixin):
         batch_embeddings = []
 
         #loading tokenizer and model
-        tokenizer = AutoTokenizer.from_pretrained(self.tokenizer) 
-        model = AutoModel.from_pretrained(self.model, output_hidden_states=True)
+        tokenizer = AutoTokenizer.from_pretrained(self.name) 
+        model = AutoModel.from_pretrained(self.name, output_hidden_states=True)
 
         for start in range(0, total_length, batch_size):
             if start == (steps * batch_size):
@@ -43,7 +41,7 @@ class HuggingfaceInterface(BaseEstimator, TransformerMixin):
             else:
                 batch_texts = list_texts[start: start + batch_size]
 
-            ids = stokenizer(batch_texts, padding=True, return_tensors="pt")
+            ids = tokenizer(batch_texts, padding=True, return_tensors="pt")
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
             model.to(device)
             ids = ids.to(device)
