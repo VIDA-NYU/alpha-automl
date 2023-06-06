@@ -1,33 +1,30 @@
-import os
 import logging
+import os
 from os.path import join
-from alpha_automl.utils import hide_logs
-from alpha_automl.scorer import score_pipeline
+
+from alpha_automl.grammar_loader import load_automatic_grammar, load_manual_grammar
 from alpha_automl.pipeline import Pipeline
 from alpha_automl.pipeline_search.Coach import Coach
-from alpha_automl.pipeline_search.pipeline.PipelineGame import PipelineGame
 from alpha_automl.pipeline_search.pipeline.NNet import NNetWrapper
-from alpha_automl.grammar_loader import load_manual_grammar, load_automatic_grammar
+from alpha_automl.pipeline_search.pipeline.PipelineGame import PipelineGame
 from alpha_automl.pipeline_synthesis.pipeline_builder import BaseBuilder
-
+from alpha_automl.scorer import score_pipeline
+from alpha_automl.utils import hide_logs
 
 logger = logging.getLogger(__name__)
 
 
 config = {
-    'PROBLEM_TYPES': {'CLASSIFICATION': 1,
-                      'REGRESSION': 2,
-                      'CLUSTERING': 3,
-                      'NA': 4,
-                      'TIME_SERIES_FORECAST': 5
-                      },
-
-    'DATA_TYPES': {'TABULAR': 1,
-                   'GRAPH': 2,
-                   'IMAGE': 3},
-
+    'PROBLEM_TYPES': {
+        'CLASSIFICATION': 1,
+        'REGRESSION': 2,
+        'CLUSTERING': 3,
+        'NA': 4,
+        'TIME_SERIES_FORECAST': 5,
+        'SEMISUPERVISED': 6,
+    },
+    'DATA_TYPES': {'TABULAR': 1, 'GRAPH': 2, 'IMAGE': 3},
     'PIPELINE_SIZE': 8,
-
     'ARGS': {
         'numIters': 25,
         'numEps': 5,
@@ -39,15 +36,26 @@ config = {
         'cpuct': 1,
         'load_model': False,
         'metafeatures_path': '/d3m/data/metafeatures',
-        'verbose': True
-    }
+        'verbose': True,
+    },
 }
 
 
 
 
-def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, automl_hyperparams, metadata,
-                     output_folder, verbose, queue):
+def search_pipelines(
+    X,
+    y,
+    scoring,
+    splitting_strategy,
+    task_name,
+    time_bound,
+    automl_hyperparams,
+    metadata,
+    output_folder,
+    verbose,
+    queue,
+):
     if not verbose:
         hide_logs()  # Hide logs here too, since multiprocessing has some issues with loggers
 
@@ -58,7 +66,9 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
         score = None
 
         if pipeline is not None:
-            score, start_time, end_time = score_pipeline(pipeline, X, y, scoring, splitting_strategy)
+            score, start_time, end_time = score_pipeline(
+                pipeline, X, y, scoring, splitting_strategy
+            )
             if score is not None:
                 pipeline_alphaautoml = Pipeline(pipeline, score, start_time, end_time)
                 queue.put(pipeline_alphaautoml)  # Only send valid pipelines
@@ -80,15 +90,27 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
         prioritize_primitives = automl_hyperparams['prioritize_primitives']
         target_column = ''
         dataset_path = ''
-        grammar = load_automatic_grammar(task_name_id, dataset_path, target_column, include_primitives,
-                                         exclude_primitives, prioritize_primitives)
+        grammar = load_automatic_grammar(
+            task_name_id,
+            dataset_path,
+            target_column,
+            include_primitives,
+            exclude_primitives,
+            prioritize_primitives,
+        )
 
     if grammar is None:
         logger.info('Creating a manual grammar')
         use_imputer = metadata['missing_values']
         nonnumeric_columns = metadata['nonnumeric_columns']
-        grammar = load_manual_grammar(task_name_id, nonnumeric_columns, use_imputer, new_primitives, include_primitives,
-                                      exclude_primitives)
+        grammar = load_manual_grammar(
+            task_name_id,
+            nonnumeric_columns,
+            use_imputer,
+            new_primitives,
+            include_primitives,
+            exclude_primitives,
+        )
 
     metric = scoring._score_func.__name__
     config_updated = update_config(task_name, metric, output_folder, grammar)
@@ -96,11 +118,15 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
     nnet = NNetWrapper(game)
 
     if config['ARGS'].get('load_model'):
-        model_file = join(config['ARGS'].get('load_folder_file')[0],
-                          config['ARGS'].get('load_folder_file')[1])
+        model_file = join(
+            config['ARGS'].get('load_folder_file')[0],
+            config['ARGS'].get('load_folder_file')[1],
+        )
         if os.path.isfile(model_file):
-            nnet.load_checkpoint(config['ARGS'].get('load_folder_file')[0],
-                                 config['ARGS'].get('load_folder_file')[1])
+            nnet.load_checkpoint(
+                config['ARGS'].get('load_folder_file')[0],
+                config['ARGS'].get('load_folder_file')[1],
+            )
 
     c = Coach(game, nnet, config['ARGS'])
     c.learn()
@@ -113,11 +139,17 @@ def update_config(task_name, metric, output_folder, grammar):
     config['DATA_TYPE'] = 'TABULAR'
     config['METRIC'] = metric
     config['DATASET'] = f'DATASET_{task_name}'
-    config['ARGS']['stepsfile'] = join(output_folder, f'DATASET_{task_name}_pipeline_steps.txt')
+    config['ARGS']['stepsfile'] = join(
+        output_folder, f'DATASET_{task_name}_pipeline_steps.txt'
+    )
     config['ARGS']['checkpoint'] = join(output_folder, 'nn_models')
-    config['ARGS']['load_folder_file'] = join(output_folder, 'nn_models', 'best.pth.tar')
+    config['ARGS']['load_folder_file'] = join(
+        output_folder, 'nn_models', 'best.pth.tar'
+    )
     config['GRAMMAR'] = grammar
     # metafeatures_extractor = ComputeMetafeatures(dataset, targets, features, DBSession)
-    config['DATASET_METAFEATURES'] = [0] * 50  # metafeatures_extractor.compute_metafeatures('Compute_metafeatures')
+    config['DATASET_METAFEATURES'] = [
+        0
+    ] * 50  # metafeatures_extractor.compute_metafeatures('Compute_metafeatures')
 
     return config
