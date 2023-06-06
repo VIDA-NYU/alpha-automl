@@ -77,5 +77,11 @@
     ],
     "COLUMN_TRANSFORMER": [
         "sklearn.compose.ColumnTransformer"
+    ],
+    "TIME_SERIES_FORECAST": [
+        "alpha_automl.builtin_primitives.ArimaEstimator",
+        "alpha_automl.builtin_primitives.DeeparEstimator",
+        "alpha_automl.builtin_primitives.NBEATSEstimator",
+        "alpha_automl.builtin_primitives.NHITSEstimator"
     ]
 }

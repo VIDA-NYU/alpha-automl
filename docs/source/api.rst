@@ -10,3 +10,7 @@ API
 .. autoclass:: AutoMLRegressor
    :members:
    :inherited-members:
+
+.. autoclass:: AutoMLTimeSeries
+   :members:
+   :inherited-members:

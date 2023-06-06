@@ -48,7 +48,7 @@ class AutoMLManager():
         automl_hyperparams = self.check_automl_hyperparams(automl_hyperparams)
 
         metadata = profile_data(self.X)
-        X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE)
+        X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE, self.task)
         internal_splitting_strategy = make_splitter(SPLITTING_STRATEGY)
         need_rescoring = True
 

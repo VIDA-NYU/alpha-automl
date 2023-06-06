@@ -19,7 +19,8 @@ config = {
     'PROBLEM_TYPES': {'CLASSIFICATION': 1,
                       'REGRESSION': 2,
                       'CLUSTERING': 3,
-                      'NA': 4
+                      'NA': 4,
+                      'TIME_SERIES_FORECAST': 5
                       },
 
     'DATA_TYPES': {'TABULAR': 1,
