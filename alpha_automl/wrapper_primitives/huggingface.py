@@ -1,18 +1,14 @@
 import numpy as np
-from sklearn.base import BaseEstimator, TransformerMixin
-from transformers import AutoTokenizer, BertTokenizer, RobertaTokenizer, ElectraModel, BertModel, RobertaModel, AutoModel
+from transformers import AutoTokenizer, AutoModel
+from alpha_automl.base_primitive import BasePrimitive
 import torch
-from sentence_transformers import SentenceTransformer
 
-class HuggingfaceInterface(BaseEstimator, TransformerMixin):
+
+class HuggingfaceEmbedder(BasePrimitive):
 
     def __init__(self, name, last_four_model_layers=False):
-        '''
-        model: Huggingface model class object, for eg: AutoModel(), make sure output_hidden_states=True when instantiating the model class before passing into this class.
-        tokenizer: Huggingface tokenizer class object, for eg: AutoTokenizer()
-        '''
-        self.last_four_model_layers = last_four_model_layers
         self.name = name
+        self.last_four_model_layers = last_four_model_layers
 
     def fit(self, X, y=None):
         return self
@@ -30,8 +26,8 @@ class HuggingfaceInterface(BaseEstimator, TransformerMixin):
         steps = total_length // batch_size
         batch_embeddings = []
 
-        #loading tokenizer and model
-        tokenizer = AutoTokenizer.from_pretrained(self.name) 
+        # Loading tokenizer and model
+        tokenizer = AutoTokenizer.from_pretrained(self.name)
         model = AutoModel.from_pretrained(self.name, output_hidden_states=True)
 
         for start in range(0, total_length, batch_size):
@@ -48,8 +44,9 @@ class HuggingfaceInterface(BaseEstimator, TransformerMixin):
             model.eval()
 
             with torch.no_grad():
-                out = model(
-                    **ids)  # model output contains last_hidden_state, pooler_output, hidden_outputs of each model layer and the embedding layer
+                # Model output contains last_hidden_state, pooler_output, hidden_outputs of each model layer and the
+                # embedding layer
+                out = model(**ids)
 
             last_hidden_states = out.last_hidden_state
             sentence_embedding = last_hidden_states[:, 0, :]
