@@ -12,11 +12,11 @@ class TestHuggingfaceInterface():
     test = pd.DataFrame(data={'text': ['I`d have responded, if I were going', 'Sooo SAD I will miss you here in San Diego!!!'], 'sentiment': ['neutral', 'negative'] })
 
     def test_hf(self):
-
-        pipe = Pipeline(steps=[('alpha_automl.wrapper_primitives.huggingface',HuggingfaceInterface())])
-        pipe.fit(self.X, self.y)
+        
+        encoder = HuggingfaceInterface()
+        encoder.fit(self.X, self.y)
         x = self.test['text'].values.tolist()
-        pred = pipe.transform(x)
+        pred = encoder.transform(x)
         assert pred.shape == (2,768)
         
         
