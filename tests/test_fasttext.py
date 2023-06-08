@@ -1,7 +1,4 @@
 import numpy as np
-import pandas as pd
-import os
-from alpha_automl._optional_dependency import import_optional_dependency
 from alpha_automl.wrapper_primitives.fasttext import FastTextEmbedder
 
 
@@ -11,7 +8,7 @@ class TestFastTextEmbedder:
     example = ["I would have responded, if I were going"]
     df = np.array([example])
     
-    def test_fasttext_embedder(self):
+    def test_fit_transform(self):
         fasttext_model_path = 'tests/test_data/cc.en.2.bin' 
         embedder = FastTextEmbedder(fasttext_model_path)
         embedder.fit(self.df)
