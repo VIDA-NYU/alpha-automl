@@ -14,3 +14,4 @@ neuralforecast==1.5.0
 mxnet==1.9.1
 pmdarima==2.0.3
 fasttext
+transformers

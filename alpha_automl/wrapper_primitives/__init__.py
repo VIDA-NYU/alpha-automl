@@ -1,1 +1,2 @@
 from alpha_automl.wrapper_primitives.fasttext import FastTextEmbedder
+from alpha_automl.wrapper_primitives.huggingface import HuggingfaceEmbedder
