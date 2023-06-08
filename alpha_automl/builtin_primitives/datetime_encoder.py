@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from feature_engine.creation import CyclicalFeatures
+
 from alpha_automl.base_primitive import BasePrimitive
 
 

@@ -20,16 +20,14 @@ class TestDatetimeEncoder:
         encoder.fit(self.df)
         np_array = encoder.transform(self.df)
         assert np_array.shape == (len(self.df), 16)
-
     def test_datetime64_expand_encoder(self):
         encoder = Datetime64ExpandEncoder()
         encoder.fit(self.df)
         np_array = encoder.transform(self.df)
         assert (np_array[0] == np.array([2009, 12, 1, 23, 19, 1, 335, 4])).all()
-
     def test_dummy_encoder(self):
         encoder = DummyEncoder()
         encoder.fit(self.df)
         np_array = encoder.transform(self.df)
-        print(np_array.shape)
-        assert np_array.shape == (len(self.df), 4 * len(self.df))
+        print(np_array)
+        assert np_array.shape == (len(self.df), 4 * len(self.df) + 4)

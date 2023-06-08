@@ -3,7 +3,7 @@ import datetime
 import numpy as np
 from sklearn.metrics import make_scorer as make_scorer_sk
 from sklearn.model_selection._split import BaseShuffleSplit, _RepeatedSplits
-from sklearn.model_selection import BaseCrossValidator, KFold, ShuffleSplit, cross_val_score
+from sklearn.model_selection import BaseCrossValidator, KFold, ShuffleSplit, cross_val_score, TimeSeriesSplit
 from alpha_automl.utils import RANDOM_SEED
 from sklearn.metrics import accuracy_score, f1_score, jaccard_score, precision_score, recall_score,\
     max_error, mean_absolute_error, mean_squared_error, mean_squared_log_error, median_absolute_error, r2_score,\
@@ -86,6 +86,9 @@ def make_splitter(splitting_strategy, splitting_strategy_kwargs=None):
                 splitting_strategy_kwargs['test_size'] = 0.25
             if 'random_state' not in splitting_strategy_kwargs:
                 splitting_strategy_kwargs['random_state'] = RANDOM_SEED
+            if 'n_splits' in splitting_strategy_kwargs:
+                raise ValueError('You sent the keyword argument "n_splits" for holdout, but it is not needed.'
+                                 'Use "cv" (cross-validation) or do not send it for holdout.')
 
             holdout_split = ShuffleSplit(n_splits=1, **splitting_strategy_kwargs)
 
@@ -97,6 +100,13 @@ def make_splitter(splitting_strategy, splitting_strategy_kwargs=None):
             kfold_split = KFold(**splitting_strategy_kwargs)
 
             return kfold_split
+
+        elif splitting_strategy == 'timeseries':
+            if 'n_splits' not in splitting_strategy_kwargs:
+                splitting_strategy_kwargs['n_splits'] = 5
+            timeseries_split = TimeSeriesSplit(**splitting_strategy_kwargs)
+
+            return timeseries_split
 
         else:
             raise ValueError(f'Unknown "{splitting_strategy}" splitting strategy, you should choose "holdout", "cv" or '
