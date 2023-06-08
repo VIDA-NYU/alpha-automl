@@ -354,3 +354,42 @@ class AutoMLRegressor(BaseAutoML):
         task = 'REGRESSION'
         super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
                          metric_kwargs, split_strategy_kwargs, start_mode, verbose)
+
+        
+class AutoMLTimeSeries(BaseAutoML):
+    def __init__(self, output_folder, time_bound=15, metric='mean_squared_error', split_strategy='timeseries',
+                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, verbose=False, date_column=None, target_column=None):
+        """
+        Create/instantiate an AutoMLTimeSeries object.
+
+        :param output_folder: Path to the output directory.
+        :param time_bound: Limit time in minutes to perform the search.
+        :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
+        :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
+            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits.
+        :param time_bound_run: Limit time in minutes to score a pipeline.
+        :param score_sorting: The sort used to order the scores. It could be `auto`, `ascending` or `descending`.
+            `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
+        :param metric_kwargs: Additional arguments for metric.
+        :param split_strategy_kwargs: Additional arguments for TimeSeriesSplit, E.g. n_splits and test_size(int).
+        :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
+        :param verbose: Whether or not to show additional logs.
+        """
+
+        task = 'TIME_SERIES_FORECAST'
+        self.date_column = date_column
+        self.target_column = target_column
+        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
+                         metric_kwargs, split_strategy_kwargs, verbose)
+        
+    def _column_parser(self, X):
+        cols = list(X.columns.values)
+        cols.remove(self.date_column)
+        cols.remove(self.target_column)
+        X = X[[self.date_column, self.target_column] + cols]
+        y = X[[self.target_column]]
+        return X, y
+        
+    def fit(self, X, y=None):
+        X, y = self._column_parser(X)
+        super().fit(X, y)
