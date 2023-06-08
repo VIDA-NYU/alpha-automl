@@ -3,7 +3,7 @@ import pandas as pd
 #from my_module import MyEmbedder, MySentimentEmbedder, MyBERTEmbedder, MySentenceEmbedder, MyTweetEmbedder
 
 from transformers import AutoTokenizer, AutoModel
-from alpha_automl.wrapper_primitives.huggingface import HuggingfaceInterface
+from alpha_automl.wrapper_primitives.huggingface import HuggingfaceEmbedder
 
 if __name__ == '__main__':
     output_path = 'tmp/'
@@ -20,8 +20,8 @@ if __name__ == '__main__':
 
     #wrapper primitive
     model_name = 'cardiffnlp/twitter-roberta-base-sentiment'
-    my_tweet_embedder = HuggingfaceInterface('cardiffnlp/twitter-roberta-base-sentiment', last_four_model_layers=False) 
-    my_sentiment_embedder = HuggingfaceInterface('allenai/reviews_roberta_base', last_four_model_layers=False)
+    my_tweet_embedder = HuggingfaceEmbedder('cardiffnlp/twitter-roberta-base-sentiment', last_four_model_layers=False)
+    my_sentiment_embedder = HuggingfaceEmbedder('allenai/reviews_roberta_base', last_four_model_layers=False)
 
 
     automl.add_primitives([(my_tweet_embedder, 'TEXT_ENCODER')])
