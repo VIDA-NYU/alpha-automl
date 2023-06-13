@@ -6,11 +6,12 @@ from multiprocessing import set_start_method
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.validation import check_is_fitted
 from alpha_automl.automl_manager import AutoMLManager
-from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting
+from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting, score_pipeline
 from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing, \
     setup_output_folder, SemiSupervisedSplitter, SemiSupervisedLabelEncoder, write_pipeline_code_as_pyfile
 from alpha_automl.visualization import plot_comparison_pipelines
 from alpha_automl.pipeline_serializer import PipelineSerializer
+from alpha_automl.hyperparameter_tuning.smac import SmacOptimizer
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout, format='%(levelname)s|%(asctime)s|%(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
@@ -24,7 +25,7 @@ class BaseAutoML():
 
     def __init__(self, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,  output_folder=None,
-                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO):
+                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO, optimizing=False):
         """
         Create/instantiate an BaseAutoML object.
 
@@ -70,6 +71,8 @@ class BaseAutoML():
         self.label_encoder = None
         self.task_type = task
 
+        self.optimizing = optimizing
+
     def fit(self, X, y):
         """
         Search for pipelines and fit the best pipeline.
@@ -103,10 +106,21 @@ class BaseAutoML():
         sign = get_sign_sorting(self.scorer._score_func, self.score_sorting)
         sorted_pipelines = sorted(pipelines, key=lambda x: x.get_score() * sign, reverse=True)
 
+        # [SMAC] added here!!
+        if self.optimizing:
+            optimizer = SmacOptimizer(X=X, y=y, splitter=self.splitter, scorer=self.scorer, n_trials=200)
+        
         leaderboard_data = []
         for index, pipeline in enumerate(sorted_pipelines, start=1):
             pipeline_id = PIPELINE_PREFIX + str(index)
             self.pipelines[pipeline_id] = pipeline
+            # [SMAC] added here!!
+            if self.optimizing and index <= 10:
+                opt_pipeline = optimizer.optimize_pipeline(pipeline.get_pipeline())
+                opt_score, _, _ = score_pipeline(opt_pipeline, X, y, self.scorer, self.splitter)
+                logger.critical(f'[SMAC] {pipeline_id} successfully optimized: {pipeline.get_score()} => {opt_score}')
+                pipeline.set_pipeline(opt_pipeline)
+                pipeline.set_score(opt_score)
             leaderboard_data.append([index, pipeline.get_summary(), pipeline.get_score()])
 
         self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'pipeline', self.metric])
@@ -299,7 +313,7 @@ class ClassifierBaseAutoML(BaseAutoML):
 
     def __init__(self, time_bound=15, metric='accuracy_score', split_strategy='holdout', time_bound_run=5, task=None,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
-                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO):
+                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO, optimizing=False):
         """
         Create/instantiate an AutoMLClassifier object.
 
@@ -322,7 +336,8 @@ class ClassifierBaseAutoML(BaseAutoML):
         """
 
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
-                         split_strategy_kwargs, output_folder, checkpoints_folder, num_cpus, start_mode, verbose)
+                         split_strategy_kwargs, output_folder, checkpoints_folder, num_cpus, start_mode,
+                         verbose, optimizing)
 
         self.label_encoder = LabelEncoder()
 
