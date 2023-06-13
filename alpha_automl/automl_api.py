@@ -6,9 +6,10 @@ import pandas as pd
 from multiprocessing import set_start_method
 from sklearn.preprocessing import LabelEncoder
 from alpha_automl.automl_manager import AutoMLManager
-from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting
+from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting, score_pipeline
 from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing
 from alpha_automl.visualization import plot_comparison_pipelines
+from alpha_automl.hyperparameter_tuning.smac import SmacOptimizer
 
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
@@ -22,7 +23,7 @@ class BaseAutoML():
 
     def __init__(self, output_folder, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, start_mode='auto',
-                 verbose=False):
+                 verbose=False, optimizing=False):
         """
         Create/instantiate an BaseAutoML object.
 
@@ -67,6 +68,8 @@ class BaseAutoML():
         check_input_for_multiprocessing(self._start_method, self.scorer._score_func, 'metric')
         check_input_for_multiprocessing(self._start_method, self.splitter, 'split strategy')
 
+        self.optimizing = optimizing
+
     def fit(self, X, y):
         """
         Search for pipelines and fit the best pipeline.
@@ -100,11 +103,21 @@ class BaseAutoML():
         sign = get_sign_sorting(self.scorer._score_func, self.score_sorting)
         sorted_pipelines = sorted(pipelines, key=lambda x: x.get_score() * sign, reverse=True)
 
+        # [SMAC] added here!!
+        if self.optimizing:
+            optimizer = SmacOptimizer(X=X, y=y, splitter=self.splitter, scorer=self.scorer, n_trials=200)
+        
         leaderboard_data = []
         for index, pipeline in enumerate(sorted_pipelines, start=1):
             pipeline_id = PIPELINE_PREFIX + str(index)
             self.pipelines[pipeline_id] = pipeline
-
+            # [SMAC] added here!!
+            if self.optimizing and index <= 10:
+                opt_pipeline = optimizer.optimize_pipeline(pipeline.get_pipeline())
+                opt_score, _, _ = score_pipeline(opt_pipeline, X, y, self.scorer, self.splitter)
+                logger.critical(f'[SMAC] {pipeline_id} successfully optimized: {pipeline.get_score()} => {opt_score}')
+                pipeline.set_pipeline(opt_pipeline)
+                pipeline.set_score(opt_score)
             leaderboard_data.append([index, pipeline.get_summary(), pipeline.get_score()])
 
         self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'pipeline', self.metric])
@@ -278,7 +291,7 @@ class AutoMLClassifier(BaseAutoML):
 
     def __init__(self, output_folder, time_bound=15, metric='accuracy_score', split_strategy='holdout',
                  time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
-                 start_mode='auto', verbose=False):
+                 start_mode='auto', verbose=False, optimizing=False):
         """
         Create/instantiate an AutoMLClassifier object.
 
@@ -299,7 +312,7 @@ class AutoMLClassifier(BaseAutoML):
         self.label_enconder = LabelEncoder()
         task = 'CLASSIFICATION'
         super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
-                         metric_kwargs, split_strategy_kwargs, start_mode, verbose)
+                         metric_kwargs, split_strategy_kwargs, start_mode, verbose, optimizing)
 
     def fit(self, X, y):
         y = self.label_enconder.fit_transform(y)
