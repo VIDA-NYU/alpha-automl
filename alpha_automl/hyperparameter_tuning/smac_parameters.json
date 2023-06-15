@@ -5,6 +5,9 @@
     "sklearn.preprocessing.StandardScaler": {},
     "sklearn.feature_selection.GenericUnivariateSelect": {},
     "sklearn.feature_selection.SelectPercentile": {},
+    "alpha_automl.builtin_primitives.SkLabelSpreading": {},
+    "alpha_automl.builtin_primitives.SkLabelPropagation": {},
+    "sklearn.semi_supervised.SelfTrainingClassifier": {},
     "sklearn.feature_selection.SelectKBest": {
         "k": {
             "type": "Categorical",
