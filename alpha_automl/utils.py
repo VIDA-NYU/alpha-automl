@@ -243,6 +243,10 @@ def check_input_for_multiprocessing(start_method, callable_input, input_type):
 
 
 class SemiSupervisedSplitter:
+    """
+    SemiSupervisedSplitter makes sure that unlabeled rows not being
+    selected as test/validation data for semi-supervised classification tasks.
+    """
     def __init__(self, n_splits=1, test_size=.2, random_state=0):
         self.n_splits = n_splits
         self.test_size = test_size
@@ -263,11 +267,15 @@ class SemiSupervisedSplitter:
 
             yield rx, tx
 
-    def get_n_splits(self, X, y, groups=None):
+    def get_n_splits(self, groups=None):
         return self.n_splits
 
 
 class SemiSupervisedLabelEncoder:
+    """
+    SemiSupervisedLabelEncoder ignores the unlabeled values (-1 or nan) and only apply
+    LabelEncoder transformation to columns with clear label.
+    """
     label_encoder = LabelEncoder()
 
     def fit_transform(self, df):
@@ -295,20 +303,12 @@ class SemiSupervisedLabelEncoder:
             raise TypeError("Only pd.DataFrame are allowed")
 
     def inverse_transform(self, df):
-        if isinstance(df, pd.DataFrame):
-            df = df.replace(-1, np.NaN)
+        if isinstance(df, np.ndarray):
+            df = pd.DataFrame(df)
+        df = df.replace(-1, np.NaN)
 
-            df[df.columns[0]] = pd.Series(
-                self.label_encoder.inverse_transform(df[df.columns[0]][df[df.columns[0]].notnull()].astype(int)),
-                index=df[df.columns[0]][df[df.columns[0]].notnull()].index
-            )
-            return df.to_numpy()
-
-        elif isinstance(df, np.ndarray):
-            if df[df == -1].size != 0:
-                df[df == -1] = np.NaN
-            df[~np.isnan(df)] = self.label_encoder.inverse_transform(df[~np.isnan(df)])
-            return df
-
-        else:
-            raise TypeError("Only np.ndarray and pd.DataFrame are allowed") 
+        df[df.columns[0]] = pd.Series(
+            self.label_encoder.inverse_transform(df[df.columns[0]][df[df.columns[0]].notnull()].astype(int)),
+            index=df[df.columns[0]][df[df.columns[0]].notnull()].index
+        )
+        return df.to_numpy()

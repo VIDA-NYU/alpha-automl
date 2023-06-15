@@ -402,6 +402,7 @@ class AutoMLSemiSupervisedClassifier(BaseAutoML):
                  start_mode='auto', verbose=False):
         """
         Create/instantiate an AutoMLSemiSupervisedClassifier object.
+        
         :param output_folder: Path to the output directory.
         :param time_bound: Limit time in minutes to perform the search.
         :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.

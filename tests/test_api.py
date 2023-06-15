@@ -1,7 +1,13 @@
 import pandas as pd
 from sklearn.model_selection import TimeSeriesSplit
 
-from alpha_automl.automl_api import AutoMLClassifier, AutoMLRegressor, AutoMLTimeSeries
+from alpha_automl.automl_api import (
+    AutoMLClassifier,
+    AutoMLRegressor,
+    AutoMLSemiSupervisedClassifier,
+    AutoMLTimeSeries,
+)
+from alpha_automl.utils import SemiSupervisedLabelEncoder, SemiSupervisedSplitter
 
 
 class TestAutoMLTimeSeries:
@@ -49,7 +55,23 @@ class TestAutoMLTimeSeries:
             output_folder="tmp/",
             date_column="Date",
             target_column="Value",
-            split_strategy_kwargs={'n_splits': 3, 'test_size': 20},
+            split_strategy_kwargs={"n_splits": 3, "test_size": 20},
         )
 
         assert test_api.splitter.get_n_splits() == 3
+
+
+class TestAutoMLSemiSupervisedClassifier:
+    """This is the testcases for AutoMLSemiSupervisedClassifier API object."""
+
+    api = AutoMLSemiSupervisedClassifier(
+        output_folder="tmp/",
+        time_bound=10,
+        verbose=True,
+        split_strategy_kwargs={'test_size': .1},
+    )
+
+    def test_init(self):
+        assert isinstance(self.api.splitter, SemiSupervisedSplitter)
+        assert isinstance(self.api.label_enconder, SemiSupervisedLabelEncoder)
+        assert self.api.splitter.get_n_splits() == 1
