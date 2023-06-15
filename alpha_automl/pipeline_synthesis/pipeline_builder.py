@@ -10,6 +10,26 @@ from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 
 logger = logging.getLogger(__name__)
 
+SEMI_CLASSIFIER_PARAMS = {
+    "sklearn.discriminant_analysis.LinearDiscriminantAnalysis": {},
+    "sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis": {},
+    "sklearn.ensemble.BaggingClassifier": {},
+    "sklearn.ensemble.ExtraTreesClassifier": {},
+    "sklearn.ensemble.GradientBoostingClassifier": {},
+    "sklearn.ensemble.RandomForestClassifier": {},
+    "sklearn.naive_bayes.BernoulliNB": {},
+    "sklearn.naive_bayes.GaussianNB": {},
+    "sklearn.naive_bayes.MultinomialNB": {},
+    "sklearn.neighbors.KNeighborsClassifier": {},
+    "sklearn.linear_model.LogisticRegression": {},
+    "sklearn.linear_model.PassiveAggressiveClassifier": {},
+    "sklearn.linear_model.SGDClassifier": dict(alpha=1e-5, penalty="l2", loss="log_loss"),
+    "sklearn.svm.LinearSVC": {},
+    "sklearn.svm.SVC": {},
+    "sklearn.tree.DecisionTreeClassifier": {},
+    "xgboost.XGBClassifier": {},
+    "lightgbm.LGBMClassifier": {},
+}
 
 def change_default_hyperparams(primitive_object):
     if isinstance(primitive_object, OneHotEncoder):
@@ -68,7 +88,7 @@ class BaseBuilder:
             if primitive_type == 'SEMISUPERVISED_CLASSIFIER':
                 if self.all_primitives[primitives[-1]]['type'] != 'CLASSIFIER':
                     return
-                classifier_obj = create_object(primitives[-1])
+                classifier_obj = create_object(primitives[-1], SEMI_CLASSIFIER_PARAMS[primitives[-1]])
                 primitive_object = create_object(primitive_name, {'base_estimator': classifier_obj})
             elif self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
                 primitive_object = create_object(primitive)
