@@ -7,6 +7,7 @@ from alpha_automl.builtin_primitives.semisupervised_classifier import (
     SkLabelPropagation,
     SkLabelSpreading,
     SkSelfTrainingClassifier,
+    AutonBox,
 )
 from alpha_automl.builtin_primitives.time_series_forecasting import (
     ArimaEstimator,
@@ -26,4 +27,5 @@ __all__ = [
     "SkLabelPropagation",
     "SkLabelSpreading",
     "SkSelfTrainingClassifier",
+    "AutonBox",
 ]
