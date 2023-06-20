@@ -2,15 +2,16 @@ import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.datasets import fetch_20newsgroups
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.pipeline import Pipeline
 from sklearn.linear_model import SGDClassifier
+from sklearn.pipeline import Pipeline
 
 from alpha_automl.builtin_primitives.semisupervised_classifier import (
+    AutonBox,
     SkLabelPropagation,
     SkLabelSpreading,
     SkSelfTrainingClassifier,
-    AutonBox,
 )
+
 
 class TestSemiSupervisedClassifier:
     """This is the testcases for semi-supervised classifier."""
@@ -66,12 +67,11 @@ class TestSemiSupervisedClassifier:
         pred = encoder.predict(self.X)
         print(pred, self.y)
         assert pred[0] == 0
-    
+
     def test_autonbox(self):
-        base_estimator = SGDClassifier(alpha=1e-5,
-                                       penalty="l2",
-                                       loss="log_loss")
+        base_estimator = SGDClassifier(alpha=1e-5, penalty="l2", loss="log_loss")
         encoder = AutonBox(base_estimator=base_estimator)
+        print(self.X, self.y)
         encoder.fit(self.X, self.y)
         pred = encoder.predict(self.X)
         print(pred, self.y)

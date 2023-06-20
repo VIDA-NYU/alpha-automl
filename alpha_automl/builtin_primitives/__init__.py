@@ -4,10 +4,10 @@ from alpha_automl.builtin_primitives.datetime_encoder import (
     DummyEncoder,
 )
 from alpha_automl.builtin_primitives.semisupervised_classifier import (
+    AutonBox,
     SkLabelPropagation,
     SkLabelSpreading,
     SkSelfTrainingClassifier,
-    AutonBox,
 )
 from alpha_automl.builtin_primitives.time_series_forecasting import (
     ArimaEstimator,

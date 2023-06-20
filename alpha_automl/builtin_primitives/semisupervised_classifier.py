@@ -2,8 +2,9 @@ import logging
 
 import numpy as np
 import pandas as pd
-from alpha_automl.base_primitive import BasePrimitive
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.linear_model import SGDClassifier
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.semi_supervised import (
@@ -11,11 +12,12 @@ from sklearn.semi_supervised import (
     LabelSpreading,
     SelfTrainingClassifier,
 )
+
+from alpha_automl.base_primitive import BasePrimitive
 from alpha_automl.utils import SemiSupervisedSplitter
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.multiclass import OneVsRestClassifier
 
 logger = logging.getLogger(__name__)
+
 
 class SkSelfTrainingClassifier(BasePrimitive):
     sdg_params = dict(alpha=1e-5, penalty="l2", loss="log_loss")
@@ -86,41 +88,45 @@ class AutonBox(BasePrimitive):
         self.calibclf = CalibratedClassifierCV(self.base_estimator, cv=self.splitter)
         self.pipeline = OneVsRestClassifier(self.calibclf)
         self.iteration = iteration
-        self.frac = 1/iteration
-        
+        self.frac = 1 / iteration
+
     def fit(self, X, y):
-        y_cp = y.copy()
+        if isinstance(y, pd.DataFrame):
+            y_cp = y.to_numpy()
+        else:
+            y_cp = y.copy()
+
         for labelIteration in range(self.iteration):
             labeledIx = np.where(y_cp != -1)[0]
             unlabeledIx = np.where(y_cp == -1)[0]
             if len(unlabeledIx) == 0:
                 continue
-            
+
             if labelIteration == 0:
                 num_instances_to_label = int(self.frac * len(unlabeledIx) + 0.5)
-            
+
             labeledX = X[labeledIx]
             labeledy = y_cp[labeledIx]
-            
+
             self.pipeline.fit(labeledX, labeledy)
             probas = self.pipeline.predict_proba(X[unlabeledIx])
-            
+
             entropies = np.sum(np.log2(probas.clip(0.0000001, 1.0)) * probas, axis=1)
             entIdx = np.rec.fromarrays((entropies, unlabeledIx))
             entIdx.sort(axis=0)
-            
-            labelableIndices = entIdx['f1'][-num_instances_to_label:].reshape((-1,))
-            
+
+            labelableIndices = entIdx["f1"][-num_instances_to_label:].reshape((-1,))
+
             predictions = self.pipeline.predict(X[labelableIndices])
-            
+
             y_cp[labelableIndices, 0] = predictions
-            
+
         labeledIx = np.where(y_cp != -1)[0]
         labeledX = X[labeledIx]
         labeledy = y_cp[labeledIx]
-        
+
         self.pipeline.fit(labeledX, labeledy)
-    
+
     def predict(self, X):
         pred = self.pipeline.predict(X)
 
