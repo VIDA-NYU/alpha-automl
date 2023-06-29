@@ -29,7 +29,7 @@ This package works with Python 3.6+ in Linux, Mac and Windows. There are differe
 
 ::
 
-   $ pip install alpha-automl[all]
+   $ pip install alpha-automl[full]
 
 - To install the latest development version:
 

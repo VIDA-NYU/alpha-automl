@@ -43,8 +43,8 @@ def get_extra_requires():
                 for t in tags:
                     extra_dependencies[t].add(k)
 
-        # add tag `all` at the end
-        extra_dependencies['all'] = set(vv for v in extra_dependencies.values() for vv in v)
+        # add tag `full` at the end
+        extra_dependencies['full'] = set(vv for v in extra_dependencies.values() for vv in v)
 
     return extra_dependencies
 
@@ -66,9 +66,9 @@ setuptools.setup(
     url='https://github.com/VIDA-NYU/alpha-automl',
     include_package_data=True,
     author='Roque Lopez, Eden Wu, Remi Rampin',
-    author_email='rlopez@nyu.edu, yfw215@nyu.edu, remi.rampin@nyu.edu',
+    author_email='rlopez@nyu.edu, eden.wu@nyu.edu, remi.rampin@nyu.edu',
     maintainer='Roque Lopez, Eden Wu, Remi Rampin',
-    maintainer_email='rlopez@nyu.edu, yfw215@nyu.edu, remi.rampin@nyu.edu',
+    maintainer_email='rlopez@nyu.edu, eden.wu@nyu.edu, remi.rampin@nyu.edu',
     keywords=['datadrivendiscovery', 'automl', 'nyu'],
     license='Apache-2.0',
     classifiers=[
