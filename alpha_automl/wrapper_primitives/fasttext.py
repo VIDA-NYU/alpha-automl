@@ -3,6 +3,8 @@ import numpy as np
 from alpha_automl._optional_dependency import import_optional_dependency
 from alpha_automl.base_primitive import BasePrimitive
 
+fasttext = import_optional_dependency('fasttext')
+
 
 class FastTextEmbedder(BasePrimitive):
     """
@@ -19,7 +21,7 @@ class FastTextEmbedder(BasePrimitive):
                               fasttext.util.download_model('en', if_exists='ignore')  # English
                               fasttext_model_path = '<path_to_model>/cc.en.300.bin' 
     """
-    
+
     def __init__(self, fasttext_model_path):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.fasttext_model_path = fasttext_model_path
@@ -28,10 +30,6 @@ class FastTextEmbedder(BasePrimitive):
         return self
 
     def transform(self, texts):
-        
-        # Load dependencies
-        fasttext = import_optional_dependency('fasttext')
-        
         # Load fasttext model
         fasttext_model = fasttext.load_model(self.fasttext_model_path)
         text_list = texts.tolist()

@@ -3,15 +3,8 @@ scikit-learn
 torch>=1.7
 nltk
 pipelineprofiler
-pandas==1.5.3
+pandas
 datamart_profiler
 feature_engine
 xgboost
 lightgbm
-gluonts==0.12.7
-numpy==1.23.5
-neuralforecast==1.5.0
-mxnet==1.9.1
-pmdarima==2.0.3
-fasttext
-transformers

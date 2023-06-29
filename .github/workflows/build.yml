@@ -20,11 +20,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install flake8 pytest
-          pip install git+https://github.com/cfculhane/fastText
+          pip install fasttext-wheel  # this is needed to install correctly the fasttext dependencies
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
       - name: Install Package
         run: |
-          pip install -e .
+          pip install -e .[full]
       - name: Lint with flake8
         run: |
           # stop the build if there are Python syntax errors or undefined names
