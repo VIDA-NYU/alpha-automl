@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class SkSelfTrainingClassifier(BasePrimitive):
-    sdg_params = dict(alpha=1e-5, penalty="l2", loss="log_loss")
+    sdg_params = dict(alpha=1e-5, penalty='l2', loss='log_loss')
     model = SelfTrainingClassifier(SGDClassifier(**sdg_params), verbose=True)
 
     def fit(self, X, y=None):
@@ -38,14 +38,14 @@ class SkLabelSpreading(BasePrimitive):
         if isinstance(X, np.ndarray):
             self.pipe = Pipeline(
                 [
-                    ("sklearn.semi_supervised.LabelSpreading", LabelSpreading()),
+                    ('sklearn.semi_supervised.LabelSpreading', LabelSpreading()),
                 ]
             )
         else:
             self.pipe = Pipeline(
                 [
-                    ("toarray", FunctionTransformer(lambda x: x.toarray())),
-                    ("sklearn.semi_supervised.LabelSpreading", LabelSpreading()),
+                    ('toarray', FunctionTransformer(lambda x: x.toarray())),
+                    ('sklearn.semi_supervised.LabelSpreading', LabelSpreading()),
                 ]
             )
         self.pipe.fit(X, y)
@@ -62,14 +62,14 @@ class SkLabelPropagation(BasePrimitive):
         if isinstance(X, np.ndarray):
             self.pipe = Pipeline(
                 [
-                    ("sklearn.semi_supervised.LabelPropagation", LabelPropagation()),
+                    ('sklearn.semi_supervised.LabelPropagation', LabelPropagation()),
                 ]
             )
         else:
             self.pipe = Pipeline(
                 [
-                    ("toarray", FunctionTransformer(lambda x: x.toarray())),
-                    ("sklearn.semi_supervised.LabelPropagation", LabelPropagation()),
+                    ('toarray', FunctionTransformer(lambda x: x.toarray())),
+                    ('sklearn.semi_supervised.LabelPropagation', LabelPropagation()),
                 ]
             )
         self.pipe.fit(X, y)
@@ -115,7 +115,7 @@ class AutonBox(BasePrimitive):
             entIdx = np.rec.fromarrays((entropies, unlabeledIx))
             entIdx.sort(axis=0)
 
-            labelableIndices = entIdx["f1"][-num_instances_to_label:].reshape((-1,))
+            labelableIndices = entIdx['f1'][-num_instances_to_label:].reshape((-1,))
 
             predictions = self.pipeline.predict(X[labelableIndices])
 
