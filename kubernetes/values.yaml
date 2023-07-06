@@ -9,6 +9,7 @@ hub:
     JupyterHub:
       admin_access: true
       authenticator_class: tmpauthenticator.TmpAuthenticator
+  shutdownOnLogout: true
   networkPolicy:
     enabled: false
 proxy:

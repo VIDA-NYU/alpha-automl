@@ -17,14 +17,14 @@ ARG BUILD_OPTION='full'
 RUN pip3 install -e .[$BUILD_OPTION]
 
 # Create a user, since we don't want to run as root
-RUN useradd -m eden
-ENV HOME=/home/eden
+RUN useradd -m alphaautoml
+ENV HOME=/home/alphaautoml
 WORKDIR $HOME
-USER eden
-COPY --chown=eden examples /home/eden/examples
+USER alphaautoml
+COPY --chown=alphaautoml examples /home/alphaautoml/examples
 
 ARG TOKEN=-1
 RUN mkdir -p $HOME/.jupyter/
 RUN if [ $TOKEN!=-1 ]; then echo "c.NotebookApp.token='$TOKEN'" >> $HOME/.jupyter/jupyter_notebook_config.py; fi
 
-ENTRYPOINT ["jupyter", "notebook","--ip=0.0.0.0","--allow-root","--no-browser"]
+ENTRYPOINT ["jupyter", "notebook","--ip=0.0.0.0","--no-browser"]
