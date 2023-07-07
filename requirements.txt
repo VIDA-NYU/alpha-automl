@@ -8,3 +8,4 @@ datamart_profiler
 feature_engine
 xgboost
 lightgbm
+numpy<=1.24.3

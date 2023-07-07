@@ -1,0 +1,48 @@
+hub:
+  config:
+    Authenticator:
+      admin_users:
+        - yfw215
+        - demouser
+    DummyAuthenticator:
+      password: 'alpha_automl'
+    JupyterHub:
+      admin_access: true
+      authenticator_class: tmpauthenticator.TmpAuthenticator
+  shutdownOnLogout: true
+  networkPolicy:
+    enabled: false
+proxy:
+  service:
+    type: ClusterIP
+  chp:
+    networkPolicy:
+      enabled: false
+  traefik:
+    networkPolicy:
+      enabled: false
+singleuser:
+  storage:
+    capacity: 10Gi
+  networkPolicy:
+    enabled: false
+  cloudMetadata:
+    blockWithIptables: false
+  image:
+    name: ghcr.io/vida-nyu/alpha-automl
+    tag: 0.3.0.dev0-jupyterhub
+scheduling:
+  userScheduler:
+    enabled: false
+prePuller:
+  hook:
+    enabled: false
+  continuous:
+    enabled: false
+ingress:
+  enabled: true
+  hosts:
+    - alpha-automl.hsrn.nyu.edu
+  tls:
+    - hosts:
+        - alpha-automl.hsrn.nyu.edu
