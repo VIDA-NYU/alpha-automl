@@ -29,8 +29,8 @@ singleuser:
   cloudMetadata:
     blockWithIptables: false
   image:
-    name: edenwu/alpha_automl
-    tag: automl-2023-06-30-001
+    name: ghcr.io/vida-nyu/alpha-automl
+    tag: 0.3.0.dev0-jupyterhub
 scheduling:
   userScheduler:
     enabled: false
