@@ -13,8 +13,8 @@ RUN pip3 --disable-pip-version-check install --no-cache-dir \
 
 ADD . /alpha-automl/
 WORKDIR /alpha-automl/
-ARG BUILD_OPTION='full'
-RUN pip3 install -e .[$BUILD_OPTION]
+ARG BUILD_OPTION
+RUN if [ -n "$BUILD_OPTION" ]; then pip3 install -e .[$BUILD_OPTION]; else pip3 install -e .; fi
 
 # Create a user, since we don't want to run as root
 RUN useradd -m alphaautoml
@@ -22,9 +22,5 @@ ENV HOME=/home/alphaautoml
 WORKDIR $HOME
 USER alphaautoml
 COPY --chown=alphaautoml examples /home/alphaautoml/examples
-
-ARG TOKEN=-1
-RUN mkdir -p $HOME/.jupyter/
-RUN if [ $TOKEN!=-1 ]; then echo "c.NotebookApp.token='$TOKEN'" >> $HOME/.jupyter/jupyter_notebook_config.py; fi
 
 ENTRYPOINT ["jupyter", "notebook","--ip=0.0.0.0","--no-browser"]
