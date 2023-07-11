@@ -113,7 +113,7 @@ class BaseAutoML():
                 if index <= self.optimizing_number:
                     opt_pipeline = optimizer.optimize_pipeline(pipeline.get_pipeline())
                     opt_score, _, _ = score_pipeline(opt_pipeline, X, y, self.scorer, self.splitter)
-                    if opt_score >= pipeline.get_score():
+                    if opt_score * sign >= pipeline.get_score() * sign:
                         logger.critical(f'[SMAC] {pipeline_id} successfully optimized: {pipeline.get_score()} => {opt_score}')
                         pipeline.set_pipeline(opt_pipeline)
                         pipeline.set_score(opt_score)
@@ -350,9 +350,9 @@ class AutoMLClassifier(BaseAutoML):
 
 class AutoMLRegressor(BaseAutoML):
 
-    def __init__(self, output_folder, time_bound=15, metric='mean_absolute_error', split_strategy='holdout',
+    def __init__(self, output_folder, time_bound=15, metric='mean_squared_error', split_strategy='holdout',
                  time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
-                 start_mode='auto', verbose=False):
+                 start_mode='auto', verbose=False, optimizing=False):
         """
         Create/instantiate an AutoMLRegressor object.
 
@@ -372,7 +372,7 @@ class AutoMLRegressor(BaseAutoML):
 
         task = 'REGRESSION'
         super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
-                         metric_kwargs, split_strategy_kwargs, start_mode, verbose)
+                         metric_kwargs, split_strategy_kwargs, start_mode, verbose, optimizing)
 
         
 class AutoMLTimeSeries(BaseAutoML):
