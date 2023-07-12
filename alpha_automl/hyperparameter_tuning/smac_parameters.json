@@ -1,5 +1,15 @@
 {
-    "sklearn.impute.SimpleImputer": {},
+    "sklearn.impute.SimpleImputer": {
+        "strategy": {
+            "type": "Categorical",
+            "value": [
+                "mean",
+                "median",
+                "most_frequent"
+            ],
+            "default": "mean"
+        }
+    },
     "sklearn.compose.ColumnTransformer": {},
     "sklearn.preprocessing.MaxAbsScaler": {},
     "sklearn.preprocessing.RobustScaler": {},
@@ -400,7 +410,7 @@
             "type": "Integer",
             "value": [
                 1,
-                100
+                1000
             ],
             "default": 1
         }
@@ -419,9 +429,17 @@
             "type": "Integer",
             "value": [
                 1,
-                1000
+                10000
             ],
             "default": 100
+        },
+        "min_samples_split": {
+            "type": "Float",
+            "value": [
+                0,
+                1
+            ],
+            "default": 0.8
         }
     },
     "sklearn.neighbors.KNeighborsRegressor": {
@@ -537,7 +555,7 @@
             "type": "Integer",
             "value": [
                 3,
-                20
+                50
             ],
             "default": 3
         },
@@ -545,7 +563,7 @@
             "type": "Integer",
             "value": [
                 1,
-                100
+                10000
             ],
             "default": 3
         }
