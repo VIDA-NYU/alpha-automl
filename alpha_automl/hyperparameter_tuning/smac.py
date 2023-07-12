@@ -79,7 +79,7 @@ def get_primitive_params(config, step_name):
     class_params = {}
     for param in params:
         class_params[param] = config[param]
-    logger.critical(f"[SMAC] {step_name}: {class_params}")
+    logger.debug(f"[SMAC] {step_name}: {class_params}")
     return class_params
 
 
