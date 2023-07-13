@@ -57,3 +57,5 @@ desktop.ini
 tmp
 lightning_logs
 **/lightning_logs
+smac3_output
+**/smac3_output
