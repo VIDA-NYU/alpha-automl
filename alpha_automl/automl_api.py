@@ -23,7 +23,7 @@ class BaseAutoML():
 
     def __init__(self, output_folder, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, start_mode='auto',
-                 verbose=False, optimizing=False):
+                 verbose=False, optimizing=False, optimizing_number=10):
         """
         Create/instantiate an BaseAutoML object.
 
@@ -40,6 +40,8 @@ class BaseAutoML():
         :param split_strategy_kwargs: Additional arguments for splitting_strategy.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: Whether or not to show additional logs
+        :param optimizing: Whether or not tuning the top pipelines using SMAC3 optimizer
+        :param optimizing_number: The number of top pipelines to be optimized
         """
 
         self.output_folder = output_folder
@@ -57,7 +59,7 @@ class BaseAutoML():
         self.X = None
         self.y = None
         self.leaderboard = None
-        self.automl_manager = AutoMLManager(output_folder, time_bound, time_bound_run, task, verbose)
+        self.automl_manager = AutoMLManager(output_folder, time_bound*0.8, time_bound_run, task, verbose)
 
         if not verbose:
             hide_logs()
@@ -69,7 +71,8 @@ class BaseAutoML():
         check_input_for_multiprocessing(self._start_method, self.splitter, 'split strategy')
 
         self.optimizing = optimizing
-        self.optimizing_number = 10
+        self.optimizing_number = optimizing_number
+        self.optimizing_timelimit = time_bound*0.2
 
     def fit(self, X, y):
         """
@@ -107,7 +110,8 @@ class BaseAutoML():
 
         # [SMAC] added here!!
         if self.optimizing:
-            optimizer = SmacOptimizer(X=X, y=y, splitter=self.splitter, scorer=self.scorer, n_trials=200)
+            optimizer = SmacOptimizer(X=X, y=y, splitter=self.splitter, scorer=self.scorer,
+                                      n_trials=200, time_limit=self.optimizing_timelimit)
             for index, pipeline in enumerate(sorted_pipelines, start=1):
                 pipeline_id = PIPELINE_PREFIX + str(index)
                 if index <= self.optimizing_number:
@@ -297,7 +301,7 @@ class AutoMLClassifier(BaseAutoML):
 
     def __init__(self, output_folder, time_bound=15, metric='accuracy_score', split_strategy='holdout',
                  time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
-                 start_mode='auto', verbose=False, optimizing=False):
+                 start_mode='auto', verbose=False, optimizing=False, optimizing_number=10):
         """
         Create/instantiate an AutoMLClassifier object.
 
@@ -318,7 +322,7 @@ class AutoMLClassifier(BaseAutoML):
         self.label_enconder = LabelEncoder()
         task = 'CLASSIFICATION'
         super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
-                         metric_kwargs, split_strategy_kwargs, start_mode, verbose, optimizing)
+                         metric_kwargs, split_strategy_kwargs, start_mode, verbose, optimizing, optimizing_number)
 
     def fit(self, X, y):
         y = self.label_enconder.fit_transform(y)
@@ -352,7 +356,7 @@ class AutoMLRegressor(BaseAutoML):
 
     def __init__(self, output_folder, time_bound=15, metric='mean_squared_error', split_strategy='holdout',
                  time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
-                 start_mode='auto', verbose=False, optimizing=False):
+                 start_mode='auto', verbose=False, optimizing=False, optimizing_number=10):
         """
         Create/instantiate an AutoMLRegressor object.
 
@@ -372,12 +376,13 @@ class AutoMLRegressor(BaseAutoML):
 
         task = 'REGRESSION'
         super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
-                         metric_kwargs, split_strategy_kwargs, start_mode, verbose, optimizing)
+                         metric_kwargs, split_strategy_kwargs, start_mode, verbose, optimizing, optimizing_number)
 
         
 class AutoMLTimeSeries(BaseAutoML):
     def __init__(self, output_folder, time_bound=15, metric='mean_squared_error', split_strategy='timeseries',
-                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, verbose=False, date_column=None, target_column=None):
+                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
+                 verbose=False, date_column=None, target_column=None):
         """
         Create/instantiate an AutoMLTimeSeries object.
 

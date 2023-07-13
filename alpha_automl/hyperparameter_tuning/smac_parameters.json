@@ -57,7 +57,7 @@
         "n_estimators": {
             "type": "Integer",
             "value": [
-                200,
+                100,
                 2000
             ],
             "default": 400
@@ -91,7 +91,7 @@
         "n_estimators": {
             "type": "Integer",
             "value": [
-                200,
+                100,
                 2000
             ],
             "default": 400
@@ -107,9 +107,12 @@
     },
     "sklearn.ensemble.GradientBoostingClassifier": {
         "n_estimators": {
-            "type": "Categorical",
-            "value": [1, 2, 4, 8, 16, 32, 64, 100, 200],
-            "default": 32
+            "type": "Integer",
+            "value": [
+                100,
+                2000
+            ],
+            "default": 400
         },
         "min_samples_split": {
             "type": "Float",
@@ -124,7 +127,7 @@
         "n_estimators": {
             "type": "Integer",
             "value": [
-                200,
+                100,
                 2000
             ],
             "default": 400
@@ -291,9 +294,12 @@
     "sklearn.tree.DecisionTreeClassifier": {},
     "xgboost.XGBClassifier": {
         "n_estimators": {
-            "type": "Categorical",
-            "value": [100, 200, 500],
-            "default": 100
+            "type": "Integer",
+            "value": [
+                100,
+                2000
+            ],
+            "default": 400
         },
         "learning_rate": {
             "type": "Categorical",
@@ -330,7 +336,7 @@
         "n_estimators": {
             "type": "Integer",
             "value": [
-                200,
+                100,
                 2000
             ],
             "default": 400
@@ -338,8 +344,8 @@
         "max_depth": {
             "type": "Integer",
             "value": [
-                3,
-                20
+                1,
+                120
             ],
             "default": 3
         },
@@ -362,8 +368,8 @@
         "max_depth": {
             "type": "Integer",
             "value": [
-                3,
-                20
+                1,
+                120
             ],
             "default": 3
         },
@@ -393,26 +399,39 @@
         "n_estimators": {
             "type": "Integer",
             "value": [
-                200,
+                100,
                 2000
             ],
             "default": 400
         },
         "max_features": {
-            "type": "Float",
+            "type": "Categorical",
+            "value": ["auto", "log2","sqrt"],
+            "default": "auto"
+        },
+        "max_depth": {
+            "type": "Integer",
             "value": [
-                0,
-                1
+                1,
+                120
             ],
-            "default": 0.5
+            "default": 3
+        },
+        "min_samples_split": {
+            "type": "Integer",
+            "value": [
+                1,
+                100
+            ],
+            "default": 3
         },
         "min_samples_leaf": {
             "type": "Integer",
             "value": [
                 1,
-                1000
+                100
             ],
-            "default": 1
+            "default": 3
         }
     },
     "sklearn.gaussian_process.GaussianProcessRegressor": {},
@@ -420,26 +439,34 @@
         "n_estimators": {
             "type": "Integer",
             "value": [
-                200,
+                100,
                 2000
             ],
             "default": 400
         },
-        "max_leaf_nodes": {
+        "max_depth": {
             "type": "Integer",
             "value": [
                 1,
-                10000
+                120
             ],
-            "default": 100
+            "default": 3
         },
         "min_samples_split": {
-            "type": "Float",
+            "type": "Integer",
             "value": [
-                0,
-                1
+                1,
+                100
             ],
-            "default": 0.8
+            "default": 3
+        },
+        "min_samples_leaf": {
+            "type": "Integer",
+            "value": [
+                1,
+                100
+            ],
+            "default": 3
         }
     },
     "sklearn.neighbors.KNeighborsRegressor": {
@@ -541,7 +568,7 @@
         "n_estimators": {
             "type": "Integer",
             "value": [
-                200,
+                100,
                 2000
             ],
             "default": 400
@@ -554,18 +581,31 @@
         "max_depth": {
             "type": "Integer",
             "value": [
-                3,
-                50
+                1,
+                120
             ],
             "default": 3
         },
-        "max_leaf_nodes": {
+        "min_samples_split": {
             "type": "Integer",
             "value": [
                 1,
-                10000
+                100
             ],
             "default": 3
+        },
+        "min_samples_leaf": {
+            "type": "Integer",
+            "value": [
+                1,
+                100
+            ],
+            "default": 3
+        },
+        "bootstrap": {
+            "type": "Categorical",
+            "value": [true, false],
+            "default": true
         }
     },
     "sklearn.linear_model.Ridge": {
@@ -673,9 +713,12 @@
     "sklearn.linear_model.TheilSenRegressor": {},
     "xgboost.XGBRegressor": {
         "n_estimators": {
-            "type": "Categorical",
-            "value": [100, 200, 500],
-            "default": 100
+            "type": "Integer",
+            "value": [
+                100,
+                2000
+            ],
+            "default": 400
         },
         "learning_rate": {
             "type": "Categorical",
@@ -686,11 +729,6 @@
             "type": "Categorical",
             "value": ["gbtree", "gblinear"],
             "default": "gbtree"
-        },
-        "gamma": {
-            "type": "Categorical",
-            "value": [0, 0.5, 1],
-            "default": 0
         },
         "reg_alpha": {
             "type": "Categorical",
@@ -712,7 +750,7 @@
         "n_estimators": {
             "type": "Integer",
             "value": [
-                200,
+                100,
                 2000
             ],
             "default": 400
@@ -720,8 +758,8 @@
         "max_depth": {
             "type": "Integer",
             "value": [
-                3,
-                20
+                1,
+                120
             ],
             "default": 3
         },
