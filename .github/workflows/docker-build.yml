@@ -44,7 +44,7 @@ jobs:
           push: true
           tags: ghcr.io/vida-nyu/alpha-automl:latest-jupyterhub
       -
-        name: Build and push Jypter Notebook image
+        name: Build and push Jupyter Notebook image
         uses: docker/build-push-action@v4
         with:
           context: .
