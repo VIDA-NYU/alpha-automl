@@ -30,7 +30,7 @@ singleuser:
     blockWithIptables: false
   image:
     name: ghcr.io/vida-nyu/alpha-automl
-    tag: 0.3.0.dev0-jupyterhub
+    tag: latest-jupyterhub
 scheduling:
   userScheduler:
     enabled: false
