@@ -28,5 +28,5 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: ghcr.io/vida-nyu/alpha-automl:0.3.0.dev0
+          tags: ghcr.io/vida-nyu/alpha-automl:latest
 
