@@ -1,4 +1,4 @@
-FROM python:3.10.11
+FROM python:3.10.11 AS alpha-automl-jupyterhub
 
 # Install JupyterHub and dependencies
 RUN pip3 --disable-pip-version-check install --no-cache-dir \
@@ -8,9 +8,6 @@ RUN pip3 --disable-pip-version-check install --no-cache-dir \
     jupyterlab-server==2.16.0
 
 # Install AlphaD3M and dependencies
-# RUN pip3 --disable-pip-version-check install --no-cache-dir \
-# 	alpha-automl
-
 ADD . /alpha-automl/
 WORKDIR /alpha-automl/
 ARG BUILD_OPTION
@@ -27,4 +24,5 @@ WORKDIR $HOME
 USER alphaautoml
 COPY --chown=alphaautoml examples /home/alphaautoml/examples
 
+FROM alpha-automl-jupyterhub AS alpha-automl
 ENTRYPOINT ["jupyter", "notebook","--ip=0.0.0.0","--no-browser"]
