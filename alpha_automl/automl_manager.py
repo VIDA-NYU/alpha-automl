@@ -83,7 +83,7 @@ class AutoMLManager():
 
             if need_rescoring:
                 score, start_time, end_time = score_pipeline(pipeline.get_pipeline(), self.X, self.y, self.scoring,
-                                                             self.splitting_strategy)
+                                                             self.splitting_strategy, self.task)
                 pipeline.set_score(score)
                 pipeline.set_start_time(start_time)
                 pipeline.set_end_time(end_time)
