@@ -34,21 +34,20 @@ class AutoMLManager():
     def search_pipelines(self, X, y, scoring, splitting_strategy, automl_hyperparams=None):
         if automl_hyperparams is None:
             automl_hyperparams = {}
-
+        X, y, is_sample = sample_dataset(X, y, SAMPLE_SIZE, self.task)
         self.X = X
         self.y = y
         self.scoring = scoring
         self.splitting_strategy = splitting_strategy
 
-        for pipeline_data in self._search_pipelines(automl_hyperparams):
+        for pipeline_data in self._search_pipelines(automl_hyperparams, is_sample):
             yield pipeline_data
 
-    def _search_pipelines(self, automl_hyperparams):
+    def _search_pipelines(self, automl_hyperparams, is_sample):
         search_start_time = time.time()
         automl_hyperparams = self.check_automl_hyperparams(automl_hyperparams)
 
         metadata = profile_data(self.X)
-        X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE, self.task)
         internal_splitting_strategy = make_splitter(SPLITTING_STRATEGY)
         need_rescoring = True
 
@@ -57,8 +56,8 @@ class AutoMLManager():
 
         queue = multiprocessing.Queue()
         search_process = multiprocessing.Process(target=search_pipelines_proc,
-                                                 args=(X, y, self.scoring, internal_splitting_strategy, self.task,
-                                                       self.time_bound, automl_hyperparams, metadata,
+                                                 args=(self.X, self.y, self.scoring, internal_splitting_strategy,
+                                                       self.task, self.time_bound, automl_hyperparams, metadata,
                                                        self.output_folder, self.verbose, queue
                                                        )
                                                  )
