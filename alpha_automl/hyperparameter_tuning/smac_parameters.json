@@ -188,14 +188,6 @@
                 1024
             ],
             "default": 0.1
-        },
-        "penalty": {
-            "type": "Categorical",
-            "value": [
-                "l2",
-                "l1"
-            ],
-            "default": "l2"
         }
     },
     "sklearn.linear_model.PassiveAggressiveClassifier": {},
@@ -245,14 +237,6 @@
                 1024
             ],
             "default": 0.1
-        },
-        "penalty": {
-            "type": "Categorical",
-            "value": [
-                "l2",
-                "l1"
-            ],
-            "default": "l2"
         }
     },
     "sklearn.svm.SVC": {
