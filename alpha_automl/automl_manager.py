@@ -13,7 +13,7 @@ EXCLUDE_PRIMITIVES = []
 INCLUDE_PRIMITIVES = []
 NEW_PRIMITIVES = {}
 SPLITTING_STRATEGY = 'holdout'
-SAMPLE_SIZE = 2000
+SAMPLE_SIZE = 1000
 
 logger = logging.getLogger(__name__)
 
