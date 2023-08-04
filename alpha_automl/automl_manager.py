@@ -1,6 +1,7 @@
 import logging
 import time
 import multiprocessing
+import queue as Q
 from alpha_automl.data_profiler import profile_data
 from alpha_automl.scorer import make_splitter, score_pipeline
 from alpha_automl.utils import sample_dataset, is_equal_splitting
@@ -69,7 +70,7 @@ class AutoMLManager():
         while True:
             try:
                 result = queue.get(timeout=30)
-            except Exception:
+            except Q.Empty:
                 logger.info('Queue Timeout after 30s')
                 result = None
 
