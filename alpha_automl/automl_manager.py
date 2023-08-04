@@ -67,7 +67,11 @@ class AutoMLManager():
         found_pipelines = 0
 
         while True:
-            result = queue.get()
+            try:
+                result = queue.get(timeout=30)
+            except Exception:
+                logger.info('Queue Timeout after 30s')
+                result = None
 
             if result == 'DONE':
                 search_process.terminate()
@@ -75,23 +79,23 @@ class AutoMLManager():
                 logger.info(f'Found {found_pipelines} pipelines')
                 logger.info('Search done')
                 break
+            elif result is not None:
+                pipeline = result
+                score = pipeline.get_score()
+                logger.info('Found new pipeline')
+                yield {'pipeline': pipeline, 'message': 'FOUND'}
 
-            pipeline = result
-            score = pipeline.get_score()
-            logger.info('Found new pipeline')
-            yield {'pipeline': pipeline, 'message': 'FOUND'}
+                if need_rescoring:
+                    score, start_time, end_time = score_pipeline(pipeline.get_pipeline(), self.X, self.y, self.scoring,
+                                                                self.splitting_strategy)
+                    pipeline.set_score(score)
+                    pipeline.set_start_time(start_time)
+                    pipeline.set_end_time(end_time)
 
-            if need_rescoring:
-                score, start_time, end_time = score_pipeline(pipeline.get_pipeline(), self.X, self.y, self.scoring,
-                                                             self.splitting_strategy)
-                pipeline.set_score(score)
-                pipeline.set_start_time(start_time)
-                pipeline.set_end_time(end_time)
-
-            if score is not None:
-                logger.info(f'Pipeline scored successfully, score={score}')
-                found_pipelines += 1
-                yield {'pipeline': pipeline, 'message': 'SCORED'}
+                if score is not None:
+                    logger.info(f'Pipeline scored successfully, score={score}')
+                    found_pipelines += 1
+                    yield {'pipeline': pipeline, 'message': 'SCORED'}
 
             if time.time() > search_start_time + self.time_bound:
                 search_process.terminate()
