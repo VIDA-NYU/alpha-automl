@@ -24,5 +24,8 @@ WORKDIR $HOME
 USER alphaautoml
 COPY --chown=alphaautoml examples /home/alphaautoml/examples
 
+# Huggingface text config 
+ENV TOKENIZERS_PARALLELISM=false
+
 FROM alpha-automl-jupyterhub AS alpha-automl
 ENTRYPOINT ["jupyter", "notebook","--ip=0.0.0.0","--no-browser"]
