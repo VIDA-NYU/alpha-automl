@@ -59,7 +59,9 @@ class BaseAutoML():
         self.X = None
         self.y = None
         self.leaderboard = None
-        self.automl_manager = AutoMLManager(output_folder, time_bound*0.8, time_bound_run, task, verbose)
+        self.optimizing_timelimit = time_bound//5
+        self.automl_manager = AutoMLManager(output_folder, time_bound-self.optimizing_timelimit,
+                                            time_bound_run, task, verbose)
 
         if not verbose:
             hide_logs()
@@ -72,7 +74,7 @@ class BaseAutoML():
 
         self.optimizing = optimizing
         self.optimizing_number = optimizing_number
-        self.optimizing_timelimit = time_bound*0.2
+        
 
     def fit(self, X, y):
         """
