@@ -295,11 +295,6 @@
             "value": ["gbtree", "gblinear"],
             "default": "gbtree"
         },
-        "gamma": {
-            "type": "Categorical",
-            "value": [0, 0.5, 1],
-            "default": 0
-        },
         "reg_alpha": {
             "type": "Categorical",
             "value": [0, 0.5, 1],
