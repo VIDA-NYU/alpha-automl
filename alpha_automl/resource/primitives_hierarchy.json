@@ -19,8 +19,7 @@
         "sklearn.svm.LinearSVC",
         "sklearn.svm.SVC",
         "sklearn.tree.DecisionTreeClassifier",
-        "xgboost.XGBClassifier",
-        "lightgbm.LGBMClassifier"
+        "xgboost.XGBClassifier"
     ],
     "CLUSTERER": [
         "sklearn.cluster.KMeans",
