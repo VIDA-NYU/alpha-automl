@@ -10,3 +10,4 @@ xgboost
 lightgbm
 ConfigSpace
 smac
+imbalanced-learn

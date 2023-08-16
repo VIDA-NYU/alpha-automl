@@ -40,6 +40,7 @@ def sample_dataset(X, y, sample_size, task):
 
     if original_size > sample_size:
         ratio = sample_size / original_size
+        
         try:
             _, X_test, _, y_test = train_test_split(X, y, random_state=RANDOM_SEED, test_size=ratio, stratify=y, shuffle=shuffle)
         except Exception:

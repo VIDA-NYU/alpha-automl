@@ -19,7 +19,11 @@
         "sklearn.svm.LinearSVC",
         "sklearn.svm.SVC",
         "sklearn.tree.DecisionTreeClassifier",
-        "xgboost.XGBClassifier"
+        "xgboost.XGBClassifier",
+	"imblearn.ensemble.RUSBoostClassifier",
+	"imblearn.ensemble.BalancedRandomForestClassifier",
+	"imblearn.ensemble.BalancedBaggingClassifier",
+	"imblearn.ensemble.EasyEnsembleClassifier"
     ],
     "CLUSTERER": [
         "sklearn.cluster.KMeans",
@@ -39,7 +43,7 @@
     "FEATURE_SELECTOR": [
         "sklearn.feature_selection.GenericUnivariateSelect",
         "sklearn.feature_selection.SelectPercentile",
-        "sklearn.feature_selection.SelectKBest"
+	"sklearn.feature_selection.SelectKBest"
     ],
     "IMPUTER": [
         "sklearn.impute.SimpleImputer"
@@ -82,5 +86,11 @@
         "alpha_automl.builtin_primitives.DeeparEstimator",
         "alpha_automl.builtin_primitives.NBEATSEstimator",
         "alpha_automl.builtin_primitives.NHITSEstimator"
+    ],
+    "OVERSAMPLE": [
+	"imblearn.over_sampling.BorderlineSMOTE",
+	"imblearn.over_sampling.KMeansSMOTE",
+	"imblearn.over_sampling.SMOTE",
+	"imblearn.over_sampling.ADASYN"
     ]
 }

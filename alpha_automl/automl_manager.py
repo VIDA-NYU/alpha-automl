@@ -1,6 +1,7 @@
 import logging
 import time
 import multiprocessing
+import numpy as np
 from alpha_automl.data_profiler import profile_data
 from alpha_automl.scorer import make_splitter, score_pipeline
 from alpha_automl.utils import sample_dataset, is_equal_splitting
@@ -13,7 +14,7 @@ EXCLUDE_PRIMITIVES = []
 INCLUDE_PRIMITIVES = []
 NEW_PRIMITIVES = {}
 SPLITTING_STRATEGY = 'holdout'
-SAMPLE_SIZE = 1000
+SAMPLE_SIZE = 2000
 
 logger = logging.getLogger(__name__)
 

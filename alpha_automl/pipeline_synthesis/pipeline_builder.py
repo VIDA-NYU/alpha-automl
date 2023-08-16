@@ -1,12 +1,13 @@
 import logging
 # from copy import deepcopy
-from sklearn.pipeline import Pipeline
+from imblearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
 from sklearn.compose import ColumnTransformer
 from alpha_automl.utils import create_object, COLUMN_TRANSFORMER_ID, COLUMN_SELECTOR_ID, NATIVE_PRIMITIVE, \
     ADDED_PRIMITIVE
 from alpha_automl.primitive_loader import PRIMITIVE_TYPES
+# from imblearn.over_sampling import SMOTE
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +64,9 @@ class BaseBuilder:
 
         for primitive in primitives:
             primitive_name = primitive
-            if self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
+            if primitive_name == "imblearn.over_sampling.ADASYN":
+                primitive_object = create_object(primitive, {'sampling_strategy':'minority'})
+            elif self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
                 primitive_object = create_object(primitive)
             else:
                 primitive_object = self.automl_hyperparams['new_primitives'][primitive_name]['primitive_object']

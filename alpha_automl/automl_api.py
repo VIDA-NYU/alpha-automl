@@ -8,6 +8,7 @@ from sklearn.preprocessing import LabelEncoder
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting, score_pipeline
 from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing
+from alpha_automl.utils import sample_dataset
 from alpha_automl.visualization import plot_comparison_pipelines
 from alpha_automl.hyperparameter_tuning.smac import SmacOptimizer
 
@@ -133,8 +134,10 @@ class BaseAutoML():
             leaderboard_data.append([index, pipeline.get_summary(), pipeline.get_score()])
 
         self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'pipeline', self.metric])
-
+        
         best_pipeline_id = PIPELINE_PREFIX + '1'
+        logger.critical(f'[yfw] {self.pipelines[best_pipeline_id].get_pipeline()}')
+        X, y, is_sample = sample_dataset(X, y, 2000, 'CLASSIFICATION')
         self._fit(X, y, best_pipeline_id)
 
     def predict(self, X):
@@ -283,6 +286,7 @@ class BaseAutoML():
             plot_comparison_pipelines(precomputed_pipelines, precomputed_primitive_types)
 
     def _fit(self, X, y, pipeline_id):
+        breakpoint()
         self.pipelines[pipeline_id].get_pipeline().fit(X, y)
 
     def _predict(self, X, pipeline_id):
