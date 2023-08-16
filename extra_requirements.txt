@@ -6,3 +6,4 @@ mxnet==1.9.1:               timeseries
 pmdarima==2.0.3:            timeseries
 fasttext-wheel:             nlp
 transformers:               nlp
+scikit-image:               image

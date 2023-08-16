@@ -20,7 +20,8 @@ config = {
                       'REGRESSION': 2,
                       'CLUSTERING': 3,
                       'NA': 4,
-                      'TIME_SERIES_FORECAST': 5
+                      'TIME_SERIES_FORECAST': 5,
+                      'IMAGE_CLASSIFICATION': 6,
                       },
 
     'DATA_TYPES': {'TABULAR': 1,

@@ -9,6 +9,12 @@ from alpha_automl.builtin_primitives.time_series_forecasting import (
     NBEATSEstimator,
     NHITSEstimator,
 )
+from alpha_automl.builtin_primitives.image_encoder import (
+    RGB2GrayTransformer,
+    HogTransformer,
+    FisherVectorTransformer,
+    SkPatchExtractor,
+)
 
 __all__ = [
     "CyclicalFeature",
@@ -18,4 +24,8 @@ __all__ = [
     "DeeparEstimator",
     "NBEATSEstimator",
     "NHITSEstimator",
+    "RGB2GrayTransformer",
+    "HogTransformer",
+    "FisherVectorTransformer",
+    "SkPatchExtractor",
 ]

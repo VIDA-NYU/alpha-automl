@@ -78,6 +78,12 @@
         "sklearn.feature_extraction.text.CountVectorizer",
         "sklearn.feature_extraction.text.TfidfVectorizer"
     ],
+    "IMAGE_ENCODER": [
+        "alpha_automl.builtin_primitives.RGB2GrayTransformer",
+        "alpha_automl.builtin_primitives.HogTransformer",
+        "alpha_automl.builtin_primitives.FisherVectorTransformer",
+        "alpha_automl.builtin_primitives.SkPatchExtractor"
+    ],
     "COLUMN_TRANSFORMER": [
         "sklearn.compose.ColumnTransformer"
     ],

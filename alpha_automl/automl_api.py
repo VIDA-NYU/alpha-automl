@@ -422,3 +422,58 @@ class AutoMLTimeSeries(BaseAutoML):
     def fit(self, X, y=None):
         X, y = self._column_parser(X)
         super().fit(X, y)
+
+
+class AutoMLImageClassifier(BaseAutoML):
+
+    def __init__(self, output_folder, time_bound=15, metric='accuracy_score', split_strategy='holdout',
+                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
+                 start_mode='auto', verbose=False):
+        """
+        Create/instantiate an AutoMLClassifier object.
+
+        :param output_folder: Path to the output directory.
+        :param time_bound: Limit time in minutes to perform the search.
+        :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
+        :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
+            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits.
+        :param time_bound_run: Limit time in minutes to score a pipeline.
+        :param score_sorting: The sort used to order the scores. It could be `auto`, `ascending` or `descending`.
+            `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
+        :param metric_kwargs: Additional arguments for metric.
+        :param split_strategy_kwargs: Additional arguments for splitting_strategy.
+        :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
+        :param verbose: Whether or not to show additional logs.
+        """
+
+        self.label_enconder = LabelEncoder()
+        task = 'IMAGE_CLASSIFICATION'
+        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
+                         metric_kwargs, split_strategy_kwargs, start_mode, verbose)
+
+    def fit(self, X, y):
+        y = self.label_enconder.fit_transform(y)
+        super().fit(X, y)
+
+    def predict(self, X):
+        predictions = super().predict(X)
+
+        return self.label_enconder.inverse_transform(predictions)
+
+    def score(self, X, y):
+        y = self.label_enconder.transform(y)
+
+        return super().score(X, y)
+
+    def fit_pipeline(self, pipeline_id):
+        super().fit_pipeline(pipeline_id)
+
+    def predict_pipeline(self, X, pipeline_id):
+        predictions = super().predict_pipeline(X, pipeline_id)
+
+        return self.label_enconder.inverse_transform(predictions)
+
+    def score_pipeline(self, X, y, pipeline_id):
+        y = self.label_enconder.transform(y)
+
+        return super().score_pipeline(X, y, pipeline_id)

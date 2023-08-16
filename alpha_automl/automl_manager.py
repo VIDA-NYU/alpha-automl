@@ -47,8 +47,11 @@ class AutoMLManager():
     def _search_pipelines(self, automl_hyperparams, is_sample):
         search_start_time = time.time()
         automl_hyperparams = self.check_automl_hyperparams(automl_hyperparams)
-
-        metadata = profile_data(self.X)
+        if self.task == 'IMAGE_CLASSIFICATION':
+            metadata = {'nonnumeric_columns': {}, 'useless_columns': [], 'missing_values': False}
+        else:
+            metadata = profile_data(self.X)
+        X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE, self.task)
         internal_splitting_strategy = make_splitter(SPLITTING_STRATEGY)
         need_rescoring = True
 
