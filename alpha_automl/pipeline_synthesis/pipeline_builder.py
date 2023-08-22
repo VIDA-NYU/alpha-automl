@@ -85,6 +85,7 @@ class BaseBuilder:
             primitive_name = primitive
             primitive_type = self.all_primitives[primitive_name]['type']
 
+            # Make sure that SEMISUPERVISED_CLASSIFIER primitive has a classifier primitive behind
             if primitive_type == 'SEMISUPERVISED_CLASSIFIER':
                 if self.all_primitives[primitives[-1]]['type'] != 'CLASSIFIER':
                     return

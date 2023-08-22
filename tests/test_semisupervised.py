@@ -13,9 +13,7 @@ from alpha_automl.builtin_primitives.semisupervised_classifier import (
 )
 
 
-class TestSemiSupervisedClassifier:
-    """This is the testcases for semi-supervised classifier."""
-
+def load_test_data():
     df = fetch_20newsgroups(
         subset="train",
         categories=[
@@ -26,7 +24,13 @@ class TestSemiSupervisedClassifier:
     y[-1] = 2
     X = pd.DataFrame([[x] for x in X], columns=["email"])
     y = pd.DataFrame([[y] for y in y], columns=["category"])
-    vectorizer_params = dict(ngram_range=(1, 2), min_df=5, max_df=0.8)
+    return X, y
+
+
+class TestSemiSupervisedClassifier:
+    """This is the testcases for semi-supervised classifier."""
+
+    X, y = load_test_data()
     st_pipeline = Pipeline(
         steps=[
             (

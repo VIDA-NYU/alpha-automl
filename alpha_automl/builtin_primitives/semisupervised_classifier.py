@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class SkSelfTrainingClassifier(BasePrimitive):
-    sdg_params = dict(alpha=1e-5, penalty='l2', loss='log_loss')
+    sdg_params = dict(alpha=1e-5, penalty="l2", loss="log_loss")
     model = SelfTrainingClassifier(SGDClassifier(**sdg_params), verbose=True)
 
     def fit(self, X, y=None):
@@ -33,21 +33,30 @@ class SkSelfTrainingClassifier(BasePrimitive):
         return np.array(pred)
 
 
+def make_label_pipeline(method, X):
+    step = None
+    if method == "LabelSpreading":
+        step = ("sklearn.semi_supervised.LabelSpreading", LabelSpreading())
+    elif method == "LabelPropagation":
+        step = ("sklearn.semi_supervised.LabelPropagation", LabelPropagation())
+    else:
+        return None
+
+    if isinstance(X, np.ndarray):
+        pipe = Pipeline([step])
+    else:
+        pipe = Pipeline(
+            [
+                ("toarray", FunctionTransformer(lambda x: x.toarray())),
+                step,
+            ]
+        )
+    return pipe
+
+
 class SkLabelSpreading(BasePrimitive):
     def fit(self, X, y=None):
-        if isinstance(X, np.ndarray):
-            self.pipe = Pipeline(
-                [
-                    ('sklearn.semi_supervised.LabelSpreading', LabelSpreading()),
-                ]
-            )
-        else:
-            self.pipe = Pipeline(
-                [
-                    ('toarray', FunctionTransformer(lambda x: x.toarray())),
-                    ('sklearn.semi_supervised.LabelSpreading', LabelSpreading()),
-                ]
-            )
+        self.pipe = make_label_pipeline("LabelSpreading", X)
         self.pipe.fit(X, y)
         return
 
@@ -59,19 +68,7 @@ class SkLabelSpreading(BasePrimitive):
 
 class SkLabelPropagation(BasePrimitive):
     def fit(self, X, y=None):
-        if isinstance(X, np.ndarray):
-            self.pipe = Pipeline(
-                [
-                    ('sklearn.semi_supervised.LabelPropagation', LabelPropagation()),
-                ]
-            )
-        else:
-            self.pipe = Pipeline(
-                [
-                    ('toarray', FunctionTransformer(lambda x: x.toarray())),
-                    ('sklearn.semi_supervised.LabelPropagation', LabelPropagation()),
-                ]
-            )
+        self.pipe = make_label_pipeline("LabelPropagation", X)
         self.pipe.fit(X, y)
         return
 
@@ -115,7 +112,7 @@ class AutonBox(BasePrimitive):
             entIdx = np.rec.fromarrays((entropies, unlabeledIx))
             entIdx.sort(axis=0)
 
-            labelableIndices = entIdx['f1'][-num_instances_to_label:].reshape((-1,))
+            labelableIndices = entIdx["f1"][-num_instances_to_label:].reshape((-1,))
 
             predictions = self.pipeline.predict(X[labelableIndices])
 
