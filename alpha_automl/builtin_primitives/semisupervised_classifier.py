@@ -25,7 +25,6 @@ class SkSelfTrainingClassifier(BasePrimitive):
 
     def fit(self, X, y=None):
         self.model.fit(X, y)
-        return
 
     def predict(self, X):
         pred = self.model.predict(X)
@@ -40,7 +39,7 @@ def make_label_pipeline(method, X):
     elif method == "LabelPropagation":
         step = ("sklearn.semi_supervised.LabelPropagation", LabelPropagation())
     else:
-        return None
+        raise Exception("method should be either LabelSpreading or LabelPropagation") 
 
     if isinstance(X, np.ndarray):
         pipe = Pipeline([step])
@@ -58,7 +57,6 @@ class SkLabelSpreading(BasePrimitive):
     def fit(self, X, y=None):
         self.pipe = make_label_pipeline("LabelSpreading", X)
         self.pipe.fit(X, y)
-        return
 
     def predict(self, X):
         pred = self.pipe.predict(X)
@@ -70,7 +68,6 @@ class SkLabelPropagation(BasePrimitive):
     def fit(self, X, y=None):
         self.pipe = make_label_pipeline("LabelPropagation", X)
         self.pipe.fit(X, y)
-        return
 
     def predict(self, X):
         pred = self.pipe.predict(X)
