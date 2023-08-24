@@ -86,7 +86,7 @@
     ],
     "SEMISUPERVISED_CLASSIFIER": [
         "sklearn.semi_supervised.SelfTrainingClassifier",
-	"alpha_automl.builtin_primitives.AutonBox"
+	    "alpha_automl.builtin_primitives.AutonBox"
     ],
     "LABELPROPAGATION_CLASSIFIER": [
         "alpha_automl.builtin_primitives.SkLabelSpreading",
