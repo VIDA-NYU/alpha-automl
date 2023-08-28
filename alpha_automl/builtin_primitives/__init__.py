@@ -3,6 +3,12 @@ from alpha_automl.builtin_primitives.datetime_encoder import (
     Datetime64ExpandEncoder,
     DummyEncoder,
 )
+from alpha_automl.builtin_primitives.semisupervised_classifier import (
+    AutonBox,
+    SkLabelPropagation,
+    SkLabelSpreading,
+    SkSelfTrainingClassifier,
+)
 from alpha_automl.builtin_primitives.time_series_forecasting import (
     ArimaEstimator,
     DeeparEstimator,
@@ -18,4 +24,8 @@ __all__ = [
     "DeeparEstimator",
     "NBEATSEstimator",
     "NHITSEstimator",
+    "SkLabelPropagation",
+    "SkLabelSpreading",
+    "SkSelfTrainingClassifier",
+    "AutonBox",
 ]

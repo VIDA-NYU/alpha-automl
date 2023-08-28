@@ -1,14 +1,17 @@
-import logging
-import inspect
-import warnings
 import importlib
-import torch
+import inspect
+import logging
 import platform
-import pandas as pd
-from sklearn.compose import ColumnTransformer
-from sklearn.model_selection import train_test_split
-from alpha_automl.primitive_loader import PRIMITIVE_TYPES
+import warnings
 
+import numpy as np
+import pandas as pd
+import torch
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import ShuffleSplit, train_test_split
+
+from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +72,7 @@ def is_equal_splitting(strategy1, strategy2):
 def make_d3m_pipelines(pipelines, new_primitives, metric, ordering_sign, source_name='Pipeline'):
     d3m_pipelines = []
     primitive_types = {}
-
+    
     for primitive_name, primitive_type in PRIMITIVE_TYPES.items():
         primitive_path = '.'.join(primitive_name.split('.')[-2:])
         primitive_name = f'alpha_automl.primitives.{primitive_path}'
@@ -120,13 +123,28 @@ def make_d3m_pipelines(pipelines, new_primitives, metric, ordering_sign, source_
                 new_prev_list = []
                 cur_step_idx = add_d3m_step(steps_in_type, cur_step_idx, prev_list, new_prev_list, new_pipeline)
                 prev_list = new_prev_list
-
+            
+            if PRIMITIVE_TYPES[step_id] == 'SEMISUPERVISED_CLASSIFIER':
+                classifier_object = step_object.base_estimator
+                classifier_path = f'classifier.{classifier_object.__class__.__name__}'
+                for primitive_name, primitive_type in PRIMITIVE_TYPES.items():
+                    if primitive_type != 'CLASSIFIER':
+                        continue
+                    if classifier_object.__class__.__name__ in primitive_name:
+                        classifier_path = '.'.join(primitive_name.split('.')[-2:])
+                        break
+                
+                classifier_step = [(f'alpha_automl.primitives.{classifier_path}', classifier_object)]
+                new_prev_list = []
+                cur_step_idx = add_d3m_step(classifier_step, cur_step_idx, prev_list, new_prev_list, new_pipeline)
+                prev_list = new_prev_list
+                
         new_pipeline['outputs'] = []
         for prev in prev_list:
             new_pipeline['outputs'].append({'data': prev})
 
         d3m_pipelines.append(new_pipeline)
-
+    
     return d3m_pipelines, primitive_types
 
 
@@ -147,7 +165,7 @@ def add_d3m_step(steps_in_group, cur_step_idx, prev_list, new_prev_list, new_pip
         for param_name, param_value in get_primitive_params(step_object).items():
             step['hyperparams'][param_name] = {
                 'type': 'VALUE',
-                'data': param_value
+                'data': str(param_value)
             }
 
         if isinstance(step_object, ColumnTransformer):
@@ -222,3 +240,75 @@ def check_input_for_multiprocessing(start_method, callable_input, input_type):
         if module_name == '__main__':
             raise ImportError(f'The input {input_type} must be implemented in an external module and be called like '
                               f'from my_external_module import {object_name}"')
+
+
+class SemiSupervisedSplitter:
+    """
+    SemiSupervisedSplitter makes sure that unlabeled rows not being
+    selected as test/validation data for semi-supervised classification tasks.
+    """
+    def __init__(self, n_splits=1, test_size=.2, random_state=0):
+        self.n_splits = n_splits
+        self.test_size = test_size
+        self.random_state = random_state
+
+    def split(self, X, y, groups=None):
+        if isinstance(y, pd.DataFrame):
+            y_array = y.to_numpy()
+        else:
+            y_array = y
+        for rx, tx in ShuffleSplit(n_splits=self.n_splits,
+                                   test_size=self.test_size,
+                                   random_state=self.random_state).split(X,y):
+            unlabeled_t = np.where(y_array[tx] == -1)[0]
+            labeled_r = np.where(y_array[rx] != -1)[0]            
+            tbr_r = np.random.choice(labeled_r, size=unlabeled_t.shape[0], replace=False)
+            tx[unlabeled_t], rx[tbr_r] = rx[tbr_r], tx[unlabeled_t]
+
+            yield rx, tx
+
+    def get_n_splits(self, groups=None):
+        return self.n_splits
+
+
+class SemiSupervisedLabelEncoder:
+    """
+    SemiSupervisedLabelEncoder ignores the unlabeled values (-1 or nan) and only apply
+    LabelEncoder transformation to columns with clear label.
+    """
+    label_encoder = LabelEncoder()
+
+    def fit_transform(self, df):
+        if isinstance(df, pd.DataFrame):
+            df = df.replace(-1, np.NaN)
+            df[df.columns[0]] = pd.Series(
+                self.label_encoder.fit_transform(df[df.columns[0]][df[df.columns[0]].notnull()]),
+                index=df[df.columns[0]][df[df.columns[0]].notnull()].index
+            )
+            df = df.fillna(-1).astype(int)
+            return df.to_numpy()
+        else:
+            raise TypeError("Only pd.DataFrame are allowed")
+
+    def transform(self, df):
+        if isinstance(df, pd.DataFrame):
+            df = df.replace(-1, np.NaN)
+            df[df.columns[0]] = pd.Series(
+                self.label_encoder.transform(df[df.columns[0]][df[df.columns[0]].notnull()]),
+                index=df[df.columns[0]][df[df.columns[0]].notnull()].index
+            )
+            df = df.fillna(-1).astype(int)
+            return df.to_numpy()
+        else:
+            raise TypeError("Only pd.DataFrame are allowed")
+
+    def inverse_transform(self, df):
+        if isinstance(df, np.ndarray):
+            df = pd.DataFrame(df)
+        df = df.replace(-1, np.NaN)
+
+        df[df.columns[0]] = pd.Series(
+            self.label_encoder.inverse_transform(df[df.columns[0]][df[df.columns[0]].notnull()].astype(int)),
+            index=df[df.columns[0]][df[df.columns[0]].notnull()].index
+        )
+        return df.to_numpy()

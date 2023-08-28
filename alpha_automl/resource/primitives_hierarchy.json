@@ -83,5 +83,13 @@
         "alpha_automl.builtin_primitives.DeeparEstimator",
         "alpha_automl.builtin_primitives.NBEATSEstimator",
         "alpha_automl.builtin_primitives.NHITSEstimator"
+    ],
+    "SEMISUPERVISED_CLASSIFIER": [
+        "sklearn.semi_supervised.SelfTrainingClassifier",
+	    "alpha_automl.builtin_primitives.AutonBox"
+    ],
+    "LABELPROPAGATION_CLASSIFIER": [
+        "alpha_automl.builtin_primitives.SkLabelSpreading",
+        "alpha_automl.builtin_primitives.SkLabelPropagation"
     ]
 }

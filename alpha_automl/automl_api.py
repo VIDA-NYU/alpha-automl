@@ -7,7 +7,7 @@ from multiprocessing import set_start_method
 from sklearn.preprocessing import LabelEncoder
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting
-from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing
+from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing, SemiSupervisedSplitter, SemiSupervisedLabelEncoder
 from alpha_automl.visualization import plot_comparison_pipelines
 
 
@@ -104,8 +104,22 @@ class BaseAutoML():
         for index, pipeline in enumerate(sorted_pipelines, start=1):
             pipeline_id = PIPELINE_PREFIX + str(index)
             self.pipelines[pipeline_id] = pipeline
-
-            leaderboard_data.append([index, pipeline.get_summary(), pipeline.get_score()])
+            if (
+                pipeline.get_pipeline().steps[-1][0]
+                == 'sklearn.semi_supervised.SelfTrainingClassifier'
+                or pipeline.get_pipeline().steps[-1][0]
+                == 'alpha_automl.builtin_primitives.AutonBox'
+            ):
+                leaderboard_data.append(
+                    [
+                        index,
+                        f'{pipeline.get_summary()}, {pipeline.get_pipeline().steps[-1][1].base_estimator.__class__.__name__}',
+                        pipeline.get_score(),
+                    ]
+                )
+            else:
+                leaderboard_data.append([index, pipeline.get_summary(), pipeline.get_score()])
+            
 
         self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'pipeline', self.metric])
 
@@ -393,3 +407,59 @@ class AutoMLTimeSeries(BaseAutoML):
     def fit(self, X, y=None):
         X, y = self._column_parser(X)
         super().fit(X, y)
+
+
+class AutoMLSemiSupervisedClassifier(BaseAutoML):
+
+    def __init__(self, output_folder, time_bound=15, metric='f1_score', split_strategy='holdout',
+                 time_bound_run=5, score_sorting='auto', metric_kwargs={'average': 'micro'}, split_strategy_kwargs=None,
+                 start_mode='auto', verbose=False):
+        """
+        Create/instantiate an AutoMLSemiSupervisedClassifier object.
+        
+        :param output_folder: Path to the output directory.
+        :param time_bound: Limit time in minutes to perform the search.
+        :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
+        :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
+            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits.
+        :param time_bound_run: Limit time in minutes to score a pipeline.
+        :param score_sorting: The sort used to order the scores. It could be `auto`, `ascending` or `descending`.
+            `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
+        :param metric_kwargs: Additional arguments for metric.
+        :param split_strategy_kwargs: Additional arguments for splitting_strategy. In SemiSupervised case, `n_splits` and `test_size`(test proportion from 0 to 1) can be pass to the splitter.
+        :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
+        :param verbose: Whether or not to show additional logs.
+        """
+        self.label_enconder = SemiSupervisedLabelEncoder()
+        task = 'SEMISUPERVISED'
+        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
+                         metric_kwargs, split_strategy_kwargs, start_mode, verbose)
+
+        self.splitter = SemiSupervisedSplitter(**split_strategy_kwargs)
+
+    def fit(self, X, y):
+        y = self.label_enconder.fit_transform(y)
+        super().fit(X, y)
+
+    def predict(self, X):
+        predictions = super().predict(X)
+
+        return self.label_enconder.inverse_transform(predictions)
+
+    def score(self, X, y):
+        y = self.label_enconder.transform(y)
+
+        return super().score(X, y)
+
+    def fit_pipeline(self, pipeline_id):
+        super().fit_pipeline(pipeline_id)
+
+    def predict_pipeline(self, X, pipeline_id):
+        predictions = super().predict_pipeline(X, pipeline_id)
+
+        return self.label_enconder.inverse_transform(predictions)
+
+    def score_pipeline(self, X, y, pipeline_id):
+        y = self.label_enconder.transform(y)
+
+        return super().score_pipeline(X, y, pipeline_id)

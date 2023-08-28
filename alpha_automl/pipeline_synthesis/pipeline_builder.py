@@ -10,6 +10,26 @@ from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 
 logger = logging.getLogger(__name__)
 
+SEMI_CLASSIFIER_PARAMS = {
+    "sklearn.discriminant_analysis.LinearDiscriminantAnalysis": {},
+    "sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis": {},
+    "sklearn.ensemble.BaggingClassifier": {},
+    "sklearn.ensemble.ExtraTreesClassifier": {},
+    "sklearn.ensemble.GradientBoostingClassifier": {},
+    "sklearn.ensemble.RandomForestClassifier": {},
+    "sklearn.naive_bayes.BernoulliNB": {},
+    "sklearn.naive_bayes.GaussianNB": {},
+    "sklearn.naive_bayes.MultinomialNB": {},
+    "sklearn.neighbors.KNeighborsClassifier": {},
+    "sklearn.linear_model.LogisticRegression": {},
+    "sklearn.linear_model.PassiveAggressiveClassifier": {},
+    "sklearn.linear_model.SGDClassifier": dict(alpha=1e-5, penalty="l2", loss="log_loss"),
+    "sklearn.svm.LinearSVC": {},
+    "sklearn.svm.SVC": {},
+    "sklearn.tree.DecisionTreeClassifier": {},
+    "xgboost.XGBClassifier": {},
+    "lightgbm.LGBMClassifier": {},
+}
 
 def change_default_hyperparams(primitive_object):
     if isinstance(primitive_object, OneHotEncoder):
@@ -63,13 +83,20 @@ class BaseBuilder:
 
         for primitive in primitives:
             primitive_name = primitive
-            if self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
+            primitive_type = self.all_primitives[primitive_name]['type']
+
+            # Make sure that SEMISUPERVISED_CLASSIFIER primitive has a classifier primitive behind
+            if primitive_type == 'SEMISUPERVISED_CLASSIFIER':
+                if self.all_primitives[primitives[-1]]['type'] != 'CLASSIFIER':
+                    return
+                classifier_obj = create_object(primitives[-1], SEMI_CLASSIFIER_PARAMS[primitives[-1]])
+                primitive_object = create_object(primitive_name, {'base_estimator': classifier_obj})
+            elif self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
                 primitive_object = create_object(primitive)
             else:
                 primitive_object = self.automl_hyperparams['new_primitives'][primitive_name]['primitive_object']
 
             change_default_hyperparams(primitive_object)
-            primitive_type = self.all_primitives[primitive_name]['type']
 
             if primitive_type in nonnumeric_columns:  # Create a  new transformer and add it to the list
                 transformers += self.create_transformers(primitive_object, primitive_name, primitive_type)
@@ -82,7 +109,9 @@ class BaseBuilder:
                     pipeline_primitives.append((COLUMN_TRANSFORMER_ID, transformer_obj))
                     transformers = []
                 pipeline_primitives.append((primitive_name, primitive_object))
-
+                if primitive_type == 'SEMISUPERVISED_CLASSIFIER':
+                    break
+            
         return pipeline_primitives
 
     def create_transformers(self, primitive_object, primitive_name, primitive_type):
@@ -97,3 +126,4 @@ class BaseBuilder:
                                                                        in nonnumeric_columns[primitive_type]])]
 
         return column_transformers
+

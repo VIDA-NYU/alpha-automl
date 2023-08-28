@@ -14,3 +14,7 @@ API
 .. autoclass:: AutoMLTimeSeries
    :members:
    :inherited-members:
+
+.. autoclass:: AutoMLSemiSupervisedClassifier
+   :members:
+   :inherited-members:
