@@ -286,7 +286,6 @@ class BaseAutoML():
             plot_comparison_pipelines(precomputed_pipelines, precomputed_primitive_types)
 
     def _fit(self, X, y, pipeline_id):
-        breakpoint()
         self.pipelines[pipeline_id].get_pipeline().fit(X, y)
 
     def _predict(self, X, pipeline_id):
