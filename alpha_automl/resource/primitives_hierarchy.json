@@ -88,9 +88,8 @@
         "alpha_automl.builtin_primitives.NHITSEstimator"
     ],
     "OVERSAMPLE": [
-	"imblearn.over_sampling.BorderlineSMOTE",
-	"imblearn.over_sampling.KMeansSMOTE",
-	"imblearn.over_sampling.SMOTE",
-	"imblearn.over_sampling.ADASYN"
+	    "imblearn.over_sampling.BorderlineSMOTE",
+	    "imblearn.over_sampling.KMeansSMOTE",
+	    "imblearn.over_sampling.SMOTE"
     ]
 }
