@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import logging
 
 from sklearn.feature_extraction import image
 import skimage
@@ -9,6 +10,8 @@ from alpha_automl.base_primitive import BasePrimitive
 from alpha_automl._optional_dependency import import_optional_dependency
 
 clip = import_optional_dependency('clip')
+
+logger = logging.getLogger("IMAGE_ENCODER")
 
 
 class RGB2GrayTransformer(BasePrimitive):
@@ -44,7 +47,9 @@ class CLIPTransformer(BasePrimitive):
 
     def transform(self, X, y=None):
         """perform the transformation and return an array"""
+        logger.critical(f"We are HERE!!!!!")
         def clip(img):
+            logger.critical(f"IMG {img}")
             # img = np.transpose(img,(2,0,1))
             img = torch.from_numpy(img)
             img = img[None, :, :, :]
