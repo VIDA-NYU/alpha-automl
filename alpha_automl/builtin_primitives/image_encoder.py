@@ -52,7 +52,7 @@ class CLIPTransformer(BasePrimitive):
         def clip(img):
             # img = np.transpose(img,(2,0,1))
             img = torch.from_numpy(img)
-            img = F.interpolate(img, size=224)
+            img = F.interpolate(img, size=(224, 224))
             logger.critical(f"interpolate {img.shape}")
             img = img[None, :, :, :]
             logger.critical(f"None {img.shape}")
