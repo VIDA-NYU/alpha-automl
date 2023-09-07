@@ -14,6 +14,7 @@ from alpha_automl.builtin_primitives.image_encoder import (
     HogTransformer,
     FisherVectorTransformer,
     SkPatchExtractor,
+    CLIPTransformer,
 )
 
 __all__ = [
@@ -28,4 +29,5 @@ __all__ = [
     "HogTransformer",
     "FisherVectorTransformer",
     "SkPatchExtractor",
+    "CLIPTransformer",
 ]
