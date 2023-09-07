@@ -48,10 +48,11 @@ class CLIPTransformer(BasePrimitive):
     def transform(self, X, y=None):
         """perform the transformation and return an array"""
         def clip(img):
-            
             # img = np.transpose(img,(2,0,1))
             img = torch.from_numpy(img)
+            logger.critical(f"from_numpy {img.shape}")
             img = img[None, :, :, :]
+            logger.critical(f"None {img.shape}")
             img = self.model.encode_image(img)
             logger.critical(f"encode_image {img.shape}")
             img = torch.squeeze(img)
