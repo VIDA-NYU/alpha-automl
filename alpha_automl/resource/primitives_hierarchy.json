@@ -79,8 +79,6 @@
         "sklearn.feature_extraction.text.TfidfVectorizer"
     ],
     "IMAGE_ENCODER": [
-        "alpha_automl.builtin_primitives.RGB2GrayTransformer",
-        "alpha_automl.builtin_primitives.HogTransformer",
         "alpha_automl.builtin_primitives.CLIPTransformer"
     ],
     "COLUMN_TRANSFORMER": [
