@@ -9,6 +9,8 @@ from skimage.feature import ORB, fisher_vector, hog, learn_gmm
 from alpha_automl.base_primitive import BasePrimitive
 from alpha_automl._optional_dependency import import_optional_dependency
 
+import torch.nn.functional as F
+
 clip = import_optional_dependency('clip')
 
 logger = logging.getLogger("IMAGE_ENCODER")
@@ -49,9 +51,9 @@ class CLIPTransformer(BasePrimitive):
         """perform the transformation and return an array"""
         def clip(img):
             # img = np.transpose(img,(2,0,1))
-            logger.critical(f"clip {isinstance(img, np.ndarray)}")
             img = torch.from_numpy(img)
-            logger.critical(f"from_numpy {img.shape}")
+            img = F.interpolate(img, size=224)
+            logger.critical(f"interpolate {img.shape}")
             img = img[None, :, :, :]
             logger.critical(f"None {img.shape}")
             img = self.model.encode_image(img)
