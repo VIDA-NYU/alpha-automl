@@ -60,7 +60,6 @@ class CLIPTransformer(BasePrimitive):
             img = img[None, :, :, :]
             img = F.interpolate(img, (224, 224))
             img = self.model.encode_image(img)
-            logger.critical(f"We are here!!!! {img.shape}")
             img = torch.squeeze(img)
             return img.detach().cpu().numpy()
 
