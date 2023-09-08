@@ -47,7 +47,7 @@ class AutoMLManager():
     def _search_pipelines(self, automl_hyperparams, is_sample):
         search_start_time = time.time()
         automl_hyperparams = self.check_automl_hyperparams(automl_hyperparams)
-        if self.task == 'IMAGE_CLASSIFICATION':
+        if self.task == 'IMAGE_CLASSIFICATION' or self.task == 'IMAGE_REGRESSION':
             metadata = {'nonnumeric_columns': {}, 'useless_columns': [], 'missing_values': False}
         else:
             metadata = profile_data(self.X)

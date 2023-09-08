@@ -477,3 +477,31 @@ class AutoMLImageClassifier(BaseAutoML):
         y = self.label_enconder.transform(y)
 
         return super().score_pipeline(X, y, pipeline_id)
+    
+
+
+class AutoMLImageRegressor(BaseAutoML):
+
+    def __init__(self, output_folder, time_bound=15, metric='mean_squared_error', split_strategy='holdout',
+                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
+                 start_mode='auto', verbose=False, optimizing=False, optimizing_number=10):
+        """
+        Create/instantiate an AutoMLRegressor object.
+
+        :param output_folder: Path to the output directory.
+        :param time_bound: Limit time in minutes to perform the search.
+        :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
+        :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
+            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits.
+        :param time_bound_run: Limit time in minutes to score a pipeline.
+        :param score_sorting: The sort used to order the scores. It could be `auto`, `ascending` or `descending`.
+            `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
+        :param metric_kwargs: Additional arguments for metric.
+        :param split_strategy_kwargs: Additional arguments for splitting_strategy.
+        :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
+        :param verbose: Whether or not to show additional logs.
+        """
+
+        task = 'IMAGE_REGRESSION'
+        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
+                         metric_kwargs, split_strategy_kwargs, start_mode, verbose, optimizing, optimizing_number)

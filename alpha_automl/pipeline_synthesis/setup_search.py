@@ -22,6 +22,7 @@ config = {
                       'NA': 4,
                       'TIME_SERIES_FORECAST': 5,
                       'IMAGE_CLASSIFICATION': 6,
+                      'IMAGE_REGRESSION': 7,
                       },
 
     'DATA_TYPES': {'TABULAR': 1,
