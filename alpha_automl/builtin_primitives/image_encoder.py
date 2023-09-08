@@ -11,7 +11,7 @@ from alpha_automl._optional_dependency import import_optional_dependency
 
 import torch.nn.functional as F
 
-clip = import_optional_dependency('clip')
+clip = import_optional_dependency("clip")
 
 logger = logging.getLogger("IMAGE_ENCODER")
 
@@ -49,14 +49,20 @@ class CLIPTransformer(BasePrimitive):
 
     def transform(self, X, y=None):
         """perform the transformation and return an array"""
+
         def clip(img):
             # img = np.transpose(img,(2,0,1))
             img = torch.from_numpy(img)
+            nc, w, h = img.shape
+            if nc < 3:
+                dummy = torch.zeros(3 - nc, w, h)
+                img = torch.cat(img, dummy, 1)
             img = img[None, :, :, :]
             img = F.interpolate(img, (224, 224))
             img = self.model.encode_image(img)
             img = torch.squeeze(img)
             return img.detach().cpu().numpy()
+
         return np.array([clip(img) for img in X])
 
 
@@ -136,15 +142,15 @@ class SkPatchExtractor(BasePrimitive):
     """
     Convert an array of RGB images to grayscale
     """
- 
+
     def __init__(self):
         self.extractor = image.PatchExtractor()
         pass
- 
+
     def fit(self, X, y=None):
         """returns itself"""
         return self
- 
+
     def transform(self, X, y=None):
         """perform the transformation and return an array"""
         return self.extractor.transform(X).reshape((X.shape[0], -1))
