@@ -53,15 +53,10 @@ class CLIPTransformer(BasePrimitive):
         def clip(img):
             # img = np.transpose(img,(2,0,1))
             img = torch.from_numpy(img)
-            nc, w, h = img.shape
-            if nc < 3:
-                dummy = torch.zeros(3 - nc, w, h)
-                img = torch.cat((img[[0]], img[[1]], dummy), 0)
             img = img[None, :, :, :]
             img = F.interpolate(img, (224, 224))
             img = self.model.encode_image(img)
             img = torch.squeeze(img)
-            logger.critical(f"squeeze {img.shape}")
             return img.detach().cpu().numpy()
 
         return np.array([clip(img) for img in X])
