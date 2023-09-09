@@ -56,7 +56,7 @@ class CLIPTransformer(BasePrimitive):
             nc, w, h = img.shape
             if nc < 3:
                 dummy = torch.zeros(3 - nc, w, h)
-                img = torch.cat((img, dummy), 1)
+                img = torch.cat((img[[0]], img[[1]], dummy), 0)
             img = img[None, :, :, :]
             img = F.interpolate(img, (224, 224))
             img = self.model.encode_image(img)
