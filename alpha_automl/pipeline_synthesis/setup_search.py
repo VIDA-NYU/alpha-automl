@@ -67,7 +67,7 @@ def search_pipelines(
 
         if pipeline is not None:
             score, start_time, end_time = score_pipeline(
-                pipeline, X, y, scoring, splitting_strategy
+                pipeline, X, y, scoring, splitting_strategy, task_name
             )
             if score is not None:
                 pipeline_alphaautoml = Pipeline(pipeline, score, start_time, end_time)

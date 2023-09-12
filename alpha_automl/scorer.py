@@ -8,7 +8,7 @@ from alpha_automl.utils import RANDOM_SEED
 from sklearn.metrics import accuracy_score, f1_score, jaccard_score, precision_score, recall_score,\
     max_error, mean_absolute_error, mean_squared_error, mean_squared_log_error, median_absolute_error, r2_score,\
     adjusted_mutual_info_score, rand_score, mutual_info_score, normalized_mutual_info_score
-
+from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 
 logger = logging.getLogger(__name__)
 
@@ -120,10 +120,14 @@ def make_splitter(splitting_strategy, splitting_strategy_kwargs=None):
                          f'instance of BaseCrossValidator, BaseShuffleSplit, RepeatedSplits.')
 
 
-def score_pipeline(pipeline, X, y, scoring, splitting_strategy):
+def score_pipeline(pipeline, X, y, scoring, splitting_strategy, task_name):
     score = None
     start_time = None
     end_time = None
+
+    if (task_name == 'TIME_SERIES_FORECAST' and
+            PRIMITIVE_TYPES[pipeline.steps[-1][0]] == 'REGRESSOR'):
+        X = X.drop(X.columns[1], axis=1)
 
     try:
         start_time = datetime.datetime.utcnow().isoformat() + 'Z'
