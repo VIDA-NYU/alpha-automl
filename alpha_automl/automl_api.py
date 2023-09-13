@@ -435,6 +435,9 @@ class AutoMLSemiSupervisedClassifier(BaseAutoML):
         super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
                          metric_kwargs, split_strategy_kwargs, start_mode, verbose)
 
+        if split_strategy_kwargs is None:
+            split_strategy_kwargs = {'test_size': 0.2}
+
         self.splitter = SemiSupervisedSplitter(**split_strategy_kwargs)
 
     def fit(self, X, y):
