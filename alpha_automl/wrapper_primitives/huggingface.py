@@ -7,9 +7,8 @@ transformers = import_optional_dependency('transformers')
 
 class HuggingfaceEmbedder(BasePrimitive):
 
-    def __init__(self, name, last_four_model_layers=False):
+    def __init__(self, name):
         self.name = name
-        self.last_four_model_layers = last_four_model_layers
 
     def fit(self, X, y=None):
         return self
