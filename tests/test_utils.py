@@ -8,6 +8,7 @@ from alpha_automl.utils import (
     SemiSupervisedSplitter,
     create_object,
     sample_dataset,
+    make_d3m_pipelines
 )
 
 
@@ -39,6 +40,28 @@ def test_sample_dataset():
     assert actual_is_sampled == expected_is_sampled
     assert len(actual_X) == expected_X_len
     assert len(actual_y) == expected_y_len
+
+
+def test_make_d3m_pipelines():
+    from alpha_automl.pipeline import Pipeline
+    from sklearn.pipeline import Pipeline as SKPipeline
+    from sklearn.preprocessing import MaxAbsScaler
+    from sklearn.ensemble import ExtraTreesClassifier
+    from feature_engine.selection import SmartCorrelatedSelection
+
+    pipelines = {'Pipeline #1': Pipeline(SKPipeline(steps=[('sklearn.preprocessing.MaxAbsScaler', MaxAbsScaler()),
+                                          ('sklearn.ensemble.ExtraTreesClassifier', ExtraTreesClassifier())]),
+                                          0.90, '2023-10-02T16:52:06.736112Z', '2023-10-02T16:56:06.736112Z')
+
+                 }
+    new_primitives = {'feature_engine.selection.smart_correlation_selection.SmartCorrelatedSelection':
+                          {'primitive_object': SmartCorrelatedSelection(),
+                           'primitive_type': 'FEATURE_SELECTOR'}
+                      }
+    current_d3m_pipelines, _ = make_d3m_pipelines(pipelines, new_primitives, 'accuracy_score', 1)
+    assert len(current_d3m_pipelines) == 1
+    first_step_path = current_d3m_pipelines[0]['steps'][0]['primitive']['python_path']
+    assert first_step_path == 'alpha_automl.primitives.preprocessing.MaxAbsScaler'
 
 
 class TestSemiSupervisedLabelEncoder:
