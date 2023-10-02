@@ -11,7 +11,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import ShuffleSplit, train_test_split
 
-from alpha_automl.primitive_loader import PRIMITIVE_TYPES
+from alpha_automl.primitive_loader import PRIMITIVE_TYPES as INSTALLED_PRIMITIVES
 
 logger = logging.getLogger(__name__)
 
@@ -71,17 +71,21 @@ def is_equal_splitting(strategy1, strategy2):
 
 def make_d3m_pipelines(pipelines, new_primitives, metric, ordering_sign, source_name='Pipeline'):
     d3m_pipelines = []
-    primitive_types = {}
+    d3m_primitive_types = {}
+    all_primitive_types = {}
     
-    for primitive_name, primitive_type in PRIMITIVE_TYPES.items():
+    for primitive_name, primitive_type in INSTALLED_PRIMITIVES.items():
+        all_primitive_types[primitive_name] = primitive_type
         primitive_path = '.'.join(primitive_name.split('.')[-2:])
-        primitive_name = f'alpha_automl.primitives.{primitive_path}'
-        primitive_types[primitive_name] = primitive_type.replace('_', ' ').title()
+        d3m_primitive_name = f'alpha_automl.primitives.{primitive_path}'
+        d3m_primitive_types[d3m_primitive_name] = primitive_type.replace('_', ' ').title()
 
     for new_primitive in new_primitives:
+        primitive_type = new_primitives[new_primitive]['primitive_type']
+        all_primitive_types[new_primitive] = primitive_type
         primitive_path = '.'.join(new_primitive.split('.')[-2:])
-        primitive_name = f'alpha_automl.primitives.{primitive_path}'
-        primitive_types[primitive_name] = new_primitives[new_primitive]['primitive_type'].replace('_', ' ').title()
+        d3m_primitive_name = f'alpha_automl.primitives.{primitive_path}'
+        d3m_primitive_types[d3m_primitive_name] = primitive_type.replace('_', ' ').title()
 
     for pipeline_id, pipeline in pipelines.items():
         new_pipeline = {
@@ -124,10 +128,10 @@ def make_d3m_pipelines(pipelines, new_primitives, metric, ordering_sign, source_
                 cur_step_idx = add_d3m_step(steps_in_type, cur_step_idx, prev_list, new_prev_list, new_pipeline)
                 prev_list = new_prev_list
             
-            if PRIMITIVE_TYPES[step_id] == 'SEMISUPERVISED_CLASSIFIER':
+            if all_primitive_types[step_id] == 'SEMISUPERVISED_CLASSIFIER':
                 classifier_object = step_object.base_estimator
                 classifier_path = f'classifier.{classifier_object.__class__.__name__}'
-                for primitive_name, primitive_type in PRIMITIVE_TYPES.items():
+                for primitive_name, primitive_type in all_primitive_types.items():
                     if primitive_type != 'CLASSIFIER':
                         continue
                     if classifier_object.__class__.__name__ in primitive_name:
@@ -145,7 +149,7 @@ def make_d3m_pipelines(pipelines, new_primitives, metric, ordering_sign, source_
 
         d3m_pipelines.append(new_pipeline)
     
-    return d3m_pipelines, primitive_types
+    return d3m_pipelines, d3m_primitive_types
 
 
 def add_d3m_step(steps_in_group, cur_step_idx, prev_list, new_prev_list, new_pipeline):
