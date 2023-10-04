@@ -28,9 +28,9 @@
     ],
     "DATETIME_ENCODER": [
         "sklearn.preprocessing.OrdinalEncoder",
-	    "alpha_automl.builtin_primitives.CyclicalFeature",
-        "alpha_automl.builtin_primitives.Datetime64ExpandEncoder",
-        "alpha_automl.builtin_primitives.DummyEncoder"
+	    "alpha_automl.builtin_primitives.datetime_encoder.CyclicalFeature",
+        "alpha_automl.builtin_primitives.datetime_encoder.Datetime64ExpandEncoder",
+        "alpha_automl.builtin_primitives.datetime_encoder.DummyEncoder"
     ],
     "FEATURE_SCALER": [
         "sklearn.preprocessing.MaxAbsScaler",
@@ -79,17 +79,17 @@
         "sklearn.compose.ColumnTransformer"
     ],
     "TIME_SERIES_FORECAST": [
-        "alpha_automl.builtin_primitives.ArimaEstimator",
-        "alpha_automl.builtin_primitives.DeeparEstimator",
-        "alpha_automl.builtin_primitives.NBEATSEstimator",
-        "alpha_automl.builtin_primitives.NHITSEstimator"
+        "alpha_automl.builtin_primitives.time_series_forecasting.ArimaEstimator",
+        "alpha_automl.builtin_primitives.time_series_forecasting.DeeparEstimator",
+        "alpha_automl.builtin_primitives.time_series_forecasting.NBEATSEstimator",
+        "alpha_automl.builtin_primitives.time_series_forecasting.NHITSEstimator"
     ],
     "SEMISUPERVISED_CLASSIFIER": [
         "sklearn.semi_supervised.SelfTrainingClassifier",
-	    "alpha_automl.builtin_primitives.AutonBox"
+	    "alpha_automl.builtin_primitives.semisupervised_classifier.AutonBox"
     ],
     "LABELPROPAGATION_CLASSIFIER": [
-        "alpha_automl.builtin_primitives.SkLabelSpreading",
-        "alpha_automl.builtin_primitives.SkLabelPropagation"
+        "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelSpreading",
+        "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelPropagation"
     ]
 }
