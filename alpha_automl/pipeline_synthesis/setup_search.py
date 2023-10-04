@@ -56,8 +56,8 @@ def search_pipelines(
     verbose,
     queue,
 ):
-    if not verbose:
-        hide_logs()  # Hide logs here too, since multiprocessing has some issues with loggers
+        
+    hide_logs(verbose)  # Hide logs here too, since multiprocessing has some issues with loggers
 
     builder = BaseBuilder(metadata, automl_hyperparams)
 

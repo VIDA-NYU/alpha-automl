@@ -1,3 +1,4 @@
+import sys
 import importlib
 import inspect
 import logging
@@ -198,12 +199,19 @@ def get_primitive_params(primitive_object):
     return params
 
 
-def hide_logs():
-    # Hide all warnings and logs
+def hide_logs(level):
+    """
+    Three levels of logs: 
+     - verbose_level > 0: show all logs
+     - verbose_level == 0: show find and scored pipelines
+     - verbose_level < 0: show no logs
+    """
+    if level > 0:
+        return
     warnings.filterwarnings('ignore')
-    for logger_name in logging.root.manager.loggerDict:
-        if logger_name not in ['alpha_automl', 'alpha_automl.automl_api']:
-            logging.getLogger(logger_name).setLevel(logging.CRITICAL)
+    logging.root.setLevel(logging.CRITICAL)
+    if level == 0:
+        logging.getLogger('alpha_automl.automl_api').setLevel(logging.INFO)
 
 
 def get_start_method(suggested_method):

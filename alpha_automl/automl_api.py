@@ -58,8 +58,7 @@ class BaseAutoML():
         self.leaderboard = None
         self.automl_manager = AutoMLManager(output_folder, time_bound, time_bound_run, task, verbose)
 
-        if not verbose:
-            hide_logs()
+        hide_logs(verbose)
 
         os.makedirs(output_folder, exist_ok=True)
         self._start_method = get_start_method(start_mode)
