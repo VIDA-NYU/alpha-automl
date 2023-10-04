@@ -273,7 +273,7 @@ class SemiSupervisedSplitter:
                                    test_size=self.test_size,
                                    random_state=self.random_state).split(X,y):
             unlabeled_t = np.where(y_array[tx] == -1)[0]
-            labeled_r = np.where(y_array[rx] != -1)[0]            
+            labeled_r = np.where(y_array[rx] != -1)[0]           
             tbr_r = np.random.choice(labeled_r, size=unlabeled_t.shape[0], replace=False)
             tx[unlabeled_t], rx[tbr_r] = rx[tbr_r], tx[unlabeled_t]
 

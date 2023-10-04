@@ -28,8 +28,15 @@ SEMI_CLASSIFIER_PARAMS = {
     "sklearn.svm.SVC": {},
     "sklearn.tree.DecisionTreeClassifier": {},
     "xgboost.XGBClassifier": {},
-    "lightgbm.LGBMClassifier": {},
+    "lightgbm.LGBMClassifier": dict(verbose=-1),
 }
+
+
+EXTRA_PARAMS = {
+    "lightgbm.LGBMClassifier": dict(verbose=-1),
+    "lightgbm.LGBMRegressor": dict(verbose=-1),
+}
+
 
 def change_default_hyperparams(primitive_object):
     if isinstance(primitive_object, OneHotEncoder):
@@ -92,7 +99,10 @@ class BaseBuilder:
                 classifier_obj = create_object(primitives[-1], SEMI_CLASSIFIER_PARAMS[primitives[-1]])
                 primitive_object = create_object(primitive_name, {'base_estimator': classifier_obj})
             elif self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
-                primitive_object = create_object(primitive)
+                if primitive in EXTRA_PARAMS:
+                    primitive_object = create_object(primitive, EXTRA_PARAMS[primitive])
+                else:
+                    primitive_object = create_object(primitive)
             else:
                 primitive_object = self.automl_hyperparams['new_primitives'][primitive_name]['primitive_object']
 
