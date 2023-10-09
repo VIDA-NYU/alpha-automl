@@ -5,9 +5,10 @@ from sklearn.preprocessing import StandardScaler
 from alpha_automl.base_primitive import BasePrimitive
 from alpha_automl._optional_dependency import check_optional_dependency
 
-check_optional_dependency('gluonts')
-check_optional_dependency('neuralforecast')
-check_optional_dependency('pmdarima')
+ml_task = 'timeseries'
+check_optional_dependency('gluonts', ml_task)
+check_optional_dependency('neuralforecast', ml_task)
+check_optional_dependency('pmdarima', ml_task)
 
 from gluonts.dataset.common import ListDataset
 from gluonts.evaluation.backtest import make_evaluation_predictions

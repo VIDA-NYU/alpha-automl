@@ -3,7 +3,8 @@ import numpy as np
 from alpha_automl.base_primitive import BasePrimitive
 from alpha_automl._optional_dependency import check_optional_dependency
 
-check_optional_dependency('fasttext')
+ml_task = 'nlp'
+check_optional_dependency('fasttext', ml_task)
 import fasttext
 
 
