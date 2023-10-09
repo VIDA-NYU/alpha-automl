@@ -1,7 +1,14 @@
 import logging
-
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from alpha_automl.base_primitive import BasePrimitive
+from alpha_automl._optional_dependency import check_optional_dependency
+
+check_optional_dependency('gluonts')
+check_optional_dependency('neuralforecast')
+check_optional_dependency('pmdarima')
+
 from gluonts.dataset.common import ListDataset
 from gluonts.evaluation.backtest import make_evaluation_predictions
 from gluonts.mx.model.deepar import DeepAREstimator
@@ -9,9 +16,7 @@ from gluonts.mx.trainer import Trainer
 from neuralforecast import NeuralForecast
 from neuralforecast.models import NBEATS, NHITS
 from pmdarima.arima import auto_arima, ndiffs
-from sklearn.preprocessing import StandardScaler
 
-from alpha_automl.base_primitive import BasePrimitive
 
 logger = logging.getLogger(__name__)
 
