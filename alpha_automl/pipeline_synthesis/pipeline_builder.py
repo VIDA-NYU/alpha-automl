@@ -121,7 +121,7 @@ class BaseBuilder:
         if primitive_type == 'TEXT_ENCODER':
             column_transformers = [(f'{primitive_name}-{col_name}', primitive_object, col_index) for
                                    col_index, col_name in nonnumeric_columns[primitive_type]]
-        elif primitive_type == 'CATEGORICAL_ENCODER' or primitive_type == 'DATETIME_ENCODER':
+        elif primitive_type == 'CATEGORICAL_ENCODER' or primitive_type == 'DATETIME_ENCODER' or primitive_type == 'IMAGE_ENCODER':
             column_transformers = [(primitive_name, primitive_object, [col_index for col_index, _
                                                                        in nonnumeric_columns[primitive_type]])]
 

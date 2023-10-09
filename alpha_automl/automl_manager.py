@@ -46,7 +46,6 @@ class AutoMLManager():
     def _search_pipelines(self, automl_hyperparams):
         search_start_time = time.time()
         automl_hyperparams = self.check_automl_hyperparams(automl_hyperparams)
-
         metadata = profile_data(self.X)
         X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE, self.task)
         internal_splitting_strategy = make_splitter(SPLITTING_STRATEGY)

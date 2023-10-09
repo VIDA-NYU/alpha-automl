@@ -5,4 +5,5 @@ neuralforecast==1.5.0:      timeseries
 mxnet==1.9.1:               timeseries
 pmdarima==2.0.3:            timeseries
 fasttext-wheel:             nlp
-transformers:               nlp
+transformers:               nlp, image
+scikit-image:               image
