@@ -3,7 +3,7 @@ import torch
 
 from alpha_automl._optional_dependency import import_optional_dependency
 from alpha_automl.base_primitive import BasePrimitive
-from alpha_automl.builtin_primitives import ImageReader
+from alpha_automl.builtin_primitives.image_encoder import ImageReader
 
 transformers = import_optional_dependency("transformers")
 
