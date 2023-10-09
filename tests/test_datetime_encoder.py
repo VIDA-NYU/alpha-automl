@@ -1,8 +1,6 @@
 import numpy as np
 import pandas as pd
-from alpha_automl.builtin_primitives import (CyclicalFeature,
-                                             Datetime64ExpandEncoder,
-                                             DummyEncoder)
+from alpha_automl.builtin_primitives.datetime_encoder import (CyclicalFeature, Datetime64ExpandEncoder, DummyEncoder)
 
 
 class TestDatetimeEncoder:

@@ -1,8 +1,11 @@
 import torch
 import numpy as np
-from alpha_automl._optional_dependency import import_optional_dependency
 from alpha_automl.base_primitive import BasePrimitive
-transformers = import_optional_dependency('transformers')
+from alpha_automl._optional_dependency import check_optional_dependency
+
+ml_task = 'nlp'
+check_optional_dependency('transformers', ml_task)
+from transformers import AutoTokenizer, AutoModel
 
 
 class HuggingfaceEmbedder(BasePrimitive):
@@ -27,8 +30,8 @@ class HuggingfaceEmbedder(BasePrimitive):
         batch_embeddings = []
 
         # Loading tokenizer and model
-        tokenizer = transformers.AutoTokenizer.from_pretrained(self.name)
-        model = transformers.AutoModel.from_pretrained(self.name, output_hidden_states=True)
+        tokenizer = AutoTokenizer.from_pretrained(self.name)
+        model = AutoModel.from_pretrained(self.name, output_hidden_states=True)
 
         for start in range(0, total_length, batch_size):
             if start == (steps * batch_size):
