@@ -1,8 +1,8 @@
 import logging
 import numpy as np
 import pandas as pd
-from alpha_automl._optional_dependency import check_optional_dependency
 from alpha_automl.base_primitive import BasePrimitive
+from alpha_automl._optional_dependency import check_optional_dependency
 
 ml_task = 'image'
 check_optional_dependency('skimage', ml_task)

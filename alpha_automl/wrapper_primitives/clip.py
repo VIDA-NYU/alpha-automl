@@ -1,11 +1,12 @@
 import numpy as np
 import torch
-
-from alpha_automl._optional_dependency import import_optional_dependency
 from alpha_automl.base_primitive import BasePrimitive
 from alpha_automl.builtin_primitives.image_encoder import ImageReader
+from alpha_automl._optional_dependency import check_optional_dependency
 
-transformers = import_optional_dependency("transformers")
+ml_task = 'image'
+check_optional_dependency('transformers', ml_task)
+import transformers
 
 DEFAULT_MODEL_ID = "openai/clip-vit-base-patch32"
 
