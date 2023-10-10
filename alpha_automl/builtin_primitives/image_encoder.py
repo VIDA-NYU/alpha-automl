@@ -1,12 +1,11 @@
 import logging
-
 import numpy as np
 import pandas as pd
-
-from alpha_automl._optional_dependency import import_optional_dependency
+from alpha_automl._optional_dependency import check_optional_dependency
 from alpha_automl.base_primitive import BasePrimitive
 
-skimage = import_optional_dependency("skimage")
+ml_task = 'image'
+check_optional_dependency('skimage', ml_task)
 
 from skimage.color import gray2rgb, rgb2gray, rgba2rgb
 from skimage.feature import ORB, canny, fisher_vector, hog, learn_gmm
