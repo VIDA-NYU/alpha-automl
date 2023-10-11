@@ -75,6 +75,10 @@
         "sklearn.feature_extraction.text.CountVectorizer",
         "sklearn.feature_extraction.text.TfidfVectorizer"
     ],
+    "IMAGE_ENCODER": [
+        "alpha_automl.builtin_primitives.image_encoder.RGB2GrayTransformer",
+        "alpha_automl.builtin_primitives.image_encoder.HogTransformer"
+    ],
     "COLUMN_TRANSFORMER": [
         "sklearn.compose.ColumnTransformer"
     ],
@@ -86,7 +90,7 @@
     ],
     "SEMISUPERVISED_CLASSIFIER": [
         "sklearn.semi_supervised.SelfTrainingClassifier",
-	    "alpha_automl.builtin_primitives.semisupervised_classifier.AutonBox"
+        "alpha_automl.builtin_primitives.semisupervised_classifier.AutonBox"
     ],
     "LABELPROPAGATION_CLASSIFIER": [
         "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelSpreading",
