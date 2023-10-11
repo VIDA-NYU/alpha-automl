@@ -108,7 +108,7 @@ class BaseAutoML():
                 pipeline.get_pipeline().steps[-1][0]
                 == 'sklearn.semi_supervised.SelfTrainingClassifier'
                 or pipeline.get_pipeline().steps[-1][0]
-                == 'alpha_automl.builtin_primitives.AutonBox'
+                == 'alpha_automl.builtin_primitives.semisupervised_classifier.AutonBox'
             ):
                 leaderboard_data.append(
                     [
