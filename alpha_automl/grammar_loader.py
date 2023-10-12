@@ -33,7 +33,7 @@ def create_global_grammar(grammar_string, primitives):
 
 
 def create_task_grammar(global_grammar, task):
-    logger.info(f'Creating task grammar for task {task}')
+    logger.debug(f'Creating task grammar for task {task}')
     productions = global_grammar.productions(Nonterminal(task))
     start_token = Nonterminal('S')
     new_productions = []
@@ -52,7 +52,7 @@ def create_task_grammar(global_grammar, task):
                 new_productions.append(production)
 
     task_grammar = CFG(start_token, new_productions)
-    logger.info(f'Task grammar: {task_grammar}')
+    logger.debug(f'Task grammar: {task_grammar}')
 
     return task_grammar
 
@@ -64,7 +64,7 @@ def create_game_grammar(grammar):
                     'RULES_PROBA': {'GLOBAL': {}, 'LOCAL': {}, 'TYPES': {}}}
     terminals = []
 
-    logger.info('Creating game grammar')
+    logger.debug('Creating game grammar')
     for production in grammar.productions():
         non_terminal = production.lhs().symbol()
         production_str = str(production).replace('\'', '')

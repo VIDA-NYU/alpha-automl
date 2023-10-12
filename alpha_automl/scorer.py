@@ -134,10 +134,10 @@ def score_pipeline(pipeline, X, y, scoring, splitting_strategy, task_name):
         scores = cross_val_score(pipeline, X, y, cv=splitting_strategy, scoring=scoring, error_score='raise')
         end_time = datetime.datetime.utcnow().isoformat() + 'Z'
         score = np.average(scores)
-        logger.info(f'Score: {score}')
+        logger.debug(f'Score: {score}')
     except Exception:
-        logger.warning('Exception scoring a pipeline')
-        logger.warning('Detailed error:', exc_info=True)
+        logger.debug('Exception scoring a pipeline')
+        logger.debug('Detailed error:', exc_info=True)
 
     return score, start_time, end_time
 

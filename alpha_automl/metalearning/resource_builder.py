@@ -40,7 +40,7 @@ IGNORE_PRIMITIVES = {
 
 
 def create_compressed_metalearningdb(metalearningdb_pickle_path):
-    logger.info('Compressing Meta-Learning DB...')
+    logger.debug('Compressing Meta-Learning DB...')
     primitives_by_name = load_primitives_by_name(only_installed_primitives=False)
     available_datasets = load_precalculated_data('task_keywords')
     ignore_primitives_ids = {primitives_by_name[ignore_primitive]['id'] for ignore_primitive in IGNORE_PRIMITIVES}
@@ -91,7 +91,7 @@ def create_compressed_metalearningdb(metalearningdb_pickle_path):
     with gzip.open(METALEARNING_DB_PATH, 'wt', encoding='UTF-8') as zipfile:
         json.dump(json.dumps(metalearning_db), zipfile)  # Convert to str and then compress it
 
-    logger.info('Compressing process ended')
+    logger.debug('Compressing process ended')
 
 
 def extract_taskkeywords_metalearningdb(datasets_path):
@@ -99,18 +99,18 @@ def extract_taskkeywords_metalearningdb(datasets_path):
     task_keywords = load_precalculated_data('task_keywords')
 
     for dataset_id in datasets:
-        logger.info('Calculating task keywords for dataset %s...', dataset_id)
+        logger.debug('Calculating task keywords for dataset %s...', dataset_id)
         if dataset_id not in task_keywords:
             try:
                 _, _, keywords = load_task_info(dataset_id, datasets_path)
                 task_keywords[dataset_id] = {'task_keywords': keywords}
-                logger.info('Task keywords successfully calculated for dataset %s', dataset_id)
+                logger.debug('Task keywords successfully calculated for dataset %s', dataset_id)
                 with open(PRECALCULATED_TASKKEYWORDS_PATH, 'w') as fout:
                     json.dump(task_keywords, fout, indent=4, sort_keys=True)
             except Exception as e:
                 logger.error(str(e))
         else:
-            logger.info('Using pre-calculated task keywords for dataset %s', dataset_id)
+            logger.debug('Using pre-calculated task keywords for dataset %s', dataset_id)
 
     return task_keywords
 
@@ -120,19 +120,19 @@ def extract_metafeatures_metalearningdb(datasets_path):
     metafeatures = load_precalculated_data('metafeatures')
 
     for dataset_id in datasets:
-        logger.info('Calculating metafeatures for dataset %s...', dataset_id)
+        logger.debug('Calculating metafeatures for dataset %s...', dataset_id)
         if dataset_id not in metafeatures:
             try:
                 dataset_path, target_column, _ = load_task_info(dataset_id, datasets_path, 'SCORE')
                 mfs = extract_metafeatures(dataset_path, target_column)
                 metafeatures[dataset_id] = mfs
-                logger.info('Metafeatures successfully calculated for dataset %s', dataset_id)
+                logger.debug('Metafeatures successfully calculated for dataset %s', dataset_id)
                 with open(PRECALCULATED_METAFEATURES_PATH, 'w') as fout:
                     json.dump(metafeatures, fout, indent=4, sort_keys=True)
             except Exception as e:
                 logger.error(str(e))
         else:
-            logger.info('Using pre-calculated metafeatures for dataset %s', dataset_id)
+            logger.debug('Using pre-calculated metafeatures for dataset %s', dataset_id)
 
     return metafeatures
 
@@ -142,19 +142,19 @@ def extract_dataprofiles_metalearningdb(datasets_path):
     dataprofiles = load_precalculated_data('dataprofiles')
 
     for dataset_id in datasets:
-        logger.info('Calculating data profiles for dataset %s...', dataset_id)
+        logger.debug('Calculating data profiles for dataset %s...', dataset_id)
         if dataset_id not in dataprofiles:
             try:
                 dataset_path, target_column, _ = load_task_info(dataset_id, datasets_path)
                 dps = extract_dataprofiles(dataset_path, target_column)
                 dataprofiles[dataset_id] = dps
-                logger.info('Data profiles successfully calculated for dataset %s', dataset_id)
+                logger.debug('Data profiles successfully calculated for dataset %s', dataset_id)
                 with open(PRECALCULATED_DATAPROFILES_PATH, 'w') as fout:
                     json.dump(dataprofiles, fout, indent=4, sort_keys=True)
             except Exception as e:
                 logger.error(str(e))
         else:
-            logger.info('Using pre-calculated data profiles for dataset %s', dataset_id)
+            logger.debug('Using pre-calculated data profiles for dataset %s', dataset_id)
 
     return dataprofiles
 
@@ -213,12 +213,12 @@ def filter_primitives(pipeline_steps, ignore_primitives):
 
 def load_metalearningdb():
     all_pipelines = []
-    logger.info('Loading pipelines from metalearning database...')
+    logger.debug('Loading pipelines from metalearning database...')
 
     with gzip.open(METALEARNING_DB_PATH, 'rt', encoding='UTF-8') as zipfile:
         all_pipelines = json.loads(json.load(zipfile))  # Uncompress as str and then convert to dict
 
-    logger.info('Found %d unique pipelines in metalearning database' % len(all_pipelines['pipeline_structure']))
+    logger.debug('Found %d unique pipelines in metalearning database' % len(all_pipelines['pipeline_structure']))
 
     return all_pipelines
 

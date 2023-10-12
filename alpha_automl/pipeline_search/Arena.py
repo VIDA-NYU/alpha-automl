@@ -43,8 +43,8 @@ class Arena():
             if verbose:
                 self.f.write(','.join(self.game.get_pipeline_primitives(board)) + '\n')
                 assert self.display
-                logger.info("Turn %s", it)
-                logger.info("Player %s", curPlayer)
+                logger.debug("Turn %s", it)
+                logger.debug("Player %s", curPlayer)
                 self.display(board)
             action = players[curPlayer+1](self.game.getCanonicalForm(board, curPlayer))
             # print('ACTION ', action)
@@ -58,8 +58,8 @@ class Arena():
         if verbose:
             self.f.write(','.join(self.game.get_pipeline_primitives(board)) + '\n')
             assert self.display
-            logger.info("Turn %s", it)
-            logger.info("Player %s", curPlayer)
+            logger.debug("Turn %s", it)
+            logger.debug("Player %s", curPlayer)
             self.display(board)
         game_ended = self.game.getGameEnded(board, 1)
         if verbose:

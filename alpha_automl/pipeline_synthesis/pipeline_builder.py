@@ -65,7 +65,7 @@ class BaseBuilder:
     def make_pipeline(self, primitives):
         pipeline_primitives = self.make_primitive_objects(primitives)
         pipeline = self.make_linear_pipeline(pipeline_primitives)
-        logger.info(f'New pipelined created:\n{pipeline}')
+        logger.debug(f'New pipelined created:\n{pipeline}')
 
         return pipeline
 

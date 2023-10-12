@@ -75,9 +75,9 @@ class PipelineGame(Game):
         b = Board(self.m, self.grammar, self.pipeline_size, self.metric)
         b.set_metafeatures(board)
         b.set_pipeline(board)
-        # logger.info('PREV STATE %s', b.pieces_p)
+        # logger.debug('PREV STATE %s', b.pieces_p)
         b.execute_move(action, player)
-        # logger.info('NEXT STATE %s', b.pieces_p)
+        # logger.debug('NEXT STATE %s', b.pieces_p)
         return (b.pieces_m+b.pieces_p, -player)
 
     def getValidMoves(self, board, player):
@@ -85,9 +85,9 @@ class PipelineGame(Game):
         b = Board(self.m, self.grammar, self.pipeline_size, self.metric)
         b.set_metafeatures(board)
         b.set_pipeline(board)
-        # logger.info('CURR STATE %s', b.pieces_p)
+        # logger.debug('CURR STATE %s', b.pieces_p)
         legalMoves = b.get_legal_moves()
-        # logger.info('VALID MOVES %s', [b.valid_moves[i] for i in range(0, len(legalMoves)) if legalMoves[i] == 1])
+        # logger.debug('VALID MOVES %s', [b.valid_moves[i] for i in range(0, len(legalMoves)) if legalMoves[i] == 1])
         return np.array(legalMoves)
 
     def getEvaluation(self, board):
@@ -134,10 +134,10 @@ class PipelineGame(Game):
         eval_val = self.getEvaluation(board)
 
         if b.findWin(player, eval_val):
-            logger.info('findwin %s', player)
+            logger.debug('findwin %s', player)
             return 1
         if b.findWin(-player, eval_val):
-            logger.info('findwin %', -player)
+            logger.debug('findwin %', -player)
             return -1
         if b.has_legal_moves():
             return 0
@@ -180,4 +180,4 @@ class PipelineGame(Game):
 
     def display(self, b):
         board = self.get_pipeline_primitives(b)
-        logger.info("PIPELINE: %s", '|'.join(e for e in board))
+        logger.debug("PIPELINE: %s", '|'.join(e for e in board))

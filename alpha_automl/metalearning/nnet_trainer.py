@@ -33,7 +33,7 @@ IGNORE_PRIMITIVES = {
 
 
 def create_csv_data(metalearningdb_pickle_path, pipelines_csv_path,  use_primitive_names=True):
-    logger.info('Creating CSV file...')
+    logger.debug('Creating CSV file...')
     primitives_by_name = load_primitives_by_name(only_installed_primitives=False)
     primitives_by_id = load_primitives_by_id(only_installed_primitives=False)
     primitives_types = load_primitives_types(only_installed_primitives=False)
@@ -74,8 +74,8 @@ def create_csv_data(metalearningdb_pickle_path, pipelines_csv_path,  use_primiti
             except Exception:
                 logger.warning(f'Primitives "{str(pipeline_primitives)}" are not longer available')
 
-    logger.info(f'Loaded {len(all_pipelines)} pipelines')
-    logger.info(f'Found {total_pipelines} pipelines')
+    logger.debug(f'Loaded {len(all_pipelines)} pipelines')
+    logger.debug(f'Found {total_pipelines} pipelines')
     pipelines_df = pd.DataFrame.from_records(train_pipelines, columns=['primitives', 'task_keywords', 'semantic_types',
                                                                        'metric', 'score'] + DEFAULT_METAFEATURES)
     pipelines_df.to_csv(pipelines_csv_path, index=False)

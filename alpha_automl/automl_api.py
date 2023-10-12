@@ -22,7 +22,7 @@ class BaseAutoML():
 
     def __init__(self, output_folder, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, start_mode='auto',
-                 verbose=0):
+                 verbose=logging.INFO):
         """
         Create/instantiate an BaseAutoML object.
 
@@ -291,7 +291,7 @@ class AutoMLClassifier(BaseAutoML):
 
     def __init__(self, output_folder, time_bound=15, metric='accuracy_score', split_strategy='holdout',
                  time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
-                 start_mode='auto', verbose=0):
+                 start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLClassifier object.
 
@@ -346,7 +346,7 @@ class AutoMLRegressor(BaseAutoML):
 
     def __init__(self, output_folder, time_bound=15, metric='mean_absolute_error', split_strategy='holdout',
                  time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
-                 start_mode='auto', verbose=False):
+                 start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLRegressor object.
 
@@ -371,7 +371,8 @@ class AutoMLRegressor(BaseAutoML):
         
 class AutoMLTimeSeries(BaseAutoML):
     def __init__(self, output_folder, time_bound=15, metric='mean_squared_error', split_strategy='timeseries',
-                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, verbose=False, date_column=None, target_column=None):
+                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
+                 verbose=logging.INFO, date_column=None, target_column=None):
         """
         Create/instantiate an AutoMLTimeSeries object.
 
@@ -412,7 +413,7 @@ class AutoMLSemiSupervisedClassifier(BaseAutoML):
 
     def __init__(self, output_folder, time_bound=15, metric='f1_score', split_strategy='holdout',
                  time_bound_run=5, score_sorting='auto', metric_kwargs={'average': 'micro'}, split_strategy_kwargs=None,
-                 start_mode='auto', verbose=0):
+                 start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLSemiSupervisedClassifier object.
         
