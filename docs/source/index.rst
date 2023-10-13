@@ -17,5 +17,6 @@ You can find the source code in our `GitHub repository <https://github.com/VIDA-
    :caption: Contents:
 
    installation
+   getting-started
    examples
    api
