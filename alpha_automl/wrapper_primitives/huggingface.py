@@ -1,3 +1,6 @@
+import logging
+
+import math
 import torch
 import numpy as np
 from alpha_automl.base_primitive import BasePrimitive
@@ -7,18 +10,19 @@ ml_task = 'nlp'
 check_optional_dependency('transformers', ml_task)
 from transformers import AutoTokenizer, AutoModel
 
+logger = logging.getLogger(__name__)
 
 class HuggingfaceEmbedder(BasePrimitive):
 
-    def __init__(self, name):
+    def __init__(self, name, tokenizer):
         self.name = name
+        self.tokenizer = tokenizer
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, texts):
-
-        list_texts = [text for text in texts]  # since texts is in the form of numpy array
+        list_texts = [text if str(text)!='nan' else '' for text in texts]  # since texts is in the form of numpy array
         total_length = len(list_texts)
 
         if total_length < 32:
@@ -30,7 +34,7 @@ class HuggingfaceEmbedder(BasePrimitive):
         batch_embeddings = []
 
         # Loading tokenizer and model
-        tokenizer = AutoTokenizer.from_pretrained(self.name)
+        tokenizer = AutoTokenizer.from_pretrained(self.tokenizer)
         model = AutoModel.from_pretrained(self.name, output_hidden_states=True)
 
         for start in range(0, total_length, batch_size):
@@ -40,7 +44,11 @@ class HuggingfaceEmbedder(BasePrimitive):
             else:
                 batch_texts = list_texts[start: start + batch_size]
 
+#             batch_texts = [' '.join(line.split()) if str(line)!='nan' else '' for line in batch_texts]
             ids = tokenizer(batch_texts, padding=True, return_tensors="pt")
+            ids['input_ids'] = ids['input_ids'][:, :512]
+            ids['token_type_ids'] = ids['token_type_ids'][:, :512]
+            ids['attention_mask'] = ids['attention_mask'][:, :512]
             device = 'cuda' if torch.cuda.is_available() else 'cpu'
             model.to(device)
             ids = ids.to(device)
