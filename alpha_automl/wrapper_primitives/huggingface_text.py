@@ -1,4 +1,5 @@
 import logging
+
 import torch
 import numpy as np
 from alpha_automl.base_primitive import BasePrimitive
