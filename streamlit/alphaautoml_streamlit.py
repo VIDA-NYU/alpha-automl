@@ -23,7 +23,13 @@ if uploaded_file:
 st.header("Search ML Pipelines", anchor=False)
 
 if uploaded_file:
-    target_column = st.text_input('Column to predict?')
+    headers = tuple(train_dataset.columns)
+    target_column = st.selectbox(
+        "Column to predict?",
+        headers,
+        index=None,
+        placeholder="Select the target column...",
+    )
     time_bound = st.slider('How long run the search?', 1, 30, 10)
     #target_column = 'target'
     #time_bound = 5
