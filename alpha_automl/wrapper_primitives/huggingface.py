@@ -12,7 +12,7 @@ from transformers import AutoTokenizer, AutoModel
 
 logger = logging.getLogger(__name__)
 
-class HuggingfaceEmbedder(BasePrimitive):
+class HuggingfaceTextTransformer(BasePrimitive):
 
     def __init__(self, name, tokenizer):
         self.name = name

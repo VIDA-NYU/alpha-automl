@@ -1,5 +1,5 @@
 import pandas as pd
-from alpha_automl.wrapper_primitives.huggingface import HuggingfaceEmbedder
+from alpha_automl.wrapper_primitives.huggingface import HuggingfaceTextTransformer
 
 
 class TestHuggingfaceEmbedder():
@@ -16,7 +16,7 @@ class TestHuggingfaceEmbedder():
         model_name = 'google/electra-small-discriminator'
         snapshot_download(repo_id=model_name)
 
-        encoder = HuggingfaceEmbedder(model_name)
+        encoder = HuggingfaceTextTransformer(model_name)
         encoder.fit(self.X, self.y)
         pred = encoder.transform(self.X['text'].values.tolist())
         assert pred.shape == (5, 256)
