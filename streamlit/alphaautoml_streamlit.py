@@ -33,11 +33,16 @@ if uploaded_file:
         y_train = train_dataset[[target_column]]
 
     if st.button('Search'):
-        automl = AutoMLClassifier('./tmp', time_bound=time_bound, start_mode='spawn')
+        print("Initializing AutoML...")
+        automl = AutoMLClassifier('./tmp', time_bound=time_bound, start_mode="spawn", verbose=True)
+        print("Searching models...")
         automl.fit(X_train, y_train)
+        print("Done.")
         if len(automl.pipelines) > 0:
             st.write('Pipelines Leaderboard:')
             st.dataframe(automl.get_leaderboard(), hide_index=True)
+        else:
+            st.write("No valid pipelines found.")
 
 
 st.header("Export ML model", anchor=False)
