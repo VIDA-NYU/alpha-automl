@@ -13,9 +13,11 @@ if 'train_dataset' not in st.session_state:
 if 'automl' not in st.session_state:
     st.session_state.automl = None
 
-st.markdown("<h1 style='text-align: center; '>Alpha-AutoML</h1>", unsafe_allow_html=True)
+with st.columns(3)[1]:
+    st.image('https://github.com/VIDA-NYU/alpha-automl/raw/devel/Alpha-AutoML_logo.png')
+
 st.markdown(
-    "<p style='text-align: center; '> An extensible open-source AutoML system that supports multiple ML tasks. </p>",
+    "<p style='text-align: center;'>An extensible open-source AutoML system that supports multiple ML tasks </p>",
     unsafe_allow_html=True)
 
 st.divider()
@@ -39,11 +41,9 @@ if uploaded_file:
         index=None,
         placeholder="Select the target column...",
     )
-    time_bound = st.slider('How long run the search?', 1, 30, 5)
+    time_bound = st.slider('How long run the search (minutes)?', 1, 30, 5)
 
     target_column = 'target'
-
-    print('>>>, time_bound', time_bound)
 
     if target_column and time_bound:
         X_train = train_dataset.drop(columns=[target_column])
