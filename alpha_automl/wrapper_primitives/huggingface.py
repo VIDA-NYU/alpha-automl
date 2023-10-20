@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 
 class HuggingfaceTextTransformer(BasePrimitive):
 
-    def __init__(self, name, tokenizer):
+    def __init__(self, name, tokenizer=None):
         self.name = name
-        self.tokenizer = tokenizer
+        self.tokenizer = tokenizer if tokenizer else name
 
     def fit(self, X, y=None):
         return self
