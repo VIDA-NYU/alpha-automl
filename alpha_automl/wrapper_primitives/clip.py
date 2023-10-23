@@ -4,11 +4,11 @@ from alpha_automl.base_primitive import BasePrimitive
 from alpha_automl.builtin_primitives.image_encoder import ImageReader
 from alpha_automl._optional_dependency import check_optional_dependency
 
-ml_task = "image"
-check_optional_dependency("transformers", ml_task)
+ml_task = 'image'
+check_optional_dependency('transformers', ml_task)
 from transformers import AutoModel, AutoFeatureExtractor
 
-DEFAULT_MODEL_ID = "openai/clip-vit-base-patch32"
+DEFAULT_MODEL_ID = 'openai/clip-vit-base-patch32'
 
 
 class HuggingfaceImageTransformer(BasePrimitive):
@@ -28,7 +28,7 @@ class HuggingfaceImageTransformer(BasePrimitive):
 
     def transform(self, X, y=None):
         """perform the transformation and return an array"""
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
         X = self.reader.transform(X)
         batch_size = 32
         total_length = len(X)
@@ -37,7 +37,7 @@ class HuggingfaceImageTransformer(BasePrimitive):
         X = np.transpose(X, (0, 3, 1, 2))
 
         def non_clip(img):
-            ids = self.processor(batch_img, return_tensors="pt")
+            ids = self.processor(batch_img, return_tensors='pt')
             self.model.to(device)
             ids = ids.to(device)
             self.model.to(device)
@@ -63,7 +63,7 @@ class HuggingfaceImageTransformer(BasePrimitive):
             else:
                 batch_img = X[start : start + batch_size]
 
-            if hasattr(self.model, "get_image_features"):
+            if hasattr(self.model, 'get_image_features'):
                 image_embedding = clip(batch_img)
             else:
                 image_embedding = non_clip(batch_img)
