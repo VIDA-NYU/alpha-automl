@@ -201,10 +201,10 @@ def get_primitive_params(primitive_object):
 
 def hide_logs(level):
     """
-    Three levels of logs: 
-     - verbose_level > 0: show all logs
-     - verbose_level == 0: show find and scored pipelines
-     - verbose_level < 0: show no logs
+    Three levels of logs:
+    - verbose == logging.DEBUG: show all logs
+    - verbose == logging.INFO: show find and scored pipelines
+    - verbose <= logging.WARNING: show no logs
     """
     warnings.filterwarnings('ignore')
     logging.root.setLevel(logging.CRITICAL)
