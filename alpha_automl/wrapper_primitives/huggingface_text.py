@@ -1,6 +1,4 @@
 import logging
-
-import math
 import torch
 import numpy as np
 from alpha_automl.base_primitive import BasePrimitive
@@ -11,6 +9,7 @@ check_optional_dependency('transformers', ml_task)
 from transformers import AutoTokenizer, AutoModel
 
 logger = logging.getLogger(__name__)
+
 
 class HuggingfaceTextTransformer(BasePrimitive):
 
