@@ -1,5 +1,5 @@
 import pandas as pd
-from alpha_automl.wrapper_primitives.huggingface import HuggingfaceTextTransformer
+from alpha_automl.wrapper_primitives.huggingface_text import HuggingfaceTextTransformer
 
 
 class TestHuggingfaceEmbedder():
