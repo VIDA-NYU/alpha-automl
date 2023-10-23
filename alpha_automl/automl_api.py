@@ -426,7 +426,8 @@ class AutoMLSemiSupervisedClassifier(BaseAutoML):
         :param score_sorting: The sort used to order the scores. It could be `auto`, `ascending` or `descending`.
             `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
         :param metric_kwargs: Additional arguments for metric.
-        :param split_strategy_kwargs: Additional arguments for splitting_strategy. In SemiSupervised case, `n_splits` and `test_size`(test proportion from 0 to 1) can be pass to the splitter.
+        :param split_strategy_kwargs: Additional arguments for splitting_strategy. In SemiSupervised case, `n_splits`
+            and `test_size`(test proportion from 0 to 1) can be pass to the splitter.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: Whether or not to show additional logs.
         """
