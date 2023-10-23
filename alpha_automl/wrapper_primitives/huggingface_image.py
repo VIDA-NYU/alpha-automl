@@ -46,7 +46,7 @@ class HuggingfaceImageTransformer(BasePrimitive):
             with torch.no_grad():
                 out = self.model(**ids)
 
-            return out.pooler_output.cpu().numpy()
+            return np.squeeze(out.pooler_output.cpu().numpy())
 
         def clip(img):
             img = torch.from_numpy(img)
