@@ -54,7 +54,7 @@ class ArimaEstimator(BasePrimitive):
             trace=self.trace,
         )
 
-        logger.info(
+        logger.debug(
             f"Making predictions for ARIMA model order: {self.arima_model.order}"
         )
 
@@ -71,7 +71,7 @@ class ArimaEstimator(BasePrimitive):
         adf_diffs = ndiffs(y_train, alpha=0.05, test="adf", max_d=6)
 
         n_diffs = max(adf_diffs, kpss_diffs)
-        logger.info(f"Estimated differencing term: {n_diffs}")
+        logger.debug(f"Estimated differencing term: {n_diffs}")
         return n_diffs
 
 

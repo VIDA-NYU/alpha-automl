@@ -149,13 +149,13 @@ def get_similar_datasets(mode, dataset_path, target_column, task_keywords, thres
             vectors_dataset[id_dataset] += vectors_taskkeywords[id_dataset]
         target_vector_dataset += target_vector_taskkeywords
         similar_datasets = calculate_similarity(vectors_dataset, target_vector_dataset, threshold)
-        logger.info('Similar datasets found using both information:\n%s', similarity_repr(similar_datasets))
+        logger.debug('Similar datasets found using both information:\n%s', similarity_repr(similar_datasets))
     else:
         # Use threshold=1.0 to get datasets with the same task keywords
         similar_datasets = calculate_similarity(vectors_taskkeywords, target_vector_taskkeywords, 1.0)
-        logger.info('Similar datasets found using task_keywords features:\n%s', similarity_repr(similar_datasets))
+        logger.debug('Similar datasets found using task_keywords features:\n%s', similarity_repr(similar_datasets))
         vectors_dataset = {k: vectors_dataset[k] for k in similar_datasets}  # Use only the similar datasets
         similar_datasets = calculate_similarity(vectors_dataset, target_vector_dataset, threshold)
-        logger.info('Similar datasets found using %s features:\n%s', mode, similarity_repr(similar_datasets))
+        logger.debug('Similar datasets found using %s features:\n%s', mode, similarity_repr(similar_datasets))
 
     return similar_datasets

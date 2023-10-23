@@ -71,13 +71,13 @@ class AutoMLManager():
             if result == 'DONE':
                 search_process.terminate()
                 search_process.join(30)
-                logger.info(f'Found {found_pipelines} pipelines')
-                logger.info('Search done')
+                logger.debug(f'Found {found_pipelines} pipelines')
+                logger.debug('Search done')
                 break
 
             pipeline = result
             score = pipeline.get_score()
-            logger.info('Found new pipeline')
+            logger.debug('Found new pipeline')
             yield {'pipeline': pipeline, 'message': 'FOUND'}
 
             if need_rescoring:
@@ -88,15 +88,15 @@ class AutoMLManager():
                 pipeline.set_end_time(end_time)
 
             if score is not None:
-                logger.info(f'Pipeline scored successfully, score={score}')
+                logger.debug(f'Pipeline scored successfully, score={score}')
                 found_pipelines += 1
                 yield {'pipeline': pipeline, 'message': 'SCORED'}
 
             if time.time() > search_start_time + self.time_bound:
                 search_process.terminate()
                 search_process.join(30)
-                logger.info(f'Found {found_pipelines} pipelines')
-                logger.info('Reached search timeout')
+                logger.debug(f'Found {found_pipelines} pipelines')
+                logger.debug('Reached search timeout')
                 break
 
     def check_automl_hyperparams(self, automl_hyperparams):

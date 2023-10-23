@@ -29,7 +29,7 @@ def load_related_pipelines(dataset_path, target_column, task_keywords):
                     task_pipelines.append({'pipeline': primitives, 'score': score, 'metric': metric,
                                            'dataset': similar_dataset, 'pipeline_repr': '_'.join(primitives)})
 
-    logger.info('Found %d related pipelines', len(task_pipelines))
+    logger.debug('Found %d related pipelines', len(task_pipelines))
 
     return task_pipelines
 
@@ -61,7 +61,7 @@ def format_grammar(task_name, patterns, empty_elements):
             production_rule += " | 'E'"
 
         grammar += '\n' + production_rule
-    logger.info('Grammar obtained:\n%s', grammar)
+    logger.debug('Grammar obtained:\n%s', grammar)
 
     return grammar
 
@@ -89,11 +89,11 @@ def extract_patterns(pipelines, max_nro_patterns=15, min_frequency=3, adtm_thres
         patterns[pattern_id]['adtms'].append(pipeline_data['adtm'])
         patterns[pattern_id]['frequency'] += 1
 
-    logger.info('Found %d different patterns, after creating the portfolio', len(patterns))
+    logger.debugggg('Found %d different patterns, after creating the portfolio', len(patterns))
     # TODO: Group these removing conditions into a single loop
     # Remove patterns with fewer elements than the minimum frequency
     patterns = {k: v for k, v in patterns.items() if v['frequency'] >= min_frequency}
-    logger.info('Found %d different patterns, after removing uncommon patterns', len(patterns))
+    logger.debug('Found %d different patterns, after removing uncommon patterns', len(patterns))
 
     # Remove patterns with undesirable primitives (AlphaD3M doesn't have support to handle some of these primitives)
     blacklist_primitives = {'d3m.primitives.data_transformation.dataframe_to_ndarray.Common',
@@ -109,7 +109,7 @@ def extract_patterns(pipelines, max_nro_patterns=15, min_frequency=3, adtm_thres
                             'd3m.primitives.operator.dataset_map.DataFrameCommon',
                             'd3m.primitives.data_transformation.i_vector_extractor.IVectorExtractor'}
     patterns = {k: v for k, v in patterns.items() if not blacklist_primitives & v['primitives']}
-    logger.info('Found %d different patterns, after blacklisting primitives', len(patterns))
+    logger.debug('Found %d different patterns, after blacklisting primitives', len(patterns))
 
     unique_datasets = set()
     for pattern_id in patterns:
@@ -120,22 +120,22 @@ def extract_patterns(pipelines, max_nro_patterns=15, min_frequency=3, adtm_thres
         unique_datasets.update(patterns[pattern_id]['datasets'])
     # Remove patterns with low performances
     patterns = {k: v for k, v in patterns.items() if v['mean_score'] >= mean_score_threshold}
-    logger.info('Found %d different patterns, after removing low-performance patterns', len(patterns))
+    logger.debug('Found %d different patterns, after removing low-performance patterns', len(patterns))
 
     # Remove patterns with low variability
     patterns = {k: v for k, v in patterns.items() if len(v['datasets']) >= len(unique_datasets) * ratio_datasets}
-    logger.info('Found %d different patterns, after removing low-variability patterns', len(patterns))
+    logger.debug('Found %d different patterns, after removing low-variability patterns', len(patterns))
 
     if len(patterns) > max_nro_patterns:
-        logger.info('Found many patterns, selecting top %d (max_nro_patterns)' % max_nro_patterns)
+        logger.debug('Found many patterns, selecting top %d (max_nro_patterns)' % max_nro_patterns)
         sorted_patterns = sorted(patterns.items(), key=lambda x: x[1]['mean_score'], reverse=True)
         patterns = {k: v for k, v in sorted_patterns[:max_nro_patterns]}
 
     primitive_info = add_correlations(patterns, available_primitives)
     # Make deterministic the order of the patterns
     patterns = sorted(patterns.values(), key=lambda x: x['mean_score'], reverse=True)
-    logger.info('Patterns:\n%s', patterns_repr(patterns))
-    logger.info('Hierarchy:\n%s', '\n'.join(['%s:\n%s' % (k, ', '.join(v)) for k, v in
+    logger.debug('Patterns:\n%s', patterns_repr(patterns))
+    logger.debug('Hierarchy:\n%s', '\n'.join(['%s:\n%s' % (k, ', '.join(v)) for k, v in
                                              primitive_info['hierarchy'].items()]))
     patterns = [p['structure'] for p in patterns]
 
@@ -319,7 +319,7 @@ def test_dataset(dataset_folder_path, task_name='TASK'):
         problem_doc = json.load(fin)
         task_keywords = problem_doc['about']['taskKeywords']
         target_column = problem_doc['inputs']['data'][0]['targets'][0]['colName']
-    logger.info('Evaluating dataset "%s" with task keywords=%s' % (dataset_folder_path, str(task_keywords)))
+    logger.debug('Evaluating dataset "%s" with task keywords=%s' % (dataset_folder_path, str(task_keywords)))
     create_metalearningdb_grammar(task_name, dataset_path, target_column, task_keywords)
 
 

@@ -56,7 +56,7 @@ class Coach():
 
             action = np.random.choice(len(pi), p=pi)
 
-            logger.info('COACH ACTION %s', action)
+            logger.debug('COACH ACTION %s', action)
             self.board, self.curPlayer = self.game.getNextState(self.board, self.curPlayer, action)
 
             r = self.game.getGameEnded(self.board, self.curPlayer)
@@ -77,7 +77,7 @@ class Coach():
         trainExamples = deque([], maxlen=self.args.get('maxlenOfQueue'))
         for i in range(self.args.get('numIters')):
             # bookkeeping
-            logger.info('------ITER ' + str(i+1) + '------')
+            logger.debug('------ITER ' + str(i+1) + '------')
             # eps_time = AverageMeter()
             # bar = Bar('Self Play', max=self.args.get('numEps'))
             # end = time.time()
@@ -100,23 +100,23 @@ class Coach():
             pnet.load_checkpoint(folder=self.args.get('checkpoint'), filename='temp.pth.tar')
             pmcts = MCTS(self.game, pnet, self.args)
             boards, pis, vs = list(zip(*trainExamples))
-            # logger.info([board[self.game.m:self.game.m+self.game.p] for board in boards])
+            # logger.debug([board[self.game.m:self.game.m+self.game.p] for board in boards])
             self.nnet.train(trainExamples)
             nmcts = MCTS(self.game, self.nnet, self.args)
 
-            logger.info('PITTING AGAINST PREVIOUS VERSION')
+            logger.debug('PITTING AGAINST PREVIOUS VERSION')
             arena = Arena(lambda x: np.argmax(pmcts.getActionProb(x, temp=0)),
                           lambda x: np.argmax(nmcts.getActionProb(x, temp=0)), self.game, self.game.display,
                           self.args['stepsfile'])
             pwins, nwins = arena.playGames(self.args.get('arenaCompare'), verbose=self.args['verbose'])
 
-            logger.info('EVALUATIONS ', self.game.evaluations)
-            logger.info('NEW/PREV WINS : ' + str(nwins) + '/' + str(pwins))
+            logger.debug('EVALUATIONS ', self.game.evaluations)
+            logger.debug('NEW/PREV WINS : ' + str(nwins) + '/' + str(pwins))
             if float(nwins)/(pwins+nwins) < self.args['updateThreshold']:
-                logger.info('REJECTING NEW MODEL')
+                logger.debug('REJECTING NEW MODEL')
                 self.nnet = pnet
 
             else:
-                logger.info('ACCEPTING NEW MODEL')
+                logger.debug('ACCEPTING NEW MODEL')
                 self.nnet.save_checkpoint(folder=self.args['checkpoint'], filename='checkpoint_' + str(i) + '.pth.tar')
                 self.nnet.save_checkpoint(folder=self.args['checkpoint'], filename='best.pth.tar')

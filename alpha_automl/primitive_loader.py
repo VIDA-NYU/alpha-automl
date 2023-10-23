@@ -14,7 +14,7 @@ def create_primitives_hierarchy():
 def load_primitives_hierarchy():
     with open(PRIMITIVES_HIERARCHY_PATH) as fin:
         primitives = json.load(fin)
-    logger.info('Hierarchy of all primitives loaded')
+    logger.debug('Hierarchy of all primitives loaded')
 
     return primitives
 
@@ -28,7 +28,7 @@ def load_primitives_types():
         for primitive_name in primitive_names:
             primitive_types[primitive_name] = primitive_type
 
-    logger.info('Primitive types loaded')
+    logger.debug('Primitive types loaded')
 
     return primitive_types
 

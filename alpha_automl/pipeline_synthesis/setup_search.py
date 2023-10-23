@@ -56,8 +56,8 @@ def search_pipelines(
     verbose,
     queue,
 ):
-    if not verbose:
-        hide_logs()  # Hide logs here too, since multiprocessing has some issues with loggers
+        
+    hide_logs(verbose)  # Hide logs here too, since multiprocessing has some issues with loggers
 
     builder = BaseBuilder(metadata, automl_hyperparams)
 
@@ -86,7 +86,7 @@ def search_pipelines(
     grammar = None
 
     if use_automatic_grammar:
-        logger.info('Creating an automatic grammar')
+        logger.debug('Creating an automatic grammar')
         prioritize_primitives = automl_hyperparams['prioritize_primitives']
         target_column = ''
         dataset_path = ''
@@ -100,7 +100,7 @@ def search_pipelines(
         )
 
     if grammar is None:
-        logger.info('Creating a manual grammar')
+        logger.debug('Creating a manual grammar')
         use_imputer = metadata['missing_values']
         nonnumeric_columns = metadata['nonnumeric_columns']
         grammar = load_manual_grammar(
@@ -130,7 +130,7 @@ def search_pipelines(
 
     c = Coach(game, nnet, config['ARGS'])
     c.learn()
-    logger.info('Search completed')
+    logger.debug('Search completed')
     queue.put('DONE')
 
 

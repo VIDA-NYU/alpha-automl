@@ -27,7 +27,7 @@ class Board():
         self.valid_moves = [i for i, j in sorted(grammar['RULES'].items(), key=lambda x: x[1])]
         self.rules = grammar['RULES']
         self.rules_lookup = grammar['RULES_LOOKUP']
-        # logger.info('NUMBER of VALID MOVES %s', len(self.valid_moves))
+        # logger.debug('NUMBER of VALID MOVES %s', len(self.valid_moves))
 
         # Create the empty board array.
         self.pieces_m = [0] * self.m
@@ -80,7 +80,7 @@ class Board():
 
         for p in pipeline:
             if p in list(self.non_terminals.values()):
-                # logger.info('GET LEGAL MOVES %s', p)
+                # logger.debug('GET LEGAL MOVES %s', p)
                 rules = []
                 for key in self.rules_lookup[list(self.non_terminals.keys())[p - 1]]:
                     if len(self.next_state(self.rules[key] - 1)) <= self.p:
@@ -112,14 +112,14 @@ class Board():
         return s
 
     def get_pipeline_primitives(self, pipeline):
-        # logger.info('PIPELINE PRIMITIVES FOR %s', pipeline)
+        # logger.debug('PIPELINE PRIMITIVES FOR %s', pipeline)
         return [list(self.terminals.keys())[list(self.terminals.values()).index(i)]
                 if i in list(self.terminals.values()) else
                 list(self.non_terminals.keys())[list(self.non_terminals.values()).index(i)]
                 for i in pipeline if not i == 0]
 
     def get_train_board(self):
-        # logger.info('TRAIN BOARD: %s', '|'.join(self.get_pipeline_primitives(self.pieces_p)))
+        # logger.debug('TRAIN BOARD: %s', '|'.join(self.get_pipeline_primitives(self.pieces_p)))
         pipeline = [0]*(len(self.terminals)+len(self.non_terminals))
 
         for p in self.pieces_p:
@@ -136,7 +136,7 @@ class Board():
         """Perform the given move on the board;
         color gives the color of the piece to play (1=x,-1=o)
         """
-        logger.info('MOVE ACTION: %s', self.valid_moves[action])
+        logger.debug('MOVE ACTION: %s', self.valid_moves[action])
         s = self.next_state(action)
 
         s = [0] * (self.p - len(s)) + s

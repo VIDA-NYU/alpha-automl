@@ -1,3 +1,4 @@
+import sys
 import importlib
 import inspect
 import logging
@@ -48,7 +49,7 @@ def sample_dataset(X, y, sample_size, task):
         except Exception:
             # Not using stratified sampling when the minority class has few instances, not enough for all the folds
             _, X_test, _, y_test = train_test_split(X, y, random_state=RANDOM_SEED, test_size=ratio, shuffle=shuffle)
-        logger.info(f'Sampling down data from {original_size} to {len(X_test)}')
+        logger.debug(f'Sampling down data from {original_size} to {len(X_test)}')
         if isinstance(X_test, pd.DataFrame):
             X_test = X_test.reset_index(drop=True)
 
@@ -58,7 +59,7 @@ def sample_dataset(X, y, sample_size, task):
         return X_test, y_test, True
 
     else:
-        logger.info('Not doing sampling for small dataset (size = %d)', original_size)
+        logger.debug('Not doing sampling for small dataset (size = %d)', original_size)
         return X, y, False
 
 
@@ -198,12 +199,16 @@ def get_primitive_params(primitive_object):
     return params
 
 
-def hide_logs():
-    # Hide all warnings and logs
+def hide_logs(level):
+    """
+    Three levels of logs:
+    - verbose == logging.DEBUG: show all logs
+    - verbose == logging.INFO: show find and scored pipelines
+    - verbose <= logging.WARNING: show no logs
+    """
     warnings.filterwarnings('ignore')
-    for logger_name in logging.root.manager.loggerDict:
-        if logger_name not in ['alpha_automl', 'alpha_automl.automl_api']:
-            logging.getLogger(logger_name).setLevel(logging.CRITICAL)
+    logging.root.setLevel(logging.CRITICAL)
+    logging.getLogger('alpha_automl').setLevel(level)
 
 
 def get_start_method(suggested_method):
@@ -232,7 +237,7 @@ def get_start_method(suggested_method):
 
     elif suggested_method == 'spawn':
         if device != 'cuda' and operating_system != 'Windows':
-            logger.info('We recommend to use "fork" in non-Windows platforms.')
+            logger.debug('We recommend to use "fork" in non-Windows platforms.')
 
         return suggested_method
 
@@ -265,7 +270,7 @@ class SemiSupervisedSplitter:
                                    test_size=self.test_size,
                                    random_state=self.random_state).split(X,y):
             unlabeled_t = np.where(y_array[tx] == -1)[0]
-            labeled_r = np.where(y_array[rx] != -1)[0]            
+            labeled_r = np.where(y_array[rx] != -1)[0]           
             tbr_r = np.random.choice(labeled_r, size=unlabeled_t.shape[0], replace=False)
             tx[unlabeled_t], rx[tbr_r] = rx[tbr_r], tx[unlabeled_t]
 

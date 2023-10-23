@@ -36,7 +36,7 @@ class MCTS():
                    proportional to Nsa[(s,a)]**(1./temp)
         """
         for i in range(self.args.get('numMCTSSims')):
-            logger.info('MCTS SIMULATION %s', i + 1)
+            logger.debug('MCTS SIMULATION %s', i + 1)
             self.search(canonicalBoard)
 
         s = self.game.stringRepresentation(canonicalBoard)
@@ -48,7 +48,7 @@ class MCTS():
             probs = [0] * len(counts)
             probs[bestA] = 1
             if np.sum(probs) == 0:
-                logger.info('PROB ZERO')
+                logger.debug('PROB ZERO')
             return probs
 
         counts = [x ** (1. / temp) for x in counts]
@@ -60,7 +60,7 @@ class MCTS():
             for index in non_zero_args:
                 probs[index] = counts[index] / float(sum(counts))
         if np.sum(probs) == 0:
-            logger.info('PROB ZERO')
+            logger.debug('PROB ZERO')
         return probs
 
     def search(self, canonicalBoard, player=1):
@@ -86,7 +86,7 @@ class MCTS():
 
         s = self.game.stringRepresentation(canonicalBoard)
         game_ended = self.game.getGameEnded(canonicalBoard, player)
-        # logger.info('GAME ENDED %s', game_ended)
+        # logger.debug('GAME ENDED %s', game_ended)
 
         if s not in self.Es:
             self.Es[s] = game_ended
@@ -98,8 +98,8 @@ class MCTS():
         if s not in self.Ps:
             # leaf node
             self.Ps[s], v = self.nnet.predict(self.game.getTrainBoard(canonicalBoard))
-            logger.info('Prediction %s', v)
-            # logger.info('CALLING VALID MOVES')
+            logger.debug('Prediction %s', v)
+            # logger.debug('CALLING VALID MOVES')
             valids = self.game.getValidMoves(canonicalBoard, 1)
             self.Ps[s] = self.Ps[s] * valids  # masking invalid moves
             self.Ps[s] /= np.sum(self.Ps[s])  # renormalize
@@ -130,7 +130,7 @@ class MCTS():
 
         for a in range(self.game.getActionSize()):
             if valids[a]:
-                # logger.info('MCTS ACTION %s', a)
+                # logger.debug('MCTS ACTION %s', a)
                 global_proba = self.game.grammar['RULES_PROBA']['GLOBAL'].get(a + 1, (0, 0))[1]
                 local_proba = self.game.grammar['RULES_PROBA']['LOCAL'].get(current_pattern, {}).get(a + 1, (0, 0))[1]
                 correlation = global_proba * local_proba
@@ -169,13 +169,13 @@ class MCTS():
         # .get(current_pattern, {}).get(a + 1, ('None', 0)))
         # print('>>>>>>>>>>best a=%d' % a, 'total',  self.game.grammar['RULES_PROBA']['GLOBAL'].get(a+1, (0, 0))[1]
         # * self.game.grammar['RULES_PROBA']['LOCAL'].get(current_pattern, {}).get(a + 1, (0, 0))[1])
-        # logger.info('BEST ACTIONS %s', actions)
-        # logger.info('MCTS BEST ACTION %s', best_act)
+        # logger.debug('BEST ACTIONS %s', actions)
+        # logger.debug('MCTS BEST ACTION %s', best_act)
         next_s, next_player = self.game.getNextState(canonicalBoard, player, a)
         next_s = self.game.getCanonicalForm(next_s, next_player)
         # self.game.display(next_s)
 
-        # logger.info('NEXT STATE SEARCH RECURSION')
+        # logger.debug('NEXT STATE SEARCH RECURSION')
         v = self.search(next_s, next_player)
 
         if (s, a) in self.Qsa:

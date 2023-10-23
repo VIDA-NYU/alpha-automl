@@ -30,14 +30,14 @@ def get_new_hyperparameters(primitive_name, configspace):
             value = None if configspace[hyperparameter_config_name] == 'None' \
                 else configspace[hyperparameter_config_name]
             new_hyperparameters[hyperparameter_name] = value
-            logger.info('New value for %s=%s', hyperparameter_config_name, new_hyperparameters[hyperparameter_name])
+            logger.debug('New value for %s=%s', hyperparameter_config_name, new_hyperparameters[hyperparameter_name])
         elif hyperparameter_config_name_case in configspace:
             case = configspace[hyperparameter_config_name_case]
             value = None if configspace[hyperparameter_config_name + '|' + case] == 'None' \
                 else configspace[hyperparameter_config_name + '|' + case]
             new_hyperparameters[hyperparameter_name] = {'case': case,
                                                         'value': value}
-            logger.info('New value for %s=%s', hyperparameter_config_name, new_hyperparameters[hyperparameter_name])
+            logger.debug('New value for %s=%s', hyperparameter_config_name, new_hyperparameters[hyperparameter_name])
 
     return new_hyperparameters
 
