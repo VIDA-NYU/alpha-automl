@@ -9,4 +9,5 @@ Here can find different Jupyter notebook examples about how to use `Alpha-AutoML
 - `Semi-supervised classification <https://github.com/VIDA-NYU/alpha-automl/blob/devel/examples/semi_supervised_classification.ipynb>`__
 - `Adding your custom primitives <https://github.com/VIDA-NYU/alpha-automl/blob/devel/examples/adding_your_custom_primitives.ipynb>`__
 - `Adding Sklearn-like primitives <https://github.com/VIDA-NYU/alpha-automl/blob/devel/examples/adding_sklearnlike_primitives.ipynb>`__
-- |:boom:| `Adding text models from Hugging Face <https://github.com/VIDA-NYU/alpha-automl/blob/devel/examples/adding_huggingface_primitives.ipynb>`__  |:boom:|
+- |:boom:| `Adding text-based models from Hugging Face <https://github.com/VIDA-NYU/alpha-automl/blob/devel/examples/adding_huggingface_text_primitives.ipynb>`__  |:boom:|
+- |:boom:| `Adding image-based models from Hugging Face <https://github.com/VIDA-NYU/alpha-automl/blob/devel/examples/adding_huggingface_image_primitives.ipynb>`__  |:boom:|

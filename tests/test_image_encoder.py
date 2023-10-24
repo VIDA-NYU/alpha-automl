@@ -1,6 +1,4 @@
 import os
-
-import numpy as np
 import pandas as pd
 
 from alpha_automl.builtin_primitives.image_encoder import (
@@ -13,7 +11,7 @@ from alpha_automl.builtin_primitives.image_encoder import (
     ThresholdOtsu,
 )
 
-from alpha_automl.wrapper_primitives.clip import HuggingfaceCLIPTransformer
+from alpha_automl.wrapper_primitives.huggingface_image import HuggingfaceImageTransformer
 
 
 class TestImageEncoder:
@@ -74,7 +72,7 @@ class TestImageEncoder:
         assert im.shape == (10, 6400)
 
     def test_huggingface_CLIP_transformer(self):
-        clip = HuggingfaceCLIPTransformer()
+        clip = HuggingfaceImageTransformer()
         im = clip.transform(self.X)
 
         assert im.shape == (10, 512)

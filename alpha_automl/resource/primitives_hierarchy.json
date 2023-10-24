@@ -89,8 +89,8 @@
         "alpha_automl.builtin_primitives.time_series_forecasting.NHITSEstimator"
     ],
     "SEMISUPERVISED_CLASSIFIER": [
-        "sklearn.semi_supervised.SelfTrainingClassifier",
-        "alpha_automl.builtin_primitives.semisupervised_classifier.AutonBox"
+        "alpha_automl.builtin_primitives.semisupervised_classifier.AutonBox",
+        "sklearn.semi_supervised.SelfTrainingClassifier"
     ],
     "LABELPROPAGATION_CLASSIFIER": [
         "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelSpreading",
