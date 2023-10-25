@@ -73,5 +73,5 @@ class TestAutoMLSemiSupervisedClassifier:
 
     def test_init(self):
         assert isinstance(self.api.splitter, SemiSupervisedSplitter)
-        assert isinstance(self.api.label_enconder, SemiSupervisedLabelEncoder)
+        assert isinstance(self.api.label_encoder, SemiSupervisedLabelEncoder)
         assert self.api.splitter.get_n_splits() == 1
