@@ -80,12 +80,15 @@ if uploaded_file:
         y_train = train_dataset[[target_column]]
 
     if st.button("Search"):
+        if not target_column:
+            st.error("Please select a target column!")
+            st.stop()
+
         print("Initializing AutoML...")
-        automl = AutoMLClassifier(
-            "./tmp", time_bound=time_bound, start_mode="spawn", verbose=True
-        )
+        automl = AutoMLClassifier("./tmp", time_bound=time_bound, start_mode="spawn")
         print("Searching models...")
-        automl.fit(X_train, y_train)
+        with st.spinner("Searching models..."):
+            automl.fit(X_train, y_train)
         print("Done.")
         if len(automl.pipelines) > 0:
             st.session_state.automl = automl
