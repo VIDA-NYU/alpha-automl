@@ -66,7 +66,7 @@ class BaseAutoML():
         set_start_method(self._start_method, force=True)
         check_input_for_multiprocessing(self._start_method, self.scorer._score_func, 'metric')
         check_input_for_multiprocessing(self._start_method, self.splitter, 'split strategy')
-        self.label_enconder = None
+        self.label_encoder = None
 
     def fit(self, X, y):
         """
@@ -289,7 +289,7 @@ class BaseAutoML():
 
     def get_serialized_pipeline(self, pipeline_id):
         pipeline = self.get_pipeline(pipeline_id)
-        serialized_pipeline = PipelineSerializer(pipeline, self.label_enconder)
+        serialized_pipeline = PipelineSerializer(pipeline, self.label_encoder)
 
         return serialized_pipeline
 
@@ -320,19 +320,19 @@ class AutoMLClassifier(BaseAutoML):
         super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
                          metric_kwargs, split_strategy_kwargs, start_mode, verbose)
 
-        self.label_enconder = LabelEncoder()
+        self.label_encoder = LabelEncoder()
 
     def fit(self, X, y):
-        y = self.label_enconder.fit_transform(y)
+        y = self.label_encoder.fit_transform(y)
         super().fit(X, y)
 
     def predict(self, X):
         predictions = super().predict(X)
 
-        return self.label_enconder.inverse_transform(predictions)
+        return self.label_encoder.inverse_transform(predictions)
 
     def score(self, X, y):
-        y = self.label_enconder.transform(y)
+        y = self.label_encoder.transform(y)
 
         return super().score(X, y)
 
@@ -342,10 +342,10 @@ class AutoMLClassifier(BaseAutoML):
     def predict_pipeline(self, X, pipeline_id):
         predictions = super().predict_pipeline(X, pipeline_id)
 
-        return self.label_enconder.inverse_transform(predictions)
+        return self.label_encoder.inverse_transform(predictions)
 
     def score_pipeline(self, X, y, pipeline_id):
-        y = self.label_enconder.transform(y)
+        y = self.label_encoder.transform(y)
 
         return super().score_pipeline(X, y, pipeline_id)
 
@@ -439,7 +439,7 @@ class AutoMLSemiSupervisedClassifier(BaseAutoML):
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: Whether or not to show additional logs.
         """
-        self.label_enconder = SemiSupervisedLabelEncoder()
+
         task = 'SEMISUPERVISED'
         super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
                          metric_kwargs, split_strategy_kwargs, start_mode, verbose)
@@ -448,18 +448,19 @@ class AutoMLSemiSupervisedClassifier(BaseAutoML):
             split_strategy_kwargs = {'test_size': 0.2}
 
         self.splitter = SemiSupervisedSplitter(**split_strategy_kwargs)
+        self.label_encoder = SemiSupervisedLabelEncoder()
 
     def fit(self, X, y):
-        y = self.label_enconder.fit_transform(y)
+        y = self.label_encoder.fit_transform(y)
         super().fit(X, y)
 
     def predict(self, X):
         predictions = super().predict(X)
 
-        return self.label_enconder.inverse_transform(predictions)
+        return self.label_encoder.inverse_transform(predictions)
 
     def score(self, X, y):
-        y = self.label_enconder.transform(y)
+        y = self.label_encoder.transform(y)
 
         return super().score(X, y)
 
@@ -469,9 +470,9 @@ class AutoMLSemiSupervisedClassifier(BaseAutoML):
     def predict_pipeline(self, X, pipeline_id):
         predictions = super().predict_pipeline(X, pipeline_id)
 
-        return self.label_enconder.inverse_transform(predictions)
+        return self.label_encoder.inverse_transform(predictions)
 
     def score_pipeline(self, X, y, pipeline_id):
-        y = self.label_enconder.transform(y)
+        y = self.label_encoder.transform(y)
 
         return super().score_pipeline(X, y, pipeline_id)
