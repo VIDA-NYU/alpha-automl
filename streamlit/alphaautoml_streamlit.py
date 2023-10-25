@@ -44,8 +44,6 @@ if uploaded_file:
     )
     time_bound = st.slider("How long run the search (minutes)?", 1, 30, 5)
 
-    target_column = "target"
-
     if target_column and time_bound:
         X_train = train_dataset.drop(columns=[target_column])
         y_train = train_dataset[[target_column]]
