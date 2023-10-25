@@ -126,13 +126,21 @@ if uploaded_file:
         st.write(
             """
         ```python
-        ### FIXME fix this script
+        #
+        # 1. Make sure you have installed the required 'alpha-automl' package
+        # 2. Run the following code to load the model and apply it to new data
+        #
         import pickle
         
-        with open("model.pkl", "rb") as f:
+        model_file = "model.pkl" # the path to model file you downloaded
+        with open(model_file, "rb") as f:
             model = pickle.load(f)
         
-        X = ... # data
+        # Load the input data as a Pandas dataframe. It must have the same columns
+        # as the training data used to build the model (except the target column)
+        X = #...
+
+        # The predict() function returns a numpy array with the predictions
         model.predict(X)
         ```
         """
