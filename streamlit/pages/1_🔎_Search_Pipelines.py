@@ -120,7 +120,7 @@ if uploaded_file:
         )
         st.download_button(
             "Download!",
-            data=pickle.dumps(pipeline),
+            data=pickle.dumps(automl.get_serialized_pipeline(pipeline_id)),
             file_name="model.pkl",
         )
         st.write(
