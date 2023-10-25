@@ -5,14 +5,27 @@ import pandas as pd
 from sklearn import set_config
 import tempfile
 import zipfile
+from PIL import Image
+import base64
+from io import BytesIO
 
 
 def path_to_image_html(path):
-    return '<img src="file:///' + path + '" width="60" >'
+    # load image and create thumbnail
+    image = Image.open(path)
+    image.thumbnail((256, 256), Image.Resampling.LANCZOS)
+    # convert image to base64
+    buffered = BytesIO()
+    image.convert("RGB").save(buffered, format="JPEG")
+    img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+    # embbed base64 image data in the html tag
+    return f'<img src="data:image/jpeg;base64,{img_str}" >'
 
 
 def convert_df(input_df, image_column):
-    return input_df.to_html(index=False, escape=False, formatters={image_column: path_to_image_html})
+    return input_df.to_html(
+        index=False, escape=False, formatters={image_column: path_to_image_html}
+    )
 
 
 set_config(display="html")
@@ -76,20 +89,22 @@ if uploaded_dataset:
     if uploaded_pipeline:
         pipeline = pickle.load(uploaded_pipeline)
         st.header("3. Make Predictions", anchor=False)
-        st.markdown("<p>Run your ML pipeline to make predictions.</p>", unsafe_allow_html=True)
+        st.markdown(
+            "<p>Run your ML pipeline to make predictions.</p>", unsafe_allow_html=True
+        )
         if st.button("Run!"):
             with st.spinner("Making predictions..."):
                 y_pred = pipeline.predict(test_dataset)
                 print("Predictions", y_pred)
 
     if y_pred is not None:
-        predictions = pd.DataFrame({'predictions': y_pred})
+        predictions = pd.DataFrame({"predictions": y_pred})
         output = pd.concat([test_dataset, predictions], axis=1)
 
-        #st.dataframe(output, hide_index=True)
-        output['image'] = output['image_path']
-        html = convert_df(output, 'image')
-        st.write(html, unsafe_allow_html=True)
-
+        if "image_path" not in output.columns:
+            st.dataframe(output, hide_index=True)
+        else:
+            output["image_path (preview)"] = output["image_path"]
+            html = convert_df(output, "image_path (preview)")
+            st.write(html, unsafe_allow_html=True)
 st.divider()
-
