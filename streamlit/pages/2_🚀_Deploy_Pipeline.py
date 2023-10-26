@@ -1,6 +1,7 @@
 import os
 import pickle
 import streamlit as st
+import altair as alt
 import pandas as pd
 from sklearn import set_config
 import tempfile
@@ -102,7 +103,23 @@ if uploaded_dataset:
     if y_pred is not None:
         predictions = pd.DataFrame({"predictions": y_pred})
         output = pd.concat([test_dataset, predictions], axis=1)
+        output.sort_values("predictions", ascending=False, inplace=True)
+        label_frequencies = {"Labels": [], "No of Records": []}
 
+        for item in output["predictions"].value_counts(ascending=False, normalize=False).items():
+            label, frequency = item
+            label_frequencies["Labels"].append(label)
+            label_frequencies["No of Records"].append(frequency)
+
+        st.markdown(
+            "<p>Distribution of predictions:</p>", unsafe_allow_html=True
+        )
+        chart = alt.Chart(pd.DataFrame(label_frequencies)).mark_bar().encode(x="Labels", y="No of Records")
+        st.altair_chart(chart, theme="streamlit", use_container_width=True)
+
+        st.markdown(
+            "<p>Predictions for each record:</p>", unsafe_allow_html=True
+        )
         if "image_path" not in output.columns:
             st.dataframe(output, hide_index=True)
         else:
