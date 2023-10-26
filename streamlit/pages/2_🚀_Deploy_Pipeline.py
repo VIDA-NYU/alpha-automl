@@ -106,7 +106,7 @@ if uploaded_dataset:
         output.sort_values("predictions", ascending=False, inplace=True)
         label_frequencies = {"Labels": [], "No of Records": []}
 
-        for item in output["predictions"].value_counts(ascending=False, normalize=False).items():
+        for item in output["predictions"].value_counts(normalize=False).items():
             label, frequency = item
             label_frequencies["Labels"].append(label)
             label_frequencies["No of Records"].append(frequency)
@@ -114,8 +114,12 @@ if uploaded_dataset:
         st.markdown(
             "<p>Distribution of predictions:</p>", unsafe_allow_html=True
         )
-        chart = alt.Chart(pd.DataFrame(label_frequencies)).mark_bar().encode(x="Labels", y="No of Records")
-        st.altair_chart(chart, theme="streamlit", use_container_width=True)
+        chart = alt.Chart(pd.DataFrame(label_frequencies)).\
+            mark_bar(size=50)\
+            .encode(alt.X('Labels:N', sort=alt.EncodingSortField(field="Labels", order="descending")),
+                    y="No of Records")\
+            .properties(width=500)
+        st.altair_chart(chart, theme="streamlit", use_container_width=False)
 
         st.markdown(
             "<p>Predictions for each record:</p>", unsafe_allow_html=True
