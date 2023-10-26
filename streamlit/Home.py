@@ -4,6 +4,10 @@ from sklearn import set_config
 
 set_config(display="html")
 
+st.set_page_config(
+    page_title="Alpha-AutoML App",
+)
+
 
 with st.columns(3)[1]:
     st.image("https://github.com/VIDA-NYU/alpha-automl/raw/devel/Alpha-AutoML_logo.png")
