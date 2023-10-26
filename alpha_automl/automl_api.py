@@ -5,6 +5,7 @@ import datetime
 import pandas as pd
 from multiprocessing import set_start_method
 from sklearn.preprocessing import LabelEncoder
+from sklearn.utils.validation import check_is_fitted
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting
 from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing, \
@@ -289,6 +290,10 @@ class BaseAutoML():
 
     def get_serialized_pipeline(self, pipeline_id):
         pipeline = self.get_pipeline(pipeline_id)
+        try:
+            check_is_fitted(pipeline)
+        except:  # It's not fitted, then fit it.
+            pipeline.fit(self.X, self.y)
         serialized_pipeline = PipelineSerializer(pipeline, self.label_encoder)
 
         return serialized_pipeline
