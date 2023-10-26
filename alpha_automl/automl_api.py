@@ -288,7 +288,7 @@ class BaseAutoML():
 
         return {'metric': self.metric, 'score': score}
 
-    def get_serialized_pipeline(self, pipeline_id):
+    def get_serialized_pipeline(self, pipeline_id=None):
         pipeline = self.get_pipeline(pipeline_id)
         try:
             check_is_fitted(pipeline)
