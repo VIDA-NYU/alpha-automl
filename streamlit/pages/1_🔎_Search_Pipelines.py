@@ -27,11 +27,14 @@ st.markdown(
 
 st.divider()
 
-st.header("1. Upload a CSV or ZIP File", anchor=False)
+st.header("1. Upload the Training Data", anchor=False)
 st.info(
     """
-    If you  upload a .zip file, it must contain a CSV file named "data.csv".
-    It may also contain image files that are referenced in a column named "image_path" in the data.csv file.
+    You may upload either a CSV or a ZIP file. If you upload a ZIP file, it
+    must contain a CSV file named "data.csv" that contains the training data.
+    If the 'data.csv' includes a column named "image_path" containing file 
+    paths to images that are also included in the CSV file, the system will 
+    automatically load process thse images as well.
     """,
     icon="ℹ️",
 )

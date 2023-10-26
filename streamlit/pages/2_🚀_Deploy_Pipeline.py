@@ -46,15 +46,17 @@ st.markdown(
 
 st.divider()
 
-st.header("1. Upload a CSV or ZIP File", anchor=False)
+st.header("1. Upload data for predictions", anchor=False)
 st.info(
     """
-    If you  upload a .zip file, it must contain a CSV file named "data.csv".
-    It may also contain image files that are referenced in a column named "image_path" in the data.csv file.
+    You can upload a CSV or ZIP file for which you want to make predictions. If you select
+    a ZIP file, make sure it has a CSV file named "data.csv" that the model will use to 
+    make predictions. The CSV file should have the same columns as the training data 
+    used to create the model, except for the prediction target column.
     """,
     icon="ℹ️",
 )
-uploaded_dataset = st.file_uploader("Upload Your CSV File", type=["csv", "zip"])
+uploaded_dataset = st.file_uploader("Upload Your CSV/ZIP File", type=["csv", "zip"])
 if uploaded_dataset:
     print("Uploaded file:", uploaded_dataset)
     if st.session_state.upload_file_id != uploaded_dataset.file_id:
