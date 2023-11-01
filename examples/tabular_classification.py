@@ -16,7 +16,7 @@ if __name__ == '__main__':
     y_test = test_dataset[[target_column]]
 
     # Add settings
-    automl = AutoMLClassifier(output_path, time_bound=10)
+    automl = AutoMLClassifier(time_bound=10)
 
     # Perform the search
     automl.fit(X_train, y_train)

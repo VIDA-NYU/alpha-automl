@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import datetime
+import tempfile
 import pandas as pd
 from multiprocessing import set_start_method
 from sklearn.preprocessing import LabelEncoder
@@ -20,13 +21,12 @@ PIPELINE_PREFIX = 'Pipeline #'
 
 class BaseAutoML():
 
-    def __init__(self, output_folder, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
+    def __init__(self, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, start_mode='auto',
                  verbose=logging.INFO):
         """
         Create/instantiate an BaseAutoML object.
 
-        :param output_folder: Path to the output directory
         :param time_bound: Limit time in minutes to perform the search
         :param metric: A str (see in the documentation the list of available metrics) or a callable object/function
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
@@ -40,8 +40,9 @@ class BaseAutoML():
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: Whether or not to show additional logs
         """
-
-        self.output_folder = output_folder
+        tmpdirname = tempfile.mkdtemp(prefix="alpha_automl", suffix="_log")
+        logger.info(f'created temporary directory: {tmpdirname}')
+        self.output_folder = tmpdirname
         self.time_bound = time_bound
         self.time_bound_run = time_bound_run
         self.metric = make_str_metric(metric)
@@ -56,11 +57,10 @@ class BaseAutoML():
         self.X = None
         self.y = None
         self.leaderboard = None
-        self.automl_manager = AutoMLManager(output_folder, time_bound, time_bound_run, task, verbose)
+        self.automl_manager = AutoMLManager(self.output_folder, time_bound, time_bound_run, task, verbose)
 
         hide_logs(verbose)
-
-        os.makedirs(output_folder, exist_ok=True)
+        
         self._start_method = get_start_method(start_mode)
         set_start_method(self._start_method, force=True)
         check_input_for_multiprocessing(self._start_method, self.scorer._score_func, 'metric')
@@ -289,13 +289,12 @@ class BaseAutoML():
 
 class AutoMLClassifier(BaseAutoML):
 
-    def __init__(self, output_folder, time_bound=15, metric='accuracy_score', split_strategy='holdout',
+    def __init__(self, time_bound=15, metric='accuracy_score', split_strategy='holdout',
                  time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
                  start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLClassifier object.
 
-        :param output_folder: Path to the output directory.
         :param time_bound: Limit time in minutes to perform the search.
         :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
@@ -311,7 +310,7 @@ class AutoMLClassifier(BaseAutoML):
 
         self.label_enconder = LabelEncoder()
         task = 'CLASSIFICATION'
-        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
+        super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
                          metric_kwargs, split_strategy_kwargs, start_mode, verbose)
 
     def fit(self, X, y):
@@ -344,13 +343,12 @@ class AutoMLClassifier(BaseAutoML):
 
 class AutoMLRegressor(BaseAutoML):
 
-    def __init__(self, output_folder, time_bound=15, metric='mean_absolute_error', split_strategy='holdout',
+    def __init__(self, time_bound=15, metric='mean_absolute_error', split_strategy='holdout',
                  time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
                  start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLRegressor object.
 
-        :param output_folder: Path to the output directory.
         :param time_bound: Limit time in minutes to perform the search.
         :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
@@ -365,18 +363,17 @@ class AutoMLRegressor(BaseAutoML):
         """
 
         task = 'REGRESSION'
-        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
+        super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
                          metric_kwargs, split_strategy_kwargs, start_mode, verbose)
 
         
 class AutoMLTimeSeries(BaseAutoML):
-    def __init__(self, output_folder, time_bound=15, metric='mean_squared_error', split_strategy='timeseries',
+    def __init__(self, time_bound=15, metric='mean_squared_error', split_strategy='timeseries',
                  time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
                  verbose=logging.INFO, date_column=None, target_column=None):
         """
         Create/instantiate an AutoMLTimeSeries object.
 
-        :param output_folder: Path to the output directory.
         :param time_bound: Limit time in minutes to perform the search.
         :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
@@ -393,7 +390,7 @@ class AutoMLTimeSeries(BaseAutoML):
         task = 'TIME_SERIES_FORECAST'
         self.date_column = date_column
         self.target_column = target_column
-        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
+        super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
                          metric_kwargs, split_strategy_kwargs, verbose)
         
     def _column_parser(self, X):
@@ -411,13 +408,12 @@ class AutoMLTimeSeries(BaseAutoML):
 
 class AutoMLSemiSupervisedClassifier(BaseAutoML):
 
-    def __init__(self, output_folder, time_bound=15, metric='f1_score', split_strategy='holdout',
+    def __init__(self, time_bound=15, metric='f1_score', split_strategy='holdout',
                  time_bound_run=5, score_sorting='auto', metric_kwargs={'average': 'micro'}, split_strategy_kwargs=None,
                  start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLSemiSupervisedClassifier object.
         
-        :param output_folder: Path to the output directory.
         :param time_bound: Limit time in minutes to perform the search.
         :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
@@ -433,7 +429,7 @@ class AutoMLSemiSupervisedClassifier(BaseAutoML):
         """
         self.label_enconder = SemiSupervisedLabelEncoder()
         task = 'SEMISUPERVISED'
-        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
+        super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
                          metric_kwargs, split_strategy_kwargs, start_mode, verbose)
 
         if split_strategy_kwargs is None:

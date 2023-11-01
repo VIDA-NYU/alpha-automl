@@ -16,7 +16,7 @@ if __name__ == '__main__':
     y_test = test_dataset[[target_column]]
 
     # Add settings
-    automl = AutoMLRegressor(output_path, time_bound=10)
+    automl = AutoMLRegressor(time_bound=10)
 
     # Perform the search
     automl.fit(X_train, y_train)
