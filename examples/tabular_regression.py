@@ -5,7 +5,6 @@ import pandas as pd
 if __name__ == '__main__':
     # If running it in Windows or CUDA environment, Alpha-AutoML should be used inside of "if __name__ == '__main__':"
     # Read the datasets
-    output_path = join(dirname(__file__), 'tmp/')
     train_dataset = pd.read_csv(join(dirname(__file__), 'datasets/196_autoMpg/train_data.csv'))
     test_dataset = pd.read_csv(join(dirname(__file__), 'datasets/196_autoMpg/test_data.csv'))
 
