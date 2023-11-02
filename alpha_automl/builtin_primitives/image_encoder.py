@@ -32,7 +32,10 @@ class ImageReader(BasePrimitive):
         data = []
         if isinstance(images, pd.DataFrame):
             for file in images[images.columns[0]]:
-                im = imread(file)
+                try:
+                    im = imread(file)
+                except:
+                    im = np.zeros([224, 224, 3], np.uint8)
                 im = resize(im, (self.width, self.height))
                 if len(im.shape) < 3:
                     im = gray2rgb(im)
@@ -43,7 +46,10 @@ class ImageReader(BasePrimitive):
                 data.append(im)
         else:
             for file in images:
-                im = imread(file[0])
+                try:
+                    im = imread(file[0])
+                except:
+                    im = np.zeros([224, 224, 3], np.uint8)
                 im = resize(im, (self.width, self.height))
                 if len(im.shape) < 3:
                     im = gray2rgb(im)
