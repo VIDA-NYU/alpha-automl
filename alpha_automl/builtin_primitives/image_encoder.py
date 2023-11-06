@@ -35,6 +35,7 @@ class ImageReader(BasePrimitive):
                 try:
                     im = imread(file)
                 except:
+                    logger.error(f"[FATAL]The dataset contains invalid image file, please remove them before training: {file}")
                     im = np.zeros([224, 224, 3], np.uint8)
                 im = resize(im, (self.width, self.height))
                 if len(im.shape) < 3:
@@ -49,6 +50,7 @@ class ImageReader(BasePrimitive):
                 try:
                     im = imread(file[0])
                 except:
+                    logger.error(f"[FATAL]The dataset contains invalid image file, please remove them before training: {file[0]}")
                     im = np.zeros([224, 224, 3], np.uint8)
                 im = resize(im, (self.width, self.height))
                 if len(im.shape) < 3:
