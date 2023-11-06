@@ -1,4 +1,4 @@
-scipy<=1.9.3
+scipy
 scikit-learn
 torch>=1.7
 nltk
@@ -8,4 +8,4 @@ datamart_profiler
 feature_engine
 xgboost
 lightgbm
-numpy<=1.24.3
+numpy
