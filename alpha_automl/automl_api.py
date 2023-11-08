@@ -291,7 +291,7 @@ class BaseAutoML():
 
 class AutoMLClassifier(BaseAutoML):
 
-    def __init__(self, time_bound=15, metric='accuracy_score', split_strategy='holdout',
+    def __init__(self, output_folder=None, time_bound=15, metric='accuracy_score', split_strategy='holdout',
                  time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
                  start_mode='auto', verbose=logging.INFO):
         """
@@ -312,7 +312,7 @@ class AutoMLClassifier(BaseAutoML):
 
         self.label_enconder = LabelEncoder()
         task = 'CLASSIFICATION'
-        super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
+        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
                          metric_kwargs, split_strategy_kwargs, start_mode, verbose)
 
     def fit(self, X, y):
@@ -345,7 +345,7 @@ class AutoMLClassifier(BaseAutoML):
 
 class AutoMLRegressor(BaseAutoML):
 
-    def __init__(self, time_bound=15, metric='mean_absolute_error', split_strategy='holdout',
+    def __init__(self, output_folder=None, time_bound=15, metric='mean_absolute_error', split_strategy='holdout',
                  time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
                  start_mode='auto', verbose=logging.INFO):
         """
@@ -365,12 +365,12 @@ class AutoMLRegressor(BaseAutoML):
         """
 
         task = 'REGRESSION'
-        super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
+        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
                          metric_kwargs, split_strategy_kwargs, start_mode, verbose)
 
         
 class AutoMLTimeSeries(BaseAutoML):
-    def __init__(self, time_bound=15, metric='mean_squared_error', split_strategy='timeseries',
+    def __init__(self, output_folder=None, time_bound=15, metric='mean_squared_error', split_strategy='timeseries',
                  time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
                  verbose=logging.INFO, date_column=None, target_column=None):
         """
@@ -392,7 +392,7 @@ class AutoMLTimeSeries(BaseAutoML):
         task = 'TIME_SERIES_FORECAST'
         self.date_column = date_column
         self.target_column = target_column
-        super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
+        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
                          metric_kwargs, split_strategy_kwargs, verbose)
         
     def _column_parser(self, X):
@@ -410,7 +410,7 @@ class AutoMLTimeSeries(BaseAutoML):
 
 class AutoMLSemiSupervisedClassifier(BaseAutoML):
 
-    def __init__(self, time_bound=15, metric='f1_score', split_strategy='holdout',
+    def __init__(self, output_folder=None, time_bound=15, metric='f1_score', split_strategy='holdout',
                  time_bound_run=5, score_sorting='auto', metric_kwargs={'average': 'micro'}, split_strategy_kwargs=None,
                  start_mode='auto', verbose=logging.INFO):
         """
@@ -431,7 +431,7 @@ class AutoMLSemiSupervisedClassifier(BaseAutoML):
         """
         self.label_enconder = SemiSupervisedLabelEncoder()
         task = 'SEMISUPERVISED'
-        super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
+        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
                          metric_kwargs, split_strategy_kwargs, start_mode, verbose)
 
         if split_strategy_kwargs is None:
