@@ -21,12 +21,13 @@ PIPELINE_PREFIX = 'Pipeline #'
 
 class BaseAutoML():
 
-    def __init__(self, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
-                 score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, start_mode='auto',
+    def __init__(self, output_folder=None, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5,
+                 task=None, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, start_mode='auto',
                  verbose=logging.INFO):
         """
         Create/instantiate an BaseAutoML object.
 
+        :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
         :param time_bound: Limit time in minutes to perform the search
         :param metric: A str (see in the documentation the list of available metrics) or a callable object/function
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
@@ -40,9 +41,10 @@ class BaseAutoML():
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: Whether or not to show additional logs
         """
-        tmpdirname = tempfile.mkdtemp(prefix="alpha_automl", suffix="_log")
-        logger.info(f'created temporary directory: {tmpdirname}')
-        self.output_folder = tmpdirname
+        if output_folder is None:
+            output_folder = tempfile.mkdtemp(prefix="alpha_automl", suffix="_log")
+            logger.info(f'created temporary directory: {output_folder}')
+        self.output_folder = output_folder
         self.time_bound = time_bound
         self.time_bound_run = time_bound_run
         self.metric = make_str_metric(metric)
