@@ -9,3 +9,5 @@ feature_engine
 xgboost
 lightgbm
 numpy
+ConfigSpace
+smac

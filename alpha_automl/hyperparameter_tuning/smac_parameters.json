@@ -1,0 +1,759 @@
+{
+    "sklearn.impute.SimpleImputer": {
+        "strategy": {
+            "type": "Categorical",
+            "value": [
+                "mean",
+                "median",
+                "most_frequent"
+            ],
+            "default": "mean"
+        }
+    },
+    "sklearn.compose.ColumnTransformer": {},
+    "sklearn.preprocessing.MaxAbsScaler": {},
+    "sklearn.preprocessing.RobustScaler": {},
+    "sklearn.preprocessing.StandardScaler": {},
+    "sklearn.feature_selection.GenericUnivariateSelect": {},
+    "sklearn.feature_selection.SelectPercentile": {},
+    "alpha_automl.builtin_primitives.SkLabelSpreading": {},
+    "alpha_automl.builtin_primitives.SkLabelPropagation": {},
+    "sklearn.semi_supervised.SelfTrainingClassifier": {},
+    "sklearn.feature_selection.SelectKBest": {
+        "k": {
+            "type": "Categorical",
+            "value": [
+                1000,
+                2000,
+                4000,
+                6000
+            ],
+            "default": 2000
+        }
+    },
+    "sklearn.feature_extraction.text.TfidfVectorizer": {
+        "analyzer": {
+            "type": "Categorical",
+            "value": [
+                "word",
+                "char"
+            ],
+            "default": "word"
+        }
+    },
+    "sklearn.feature_extraction.text.CountVectorizer": {
+        "min_df": {
+            "type": "Float",
+            "value": [
+                0,
+                0.3
+            ],
+            "default": 0.1
+        }
+    },
+    "sklearn.discriminant_analysis.LinearDiscriminantAnalysis": {},
+    "sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis": {},
+    "sklearn.ensemble.BaggingClassifier": {
+        "n_estimators": {
+            "type": "Integer",
+            "value": [
+                100,
+                2000
+            ],
+            "default": 400
+        },
+        "max_samples": {
+            "type": "Float",
+            "value": [
+                0,
+                1
+            ],
+            "default": 0.5
+        },
+        "max_features": {
+            "type": "Float",
+            "value": [
+                0,
+                1
+            ],
+            "default": 0.5
+        }
+    },
+    "sklearn.ensemble.ExtraTreesClassifier": {
+        "random_state": {
+            "type": "Integer",
+            "value": [
+                0,
+                4
+            ],
+            "default": 0
+        },
+        "n_estimators": {
+            "type": "Integer",
+            "value": [
+                100,
+                2000
+            ],
+            "default": 400
+        },
+        "max_depth": {
+            "type": "Integer",
+            "value": [
+                10,
+                100
+            ],
+            "default": 40
+        }
+    },
+    "sklearn.ensemble.GradientBoostingClassifier": {
+        "n_estimators": {
+            "type": "Integer",
+            "value": [
+                100,
+                2000
+            ],
+            "default": 400
+        },
+        "min_samples_split": {
+            "type": "Float",
+            "value": [
+                0,
+                1
+            ],
+            "default": 0.8
+        }
+    },
+    "sklearn.ensemble.RandomForestClassifier": {
+        "n_estimators": {
+            "type": "Integer",
+            "value": [
+                100,
+                2000
+            ],
+            "default": 400
+        },
+        "max_depth": {
+            "type": "Integer",
+            "value": [
+                10,
+                100
+            ],
+            "default": 40
+        }
+    },
+    "sklearn.naive_bayes.BernoulliNB": {},
+    "sklearn.naive_bayes.GaussianNB": {},
+    "sklearn.naive_bayes.MultinomialNB": {},
+    "sklearn.neighbors.KNeighborsClassifier": {
+        "n_neighbors": {
+            "type": "Integer",
+            "value": [
+                1,
+                100
+            ],
+            "default": 40
+        },
+        "leaf_size": {
+            "type": "Integer",
+            "value": [
+                1,
+                100
+            ],
+            "default": 50
+        },
+        "p": {
+            "type": "Categorical",
+            "value": [1, 2],
+            "default": 1
+        }
+    },
+    "sklearn.linear_model.LogisticRegression": {
+        "C": {
+            "type": "Categorical",
+            "value": [
+                0.001,
+                0.01,
+                0.1,
+                0.5,
+                1,
+                2,
+                4,
+                8,
+                16,
+                32,
+                64,
+                128,
+                256,
+                512,
+                1024
+            ],
+            "default": 0.1
+        }
+    },
+    "sklearn.linear_model.PassiveAggressiveClassifier": {},
+    "sklearn.linear_model.SGDClassifier": {
+        "alpha": {
+            "type": "Categorical",
+            "value": [
+                1e-06,
+                1e-05,
+                0.001,
+                0.01
+            ],
+            "default": 1e-05
+        },
+        "penalty": {
+            "type": "Categorical",
+            "value": [
+                "l2",
+                "l1"
+            ],
+            "default": "l2"
+        },
+        "loss": {
+            "type": "Constant",
+            "value": "log_loss",
+            "default": "log_loss"
+        }
+    },
+    "sklearn.svm.LinearSVC": {
+        "C": {
+            "type": "Categorical",
+            "value": [
+                0.001,
+                0.01,
+                0.1,
+                0.5,
+                1,
+                2,
+                4,
+                8,
+                16,
+                32,
+                64,
+                128,
+                256,
+                512,
+                1024
+            ],
+            "default": 0.1
+        }
+    },
+    "sklearn.svm.SVC": {
+        "C": {
+            "type": "Categorical",
+            "value": [
+                0.001,
+                0.01,
+                0.1,
+                0.5,
+                1,
+                2,
+                4,
+                8,
+                16,
+                32,
+                64,
+                128,
+                256,
+                512,
+                1024
+            ],
+            "default": 0.1
+        },
+        "gamma": {
+            "type": "Categorical",
+            "value": [
+                "scale",
+                "auto",
+                1,
+                0.1,
+                0.01,
+                0.001,
+                0.0001
+            ],
+            "default": "scale"
+        }
+    },
+    "sklearn.tree.DecisionTreeClassifier": {},
+    "xgboost.XGBClassifier": {
+        "n_estimators": {
+            "type": "Integer",
+            "value": [
+                100,
+                2000
+            ],
+            "default": 400
+        },
+        "learning_rate": {
+            "type": "Categorical",
+            "value": [0.01, 0.05, 0.1],
+            "default": 0.1
+        },
+        "booster": {
+            "type": "Categorical",
+            "value": ["gbtree", "gblinear"],
+            "default": "gbtree"
+        },
+        "gamma": {
+            "type": "Categorical",
+            "value": [0, 0.5, 1],
+            "default": 0
+        },
+        "reg_alpha": {
+            "type": "Categorical",
+            "value": [0, 0.5, 1],
+            "default": 0
+        },
+        "reg_lambda": {
+            "type": "Categorical",
+            "value": [0.5, 1, 5],
+            "default": 1
+        },
+        "base_score": {
+            "type": "Categorical",
+            "value": [0.2, 0.5, 1],
+            "default": 0.5
+        }
+    },
+    "lightgbm.LGBMClassifier": {
+        "n_estimators": {
+            "type": "Integer",
+            "value": [
+                100,
+                2000
+            ],
+            "default": 400
+        },
+        "max_depth": {
+            "type": "Integer",
+            "value": [
+                1,
+                120
+            ],
+            "default": 3
+        },
+        "max_bin": {
+            "type": "Integer",
+            "value": [
+                200,
+                300
+            ],
+            "default": 300
+        }
+    },
+    "sklearn.linear_model.ARDRegression": {},
+    "sklearn.tree.DecisionTreeRegressor": {
+        "splitter": {
+            "type": "Categorical",
+            "value": ["best", "random"],
+            "default": "best"
+        },
+        "max_depth": {
+            "type": "Integer",
+            "value": [
+                1,
+                120
+            ],
+            "default": 3
+        },
+        "min_samples_leaf": {
+            "type": "Integer",
+            "value": [
+                1,
+                100
+            ],
+            "default": 1
+        },
+        "min_weight_fraction_leaf": {
+            "type": "Float",
+            "value": [
+                0,
+                1
+            ],
+            "default": 0.5
+        },
+        "max_features": {
+            "type": "Categorical",
+            "value": ["auto", "log2","sqrt"],
+            "default": "auto"
+        }
+    },
+    "sklearn.ensemble.ExtraTreesRegressor": {
+        "n_estimators": {
+            "type": "Integer",
+            "value": [
+                100,
+                2000
+            ],
+            "default": 400
+        },
+        "max_features": {
+            "type": "Categorical",
+            "value": ["auto", "log2","sqrt"],
+            "default": "auto"
+        },
+        "max_depth": {
+            "type": "Integer",
+            "value": [
+                1,
+                120
+            ],
+            "default": 3
+        },
+        "min_samples_split": {
+            "type": "Integer",
+            "value": [
+                1,
+                100
+            ],
+            "default": 3
+        },
+        "min_samples_leaf": {
+            "type": "Integer",
+            "value": [
+                1,
+                100
+            ],
+            "default": 3
+        }
+    },
+    "sklearn.gaussian_process.GaussianProcessRegressor": {},
+    "sklearn.ensemble.GradientBoostingRegressor": {
+        "n_estimators": {
+            "type": "Integer",
+            "value": [
+                100,
+                2000
+            ],
+            "default": 400
+        },
+        "max_depth": {
+            "type": "Integer",
+            "value": [
+                1,
+                120
+            ],
+            "default": 3
+        },
+        "min_samples_split": {
+            "type": "Integer",
+            "value": [
+                1,
+                100
+            ],
+            "default": 3
+        },
+        "min_samples_leaf": {
+            "type": "Integer",
+            "value": [
+                1,
+                100
+            ],
+            "default": 3
+        }
+    },
+    "sklearn.neighbors.KNeighborsRegressor": {
+        "n_neighbors": {
+            "type": "Integer",
+            "value": [
+                1,
+                100
+            ],
+            "default": 40
+        },
+        "leaf_size": {
+            "type": "Integer",
+            "value": [
+                1,
+                100
+            ],
+            "default": 50
+        },
+        "p": {
+            "type": "Categorical",
+            "value": [1, 2],
+            "default": 1
+        }
+    },
+    "sklearn.linear_model.Lars": {},
+    "sklearn.linear_model.Lasso": {
+        "alpha": {
+            "type": "Categorical",
+            "value": [1e-15, 1e-10, 1e-08, 0.001, 0.01, 1, 5, 10, 20, 30, 35, 40, 45, 50, 55, 100],
+            "default": 1
+        }
+    },
+    "sklearn.linear_model.LassoCV": {
+        "n_alphas": {
+            "type": "Integer",
+            "value": [
+                100,
+                1000
+            ],
+            "default": 100
+        }
+    },
+    "sklearn.svm.LinearSVR": {
+        "C": {
+            "type": "Categorical",
+            "value": [
+                0.001,
+                0.01,
+                0.1,
+                0.5,
+                1,
+                2,
+                4,
+                8,
+                16,
+                32,
+                64,
+                128,
+                256,
+                512,
+                1024
+            ],
+            "default": 0.1
+        },
+        "penalty": {
+            "type": "Categorical",
+            "value": [
+                "l2",
+                "l1"
+            ],
+            "default": "l2"
+        }
+    },
+    "sklearn.linear_model.PassiveAggressiveRegressor": {
+        "C": {
+            "type": "Categorical",
+            "value": [
+                0.001,
+                0.01,
+                0.1,
+                0.5,
+                1,
+                2,
+                4,
+                8,
+                16,
+                32,
+                64,
+                128,
+                256,
+                512,
+                1024
+            ],
+            "default": 0.1
+        }
+    },
+    "sklearn.ensemble.RandomForestRegressor": {
+        "n_estimators": {
+            "type": "Integer",
+            "value": [
+                100,
+                2000
+            ],
+            "default": 400
+        },
+        "max_features": {
+            "type": "Categorical",
+            "value": ["auto", "log2","sqrt"],
+            "default": "auto"
+        },
+        "max_depth": {
+            "type": "Integer",
+            "value": [
+                1,
+                120
+            ],
+            "default": 3
+        },
+        "min_samples_split": {
+            "type": "Integer",
+            "value": [
+                1,
+                100
+            ],
+            "default": 3
+        },
+        "min_samples_leaf": {
+            "type": "Integer",
+            "value": [
+                1,
+                100
+            ],
+            "default": 3
+        },
+        "bootstrap": {
+            "type": "Categorical",
+            "value": [true, false],
+            "default": true
+        }
+    },
+    "sklearn.linear_model.Ridge": {
+        "alpha": {
+            "type": "Categorical",
+            "value": [1e-15, 1e-10, 1e-08, 0.001, 0.01, 1, 5, 10, 20, 30, 35, 40, 45, 50, 55, 100],
+            "default": 1
+        }
+    },
+    "sklearn.linear_model.SGDRegressor": {
+        "alpha": {
+            "type": "Categorical",
+            "value": [
+                1e-06,
+                1e-05,
+                0.001,
+                0.01
+            ],
+            "default": 1e-05
+        },
+        "penalty": {
+            "type": "Categorical",
+            "value": [
+                "l2",
+                "l1"
+            ],
+            "default": "l2"
+        },
+        "loss": {
+            "type": "Constant",
+            "value": "log_loss",
+            "default": "log_loss"
+        }
+    },
+    "sklearn.svm.SVR": {
+        "C": {
+            "type": "Categorical",
+            "value": [
+                0.001,
+                0.01,
+                0.1,
+                0.5,
+                1,
+                2,
+                4,
+                8,
+                16,
+                32,
+                64,
+                128,
+                256,
+                512,
+                1024
+            ],
+            "default": 0.1
+        },
+        "gamma": {
+            "type": "Categorical",
+            "value": [
+                "scale",
+                "auto",
+                1,
+                0.1,
+                0.01,
+                0.001,
+                0.0001
+            ],
+            "default": "scale"
+        }
+    },
+    "sklearn.linear_model.BayesianRidge": {},
+    "sklearn.linear_model.ElasticNet": {
+        "alpha": {
+            "type": "Categorical",
+            "value": [1e-15, 1e-10, 1e-08, 0.001, 0.01, 1, 5, 10, 20, 30, 35, 40, 45, 50, 55, 100],
+            "default": 1
+        },
+        "l1_ratio": {
+            "type": "Float",
+            "value": [
+                0,
+                1
+            ],
+            "default": 0.5
+        }
+    },
+    "sklearn.linear_model.HuberRegressor": {
+        "epsilon": {
+            "type": "Float",
+            "value": [
+                1,
+                10
+            ],
+            "default": 1.35
+        },
+        "alpha": {
+            "type": "Categorical",
+            "value": [1e-15, 1e-10, 1e-08, 0.001, 0.01, 1, 5, 10, 20, 30, 35, 40, 45, 50, 55, 100],
+            "default": 1
+        }
+    },
+    "sklearn.linear_model.LinearRegression": {},
+    "sklearn.linear_model.RANSACRegressor": {},
+    "sklearn.linear_model.RidgeCV": {},
+    "sklearn.linear_model.TheilSenRegressor": {},
+    "xgboost.XGBRegressor": {
+        "n_estimators": {
+            "type": "Integer",
+            "value": [
+                100,
+                2000
+            ],
+            "default": 400
+        },
+        "learning_rate": {
+            "type": "Categorical",
+            "value": [0.01, 0.05, 0.1],
+            "default": 0.1
+        },
+        "booster": {
+            "type": "Categorical",
+            "value": ["gbtree", "gblinear"],
+            "default": "gbtree"
+        },
+        "reg_alpha": {
+            "type": "Categorical",
+            "value": [0, 0.5, 1],
+            "default": 0
+        },
+        "reg_lambda": {
+            "type": "Categorical",
+            "value": [0.5, 1, 5],
+            "default": 1
+        },
+        "base_score": {
+            "type": "Categorical",
+            "value": [0.2, 0.5, 1],
+            "default": 0.5
+        }
+    },
+    "lightgbm.LGBMRegressor": {
+        "n_estimators": {
+            "type": "Integer",
+            "value": [
+                100,
+                2000
+            ],
+            "default": 400
+        },
+        "max_depth": {
+            "type": "Integer",
+            "value": [
+                1,
+                120
+            ],
+            "default": 3
+        },
+        "max_bin": {
+            "type": "Integer",
+            "value": [
+                200,
+                300
+            ],
+            "default": 300
+        }
+    }
+}
