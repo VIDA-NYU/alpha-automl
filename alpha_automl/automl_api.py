@@ -41,6 +41,7 @@ class BaseAutoML():
         :param verbose: Whether or not to show additional logs
         """
 
+        hide_logs(verbose)
         self.time_bound = time_bound
         self.time_bound_run = time_bound_run
         self.metric = make_str_metric(metric)
@@ -57,9 +58,6 @@ class BaseAutoML():
         self.y = None
         self.leaderboard = None
         self.automl_manager = AutoMLManager(self.output_folder, time_bound, time_bound_run, task, verbose)
-
-        hide_logs(verbose)
-        
         self._start_method = get_start_method(start_mode)
         set_start_method(self._start_method, force=True)
         check_input_for_multiprocessing(self._start_method, self.scorer._score_func, 'metric')
