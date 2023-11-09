@@ -6,7 +6,7 @@ from multiprocessing import set_start_method
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.validation import check_is_fitted
 from alpha_automl.automl_manager import AutoMLManager
-from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting
+from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting, score_pipeline
 from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing, \
     setup_output_folder, SemiSupervisedSplitter, SemiSupervisedLabelEncoder
 from alpha_automl.visualization import plot_comparison_pipelines
@@ -63,6 +63,7 @@ class BaseAutoML():
         self.y = None
         self.leaderboard = None
         self.automl_manager = AutoMLManager(self.output_folder, time_bound, time_bound_run, task, verbose)
+        self.task_name = task
         self._start_method = get_start_method(start_mode)
         set_start_method(self._start_method, force=True)
         check_input_for_multiprocessing(self._start_method, self.scorer._score_func, 'metric')
@@ -110,16 +111,16 @@ class BaseAutoML():
         # [SMAC] added here!!
         if self.optimizing:
             optimizer = SmacOptimizer(X=X, y=y, splitter=self.splitter, scorer=self.scorer,
-                                      n_trials=200, time_limit=self.optimizing_timelimit)
+                                      n_trials=300, time_limit=self.optimizing_timelimit)
             for index, pipeline in enumerate(sorted_pipelines, start=1):
                 pipeline_id = PIPELINE_PREFIX + str(index)
                 if index <= self.optimizing_number:
                     opt_pipeline = optimizer.optimize_pipeline(pipeline.get_pipeline())
-                    opt_score, _, _ = score_pipeline(opt_pipeline, X, y, self.scorer, self.splitter)
-                    if opt_score * sign >= pipeline.get_score() * sign:
-                        logger.critical(f'[SMAC] {pipeline_id} successfully optimized: {pipeline.get_score()} => {opt_score}')
-                        pipeline.set_pipeline(opt_pipeline)
-                        pipeline.set_score(opt_score)
+                    opt_score, _, _ = score_pipeline(opt_pipeline, X, y, self.scorer, self.splitter, self.task_name)
+                    # if opt_score * sign >= pipeline.get_score() * sign:
+                    logger.critical(f'[SMAC] {pipeline_id} successfully optimized: {pipeline.get_score()} => {opt_score}')
+                    pipeline.set_pipeline(opt_pipeline)
+                    pipeline.set_score(opt_score)
                 else:
                     sorted_pipelines = sorted(pipelines, key=lambda x: x.get_score() * sign, reverse=True)
                     break
