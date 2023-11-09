@@ -1,4 +1,3 @@
-import os
 import sys
 import logging
 import datetime
@@ -9,7 +8,7 @@ from sklearn.utils.validation import check_is_fitted
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting
 from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing, \
-    SemiSupervisedSplitter, SemiSupervisedLabelEncoder
+    setup_output_folder, SemiSupervisedSplitter, SemiSupervisedLabelEncoder
 from alpha_automl.visualization import plot_comparison_pipelines
 from alpha_automl.pipeline_serializer import PipelineSerializer
 
@@ -22,13 +21,12 @@ PIPELINE_PREFIX = 'Pipeline #'
 
 class BaseAutoML():
 
-    def __init__(self, output_folder, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
-                 score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, start_mode='auto',
-                 verbose=logging.INFO):
+    def __init__(self, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
+                 score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,  output_folder=None,
+                 start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an BaseAutoML object.
 
-        :param output_folder: Path to the output directory
         :param time_bound: Limit time in minutes to perform the search
         :param metric: A str (see in the documentation the list of available metrics) or a callable object/function
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
@@ -39,11 +37,11 @@ class BaseAutoML():
             `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
         :param metric_kwargs: Additional arguments for metric
         :param split_strategy_kwargs: Additional arguments for splitting_strategy.
+        :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: Whether or not to show additional logs
         """
 
-        self.output_folder = output_folder
         self.time_bound = time_bound
         self.time_bound_run = time_bound_run
         self.metric = make_str_metric(metric)
@@ -53,16 +51,16 @@ class BaseAutoML():
         self.scorer = make_scorer(metric, metric_kwargs)
         self.score_sorting = score_sorting
         self.splitter = make_splitter(split_strategy, split_strategy_kwargs)
+        self.output_folder = setup_output_folder(output_folder)
         self.pipelines = {}
         self.new_primitives = {}
         self.X = None
         self.y = None
         self.leaderboard = None
-        self.automl_manager = AutoMLManager(output_folder, time_bound, time_bound_run, task, verbose)
+        self.automl_manager = AutoMLManager(self.output_folder, time_bound, time_bound_run, task, verbose)
 
         hide_logs(verbose)
-
-        os.makedirs(output_folder, exist_ok=True)
+        
         self._start_method = get_start_method(start_mode)
         set_start_method(self._start_method, force=True)
         check_input_for_multiprocessing(self._start_method, self.scorer._score_func, 'metric')
@@ -301,13 +299,12 @@ class BaseAutoML():
 
 class AutoMLClassifier(BaseAutoML):
 
-    def __init__(self, output_folder, time_bound=15, metric='accuracy_score', split_strategy='holdout',
-                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
+    def __init__(self, time_bound=15, metric='accuracy_score', split_strategy='holdout', time_bound_run=5,
+                 score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
                  start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLClassifier object.
 
-        :param output_folder: Path to the output directory.
         :param time_bound: Limit time in minutes to perform the search.
         :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
@@ -317,13 +314,14 @@ class AutoMLClassifier(BaseAutoML):
             `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
         :param metric_kwargs: Additional arguments for metric.
         :param split_strategy_kwargs: Additional arguments for splitting_strategy.
+        :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: Whether or not to show additional logs.
         """
 
         task = 'CLASSIFICATION'
-        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
-                         metric_kwargs, split_strategy_kwargs, start_mode, verbose)
+        super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
+                         split_strategy_kwargs, output_folder, start_mode, verbose)
 
         self.label_encoder = LabelEncoder()
 
@@ -357,13 +355,12 @@ class AutoMLClassifier(BaseAutoML):
 
 class AutoMLRegressor(BaseAutoML):
 
-    def __init__(self, output_folder, time_bound=15, metric='mean_absolute_error', split_strategy='holdout',
-                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
+    def __init__(self, time_bound=15, metric='mean_absolute_error', split_strategy='holdout', time_bound_run=5,
+                 score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
                  start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLRegressor object.
 
-        :param output_folder: Path to the output directory.
         :param time_bound: Limit time in minutes to perform the search.
         :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
@@ -373,23 +370,23 @@ class AutoMLRegressor(BaseAutoML):
             `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
         :param metric_kwargs: Additional arguments for metric.
         :param split_strategy_kwargs: Additional arguments for splitting_strategy.
+        :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: Whether or not to show additional logs.
         """
 
         task = 'REGRESSION'
-        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
-                         metric_kwargs, split_strategy_kwargs, start_mode, verbose)
+        super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
+                         split_strategy_kwargs, output_folder, start_mode, verbose)
 
 
 class AutoMLTimeSeries(BaseAutoML):
-    def __init__(self, output_folder, time_bound=15, metric='mean_squared_error', split_strategy='timeseries',
-                 time_bound_run=5, score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,
-                 verbose=logging.INFO, date_column=None, target_column=None):
+    def __init__(self, time_bound=15, metric='mean_squared_error', split_strategy='timeseries', time_bound_run=5,
+                 score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
+                 start_mode='auto', verbose=logging.INFO, date_column=None, target_column=None):
         """
         Create/instantiate an AutoMLTimeSeries object.
 
-        :param output_folder: Path to the output directory.
         :param time_bound: Limit time in minutes to perform the search.
         :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
@@ -399,6 +396,7 @@ class AutoMLTimeSeries(BaseAutoML):
             `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
         :param metric_kwargs: Additional arguments for metric.
         :param split_strategy_kwargs: Additional arguments for TimeSeriesSplit, E.g. n_splits and test_size(int).
+        :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: Whether or not to show additional logs.
         """
@@ -406,8 +404,9 @@ class AutoMLTimeSeries(BaseAutoML):
         task = 'TIME_SERIES_FORECAST'
         self.date_column = date_column
         self.target_column = target_column
-        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
-                         metric_kwargs, split_strategy_kwargs, verbose)
+
+        super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
+                         split_strategy_kwargs, output_folder, start_mode, verbose)
 
     def _column_parser(self, X):
         cols = list(X.columns.values)
@@ -424,13 +423,12 @@ class AutoMLTimeSeries(BaseAutoML):
 
 class AutoMLSemiSupervisedClassifier(BaseAutoML):
 
-    def __init__(self, output_folder, time_bound=15, metric='f1_score', split_strategy='holdout',
-                 time_bound_run=5, score_sorting='auto', metric_kwargs={'average': 'micro'}, split_strategy_kwargs=None,
-                 start_mode='auto', verbose=logging.INFO):
+    def __init__(self, time_bound=15, metric='f1_score', split_strategy='holdout', time_bound_run=5,
+                 score_sorting='auto', metric_kwargs={'average': 'micro'}, split_strategy_kwargs=None,
+                 output_folder=None, start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLSemiSupervisedClassifier object.
 
-        :param output_folder: Path to the output directory.
         :param time_bound: Limit time in minutes to perform the search.
         :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
@@ -441,13 +439,14 @@ class AutoMLSemiSupervisedClassifier(BaseAutoML):
         :param metric_kwargs: Additional arguments for metric.
         :param split_strategy_kwargs: Additional arguments for splitting_strategy. In SemiSupervised case, `n_splits`
             and `test_size`(test proportion from 0 to 1) can be pass to the splitter.
+        :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: Whether or not to show additional logs.
         """
 
         task = 'SEMISUPERVISED'
-        super().__init__(output_folder, time_bound, metric, split_strategy, time_bound_run, task, score_sorting,
-                         metric_kwargs, split_strategy_kwargs, start_mode, verbose)
+        super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
+                         split_strategy_kwargs, output_folder, start_mode, verbose)
 
         if split_strategy_kwargs is None:
             split_strategy_kwargs = {'test_size': 0.2}

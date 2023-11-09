@@ -122,7 +122,7 @@ class NNetWrapper(NeuralNet):
     def save_checkpoint(self, folder='checkpoint', filename='checkpoint.pth.tar'):
         filepath = os.path.join(folder, filename)
         if not os.path.exists(folder):
-            logger.warning("Checkpoint Directory does not exist! Making directory {}".format(folder))
+            logger.debug("Checkpoint Directory does not exist! Making directory {}".format(folder))
             os.mkdir(folder)
         else:
             logger.debug("Checkpoint Directory exists! ")

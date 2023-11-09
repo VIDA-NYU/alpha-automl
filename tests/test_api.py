@@ -14,7 +14,6 @@ class TestAutoMLTimeSeries:
     """This is the testcases for AutoMLTimeSeries API object."""
 
     api = AutoMLTimeSeries(
-        output_folder="tmp/",
         time_bound=10,
         verbose=True,
         date_column="Date",
@@ -52,7 +51,6 @@ class TestAutoMLTimeSeries:
 
     def test_pass_splitter_args(self):
         test_api = AutoMLTimeSeries(
-            output_folder="tmp/",
             date_column="Date",
             target_column="Value",
             split_strategy_kwargs={"n_splits": 3, "test_size": 20},
@@ -65,7 +63,6 @@ class TestAutoMLSemiSupervisedClassifier:
     """This is the testcases for AutoMLSemiSupervisedClassifier API object."""
 
     api = AutoMLSemiSupervisedClassifier(
-        output_folder="tmp/",
         time_bound=10,
         verbose=True,
         split_strategy_kwargs={'test_size': .1},
