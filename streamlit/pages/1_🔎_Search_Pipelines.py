@@ -34,7 +34,7 @@ st.info(
     must contain a CSV file named "data.csv" that contains the training data.
     If the 'data.csv' includes a column named "image_path" containing file 
     paths to images that are also included in the CSV file, the system will 
-    automatically load process thse images as well.
+    automatically load process these images as well.
     """,
     icon="ℹ️",
 )
@@ -87,7 +87,7 @@ if uploaded_file:
             st.stop()
 
         print("Initializing AutoML...")
-        automl = AutoMLClassifier("./tmp", time_bound=time_bound, start_mode="spawn")
+        automl = AutoMLClassifier(time_bound=time_bound, start_mode="spawn")
         print("Searching models...")
         with st.spinner("Searching models..."):
             automl.fit(X_train, y_train)
