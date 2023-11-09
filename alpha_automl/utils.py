@@ -1,10 +1,10 @@
-import sys
+import os
 import importlib
 import inspect
 import logging
 import platform
 import warnings
-
+import tempfile
 import numpy as np
 import pandas as pd
 import torch
@@ -209,6 +209,16 @@ def hide_logs(level):
     warnings.filterwarnings('ignore')
     logging.root.setLevel(logging.CRITICAL)
     logging.getLogger('alpha_automl').setLevel(level)
+
+
+def setup_output_folder(output_folder):
+    if output_folder is None:
+        output_folder = tempfile.mkdtemp(prefix="alpha_automl", suffix="_log")
+        logger.debug(f'Created temporary directory: {output_folder}')
+    else:
+        os.makedirs(output_folder, exist_ok=True)
+
+    return output_folder
 
 
 def get_start_method(suggested_method):

@@ -1,14 +1,13 @@
-import os
 import sys
 import logging
 import datetime
-import tempfile
 import pandas as pd
 from multiprocessing import set_start_method
 from sklearn.preprocessing import LabelEncoder
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting
-from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing, SemiSupervisedSplitter, SemiSupervisedLabelEncoder
+from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing, \
+    setup_output_folder, SemiSupervisedSplitter, SemiSupervisedLabelEncoder
 from alpha_automl.visualization import plot_comparison_pipelines
 
 
@@ -41,11 +40,7 @@ class BaseAutoML():
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: Whether or not to show additional logs
         """
-        if output_folder is None:
-            output_folder = tempfile.mkdtemp(prefix="alpha_automl", suffix="_log")
-            logger.info(f'created temporary directory: {output_folder}')
 
-        self.output_folder = output_folder
         self.time_bound = time_bound
         self.time_bound_run = time_bound_run
         self.metric = make_str_metric(metric)
@@ -55,6 +50,7 @@ class BaseAutoML():
         self.scorer = make_scorer(metric, metric_kwargs)
         self.score_sorting = score_sorting
         self.splitter = make_splitter(split_strategy, split_strategy_kwargs)
+        self.output_folder = setup_output_folder(output_folder)
         self.pipelines = {}
         self.new_primitives = {}
         self.X = None
