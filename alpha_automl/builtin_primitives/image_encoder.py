@@ -4,8 +4,8 @@ import pandas as pd
 from alpha_automl.base_primitive import BasePrimitive
 from alpha_automl._optional_dependency import check_optional_dependency
 
-ml_task = 'image'
-check_optional_dependency('skimage', ml_task)
+ml_task = "image"
+check_optional_dependency("skimage", ml_task)
 
 from skimage.color import gray2rgb, rgb2gray, rgba2rgb
 from skimage.feature import ORB, canny, fisher_vector, hog, learn_gmm
@@ -34,8 +34,10 @@ class ImageReader(BasePrimitive):
             for file in images[images.columns[0]]:
                 try:
                     im = imread(file)
-                except:
-                    logger.error(f"[FATAL]The dataset contains invalid image file, please remove them before training: {file}")
+                except (IOError, SyntaxError) as e:
+                    logger.error(
+                        f"[FATAL]The dataset contains invalid image file, please remove them before training: {file}\nError: {e}"
+                    )
                     im = np.zeros([224, 224, 3], np.uint8)
                 im = resize(im, (self.width, self.height))
                 if len(im.shape) < 3:
@@ -49,8 +51,10 @@ class ImageReader(BasePrimitive):
             for file in images:
                 try:
                     im = imread(file[0])
-                except:
-                    logger.error(f"[FATAL]The dataset contains invalid image file, please remove them before training: {file[0]}")
+                except (IOError, SyntaxError) as e:
+                    logger.error(
+                        f"[FATAL]The dataset contains invalid image file, please remove them before training: {file[0]}\nError: {e}"
+                    )
                     im = np.zeros([224, 224, 3], np.uint8)
                 im = resize(im, (self.width, self.height))
                 if len(im.shape) < 3:
