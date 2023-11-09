@@ -4,12 +4,13 @@ import datetime
 import pandas as pd
 from multiprocessing import set_start_method
 from sklearn.preprocessing import LabelEncoder
+from sklearn.utils.validation import check_is_fitted
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting
 from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing, \
     setup_output_folder, SemiSupervisedSplitter, SemiSupervisedLabelEncoder
 from alpha_automl.visualization import plot_comparison_pipelines
-
+from alpha_automl.pipeline_serializer import PipelineSerializer
 
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 logger = logging.getLogger(__name__)
@@ -62,6 +63,7 @@ class BaseAutoML():
         set_start_method(self._start_method, force=True)
         check_input_for_multiprocessing(self._start_method, self.scorer._score_func, 'metric')
         check_input_for_multiprocessing(self._start_method, self.splitter, 'split strategy')
+        self.label_encoder = None
 
     def fit(self, X, y):
         """
@@ -115,7 +117,6 @@ class BaseAutoML():
                 )
             else:
                 leaderboard_data.append([index, pipeline.get_summary(), pipeline.get_score()])
-            
 
         self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'pipeline', self.metric])
 
@@ -283,6 +284,16 @@ class BaseAutoML():
 
         return {'metric': self.metric, 'score': score}
 
+    def get_serialized_pipeline(self, pipeline_id=None):
+        pipeline = self.get_pipeline(pipeline_id)
+        try:
+            check_is_fitted(pipeline)
+        except:  # It's not fitted, then fit it.
+            pipeline.fit(self.X, self.y)
+        serialized_pipeline = PipelineSerializer(pipeline, self.label_encoder)
+
+        return serialized_pipeline
+
 
 class AutoMLClassifier(BaseAutoML):
 
@@ -306,22 +317,23 @@ class AutoMLClassifier(BaseAutoML):
         :param verbose: Whether or not to show additional logs.
         """
 
-        self.label_enconder = LabelEncoder()
         task = 'CLASSIFICATION'
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
                          split_strategy_kwargs, output_folder, start_mode, verbose)
 
+        self.label_encoder = LabelEncoder()
+
     def fit(self, X, y):
-        y = self.label_enconder.fit_transform(y)
+        y = self.label_encoder.fit_transform(y)
         super().fit(X, y)
 
     def predict(self, X):
         predictions = super().predict(X)
 
-        return self.label_enconder.inverse_transform(predictions)
+        return self.label_encoder.inverse_transform(predictions)
 
     def score(self, X, y):
-        y = self.label_enconder.transform(y)
+        y = self.label_encoder.transform(y)
 
         return super().score(X, y)
 
@@ -331,10 +343,10 @@ class AutoMLClassifier(BaseAutoML):
     def predict_pipeline(self, X, pipeline_id):
         predictions = super().predict_pipeline(X, pipeline_id)
 
-        return self.label_enconder.inverse_transform(predictions)
+        return self.label_encoder.inverse_transform(predictions)
 
     def score_pipeline(self, X, y, pipeline_id):
-        y = self.label_enconder.transform(y)
+        y = self.label_encoder.transform(y)
 
         return super().score_pipeline(X, y, pipeline_id)
 
@@ -365,7 +377,7 @@ class AutoMLRegressor(BaseAutoML):
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
                          split_strategy_kwargs, output_folder, start_mode, verbose)
 
-        
+
 class AutoMLTimeSeries(BaseAutoML):
     def __init__(self, time_bound=15, metric='mean_squared_error', split_strategy='timeseries', time_bound_run=5,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
@@ -390,9 +402,10 @@ class AutoMLTimeSeries(BaseAutoML):
         task = 'TIME_SERIES_FORECAST'
         self.date_column = date_column
         self.target_column = target_column
+
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
                          split_strategy_kwargs, output_folder, start_mode, verbose)
-        
+
     def _column_parser(self, X):
         cols = list(X.columns.values)
         cols.remove(self.date_column)
@@ -400,7 +413,7 @@ class AutoMLTimeSeries(BaseAutoML):
         X = X[[self.date_column, self.target_column] + cols]
         y = X[[self.target_column]]
         return X, y
-        
+
     def fit(self, X, y=None):
         X, y = self._column_parser(X)
         super().fit(X, y)
@@ -413,7 +426,7 @@ class AutoMLSemiSupervisedClassifier(BaseAutoML):
                  output_folder=None, start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLSemiSupervisedClassifier object.
-        
+
         :param time_bound: Limit time in minutes to perform the search.
         :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
@@ -428,7 +441,7 @@ class AutoMLSemiSupervisedClassifier(BaseAutoML):
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: Whether or not to show additional logs.
         """
-        self.label_enconder = SemiSupervisedLabelEncoder()
+
         task = 'SEMISUPERVISED'
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
                          split_strategy_kwargs, output_folder, start_mode, verbose)
@@ -437,18 +450,19 @@ class AutoMLSemiSupervisedClassifier(BaseAutoML):
             split_strategy_kwargs = {'test_size': 0.2}
 
         self.splitter = SemiSupervisedSplitter(**split_strategy_kwargs)
+        self.label_encoder = SemiSupervisedLabelEncoder()
 
     def fit(self, X, y):
-        y = self.label_enconder.fit_transform(y)
+        y = self.label_encoder.fit_transform(y)
         super().fit(X, y)
 
     def predict(self, X):
         predictions = super().predict(X)
 
-        return self.label_enconder.inverse_transform(predictions)
+        return self.label_encoder.inverse_transform(predictions)
 
     def score(self, X, y):
-        y = self.label_enconder.transform(y)
+        y = self.label_encoder.transform(y)
 
         return super().score(X, y)
 
@@ -458,9 +472,9 @@ class AutoMLSemiSupervisedClassifier(BaseAutoML):
     def predict_pipeline(self, X, pipeline_id):
         predictions = super().predict_pipeline(X, pipeline_id)
 
-        return self.label_enconder.inverse_transform(predictions)
+        return self.label_encoder.inverse_transform(predictions)
 
     def score_pipeline(self, X, y, pipeline_id):
-        y = self.label_enconder.transform(y)
+        y = self.label_encoder.transform(y)
 
         return super().score_pipeline(X, y, pipeline_id)

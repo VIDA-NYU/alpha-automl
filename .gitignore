@@ -59,3 +59,4 @@ lightning_logs
 **/lightning_logs
 .cache
 **/smac3_output
+/venv
