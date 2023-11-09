@@ -36,7 +36,7 @@ class ImageReader(BasePrimitive):
                     im = imread(file)
                 except (IOError, SyntaxError) as e:
                     logger.error(
-                        f"[FATAL]The dataset contains invalid image file, please remove them before training: {file}\nError: {e}"
+                        f"Using a zeros vector instead of the actual image due to failure while reading the image at path [{file}].\nPlease fix this image or remove it from the training data. Loading failed due to error: {e}"
                     )
                     im = np.zeros([224, 224, 3], np.uint8)
                 im = resize(im, (self.width, self.height))
@@ -53,7 +53,7 @@ class ImageReader(BasePrimitive):
                     im = imread(file[0])
                 except (IOError, SyntaxError) as e:
                     logger.error(
-                        f"[FATAL]The dataset contains invalid image file, please remove them before training: {file[0]}\nError: {e}"
+                        f"Using a zeros vector instead of the actual image due to failure while reading the image at path [{file[0]}].\nPlease fix this image or remove it from the training data. Loading failed due to error: {e}"
                     )
                     im = np.zeros([224, 224, 3], np.uint8)
                 im = resize(im, (self.width, self.height))
