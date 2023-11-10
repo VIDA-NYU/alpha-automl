@@ -7,3 +7,5 @@ pmdarima==2.0.3:            timeseries
 fasttext-wheel:             nlp
 transformers:               nlp, image
 scikit-image:               image
+imageio[opencv]:            image
+imageio[pyav]:              image

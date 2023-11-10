@@ -208,6 +208,7 @@ def hide_logs(level):
     """
     warnings.filterwarnings('ignore')
     logging.root.setLevel(logging.CRITICAL)
+    logging.getLogger('libav').setLevel(logging.CRITICAL)
     logging.getLogger('alpha_automl').setLevel(level)
 
 

@@ -4,8 +4,8 @@ import pandas as pd
 from alpha_automl.base_primitive import BasePrimitive
 from alpha_automl._optional_dependency import check_optional_dependency
 
-ml_task = 'image'
-check_optional_dependency('skimage', ml_task)
+ml_task = "image"
+check_optional_dependency("skimage", ml_task)
 
 from skimage.color import gray2rgb, rgb2gray, rgba2rgb
 from skimage.feature import ORB, canny, fisher_vector, hog, learn_gmm
@@ -32,7 +32,13 @@ class ImageReader(BasePrimitive):
         data = []
         if isinstance(images, pd.DataFrame):
             for file in images[images.columns[0]]:
-                im = imread(file)
+                try:
+                    im = imread(file)
+                except (IOError, SyntaxError) as e:
+                    logger.error(
+                        f"Using a zeros vector instead of the actual image due to failure while reading the image at path [{file}].\nPlease fix this image or remove it from the training data. Loading failed due to error: {e}"
+                    )
+                    im = np.zeros([224, 224, 3], np.uint8)
                 im = resize(im, (self.width, self.height))
                 if len(im.shape) < 3:
                     im = gray2rgb(im)
@@ -43,7 +49,13 @@ class ImageReader(BasePrimitive):
                 data.append(im)
         else:
             for file in images:
-                im = imread(file[0])
+                try:
+                    im = imread(file[0])
+                except (IOError, SyntaxError) as e:
+                    logger.error(
+                        f"Using a zeros vector instead of the actual image due to failure while reading the image at path [{file[0]}].\nPlease fix this image or remove it from the training data. Loading failed due to error: {e}"
+                    )
+                    im = np.zeros([224, 224, 3], np.uint8)
                 im = resize(im, (self.width, self.height))
                 if len(im.shape) < 3:
                     im = gray2rgb(im)
