@@ -1,11 +1,11 @@
-FROM python:3.10.11 AS alpha-automl-jupyterhub
+FROM python:3.11.6 AS alpha-automl-jupyterhub
 
 # Install JupyterHub and dependencies
 RUN pip3 --disable-pip-version-check install --no-cache-dir \
-    jupyterhub==3.1.1 \
-    notebook==6.5.2 \
-    jupyterlab==3.5.3 \
-    jupyterlab-server==2.16.0
+    jupyterhub==4.0.2 \
+    notebook==7.0.6 \
+    jupyterlab==4.0.8 \
+    jupyterlab-server==2.25.0
 
 # Install AlphaD3M and dependencies
 ADD . /alpha-automl/

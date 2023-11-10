@@ -88,7 +88,7 @@ class DeeparEstimator(BasePrimitive):
             "sin_day",
             "cos_day",
             "dayofmonth",
-            "weekofyear",
+            # weekofyear",
         ]
         self.freq = "d"
         self.prediction_length = 1
@@ -156,7 +156,7 @@ class DeeparEstimator(BasePrimitive):
         df["sin_day"] = np.sin(df["dayofyear"])
         df["cos_day"] = np.cos(df["dayofyear"])
         df["dayofmonth"] = df["date"].dt.day
-        df["weekofyear"] = df["date"].dt.weekofyear
+        # df["weekofyear"] = df["date"].dt.weekofyear # Not available after pandas 1.6
         df = df.drop(["date"], axis=1)
         return df
 
@@ -170,16 +170,16 @@ class DeeparEstimator(BasePrimitive):
 
 # NBEATS
 class NBEATSEstimator(BasePrimitive):
-    def __init__(self, freq="d", max_epochs=10):
+    def __init__(self, freq="d", max_steps=10):
         self.freq = freq
-        self.max_epochs = max_epochs
+        self.max_steps = max_steps
 
     def fit(self, X, y):
         horizon = len(y)
         date_column = X.columns[0]
         X[date_column] = X[date_column].apply(lambda x: pd.Timestamp(x))
         nbeats = [
-            NBEATS(input_size=horizon // 2, h=horizon, max_epochs=self.max_epochs)
+            NBEATS(input_size=horizon // 2, h=horizon, max_steps=self.max_steps)
         ]
         self.nbeats_nf = NeuralForecast(models=nbeats, freq=self.freq)
 
@@ -195,15 +195,15 @@ class NBEATSEstimator(BasePrimitive):
 
 # NHITS
 class NHITSEstimator(BasePrimitive):
-    def __init__(self, freq="d", max_epochs=10):
+    def __init__(self, freq="d", max_steps=10):
         self.freq = freq
-        self.max_epochs = max_epochs
+        self.max_steps = max_steps
 
     def fit(self, X, y):
         horizon = len(y)
         date_column = X.columns[0]
         X[date_column] = X[date_column].apply(lambda x: pd.Timestamp(x))
-        nhits = [NHITS(input_size=horizon // 2, h=horizon, max_epochs=self.max_epochs)]
+        nhits = [NHITS(input_size=horizon // 2, h=horizon, max_steps=self.max_steps)]
         self.nhits_nf = NeuralForecast(models=nhits, freq=self.freq)
 
         tmp_X = X.copy()

@@ -5,13 +5,16 @@ from alpha_automl.builtin_primitives.datetime_encoder import (CyclicalFeature, D
 
 class TestDatetimeEncoder:
     """This is the testcases for datetime encoder."""
-
-    df = pd.DataFrame(
-        data={
-            "col1": ["12/1/2009 23:19", "2022-06-30 18:37:00", "2025-09-24 20:37:00"]
-        },
-        index=[0, 1, 2],
-    )
+    df = None
+    
+    def setup_method(self, method):
+        print("starting execution of tc: {}".format(method.__name__))
+        self.df = pd.DataFrame(
+            data={
+                "col1": ["12/1/2009 23:19", "2022-06-30 18:37:00", "2025-09-24 20:37:00"]
+            },
+            index=[0, 1, 2],
+        )
 
     def test_cyclical_feature(self):
         encoder = CyclicalFeature()
@@ -27,5 +30,4 @@ class TestDatetimeEncoder:
         encoder = DummyEncoder()
         encoder.fit(self.df)
         np_array = encoder.transform(self.df)
-        print(np_array)
-        assert np_array.shape == (len(self.df), 4 * len(self.df) + 4)
+        assert np_array.shape == (len(self.df), 4 * len(self.df))
