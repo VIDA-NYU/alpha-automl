@@ -7,6 +7,7 @@ from sklearn.compose import ColumnTransformer
 from alpha_automl.utils import create_object, COLUMN_TRANSFORMER_ID, COLUMN_SELECTOR_ID, NATIVE_PRIMITIVE, \
     ADDED_PRIMITIVE
 from alpha_automl.primitive_loader import PRIMITIVE_TYPES
+from lightgbm import LGBMClassifier, LGBMRegressor
 
 logger = logging.getLogger(__name__)
 
@@ -32,12 +33,6 @@ SEMI_CLASSIFIER_PARAMS = {
 }
 
 
-EXTRA_PARAMS = {
-    "lightgbm.LGBMClassifier": dict(verbose=-1),
-    "lightgbm.LGBMRegressor": dict(verbose=-1),
-}
-
-
 def change_default_hyperparams(primitive_object):
     if isinstance(primitive_object, OneHotEncoder):
         primitive_object.set_params(handle_unknown='ignore')
@@ -45,6 +40,8 @@ def change_default_hyperparams(primitive_object):
         primitive_object.set_params(handle_unknown='use_encoded_value', unknown_value=-1)
     elif isinstance(primitive_object, SimpleImputer):
         primitive_object.set_params(strategy='most_frequent')
+    elif isinstance(primitive_object, LGBMClassifier) or isinstance(primitive_object, LGBMRegressor):
+        primitive_object.set_params(verbose=-1)
 
 
 class BaseBuilder:
@@ -99,10 +96,7 @@ class BaseBuilder:
                 classifier_obj = create_object(primitives[-1], SEMI_CLASSIFIER_PARAMS[primitives[-1]])
                 primitive_object = create_object(primitive_name, {'base_estimator': classifier_obj})
             elif self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
-                if primitive in EXTRA_PARAMS:
-                    primitive_object = create_object(primitive, EXTRA_PARAMS[primitive])
-                else:
-                    primitive_object = create_object(primitive)
+                primitive_object = create_object(primitive)
             else:
                 primitive_object = self.automl_hyperparams['new_primitives'][primitive_name]['primitive_object']
 
