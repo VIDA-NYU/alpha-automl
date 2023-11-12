@@ -195,7 +195,7 @@ class SmacOptimizer:
             return
         optimized_conf = self._optimize_pipeline(self.pipeline)
         optimized_pipeline = gen_pipeline(optimized_conf, self.pipeline)
-        logger.debug(f"[SMAC] {pipeline} successfully optimized!")
+        logger.critical(f"[SMAC][!!!!!!!!!!!!!!!!!!!!!!]\n {pipeline.get_params()} successfully optimized!\n\n")
         return optimized_pipeline
 
     def _optimize_pipeline(self, pipeline):

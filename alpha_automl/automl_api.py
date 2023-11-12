@@ -117,10 +117,10 @@ class BaseAutoML():
                 if index <= self.optimizing_number:
                     opt_pipeline = optimizer.optimize_pipeline(pipeline.get_pipeline())
                     opt_score, _, _ = score_pipeline(opt_pipeline, X, y, self.scorer, self.splitter, self.task_name)
-                    if opt_score * sign >= pipeline.get_score() * sign:
-                        logger.critical(f'[SMAC] {pipeline_id} successfully optimized: {pipeline.get_score()} => {opt_score}')
-                        pipeline.set_pipeline(opt_pipeline)
-                        pipeline.set_score(opt_score)
+                    # if opt_score * sign >= pipeline.get_score() * sign:
+                    logger.critical(f'[SMAC] {pipeline_id} successfully optimized: {pipeline.get_score()} => {opt_score}')
+                    pipeline.set_pipeline(opt_pipeline)
+                    pipeline.set_score(opt_score)
                 else:
                     sorted_pipelines = sorted(pipelines, key=lambda x: x.get_score() * sign, reverse=True)
                     break
