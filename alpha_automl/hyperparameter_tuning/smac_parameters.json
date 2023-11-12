@@ -755,7 +755,7 @@
         "n_estimators": {
             "type": "Integer",
             "value": [
-                1,
+                20,
                 2000
             ],
             "default": 400
@@ -782,23 +782,7 @@
                 1,
                 300
             ],
-            "default": 300
-        },
-        "learning_rate": {
-            "type": "Float",
-            "value": [
-                0.01,
-                1.0
-            ],
-            "default": 0.1
-        },
-        "subsample": {
-            "type": "Float",
-            "value": [
-                0.01,
-                1.0
-            ],
-            "default": 0.1
+            "default": 100
         },
         "verbose": {
             "type": "Constant",
