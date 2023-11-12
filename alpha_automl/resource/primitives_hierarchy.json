@@ -95,5 +95,8 @@
     "LABELPROPAGATION_CLASSIFIER": [
         "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelSpreading",
         "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelPropagation"
+    ],
+    "PREPROCESSOR": [
+        "dabl.EasyPreprocessor"
     ]
 }
