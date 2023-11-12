@@ -369,7 +369,7 @@
             "type": "Float",
             "value": [
                 0,
-                1
+                0.5
             ],
             "default": 0.5
         },
@@ -383,7 +383,7 @@
         "n_estimators": {
             "type": "Integer",
             "value": [
-                100,
+                1,
                 2000
             ],
             "default": 400
@@ -423,7 +423,7 @@
         "n_estimators": {
             "type": "Integer",
             "value": [
-                100,
+                1,
                 2000
             ],
             "default": 400
@@ -726,7 +726,7 @@
         "n_estimators": {
             "type": "Integer",
             "value": [
-                100,
+                1,
                 2000
             ],
             "default": 400
@@ -742,10 +742,26 @@
         "max_bin": {
             "type": "Integer",
             "value": [
-                200,
+                1,
                 300
             ],
             "default": 300
+        },
+        "learning_rate": {
+            "type": "Float",
+            "value": [
+                0.01,
+                1.0
+            ],
+            "default": 0.1
+        },
+        "subsample": {
+            "type": "Float",
+            "value": [
+                0.01,
+                1.0
+            ],
+            "default": 0.1
         }
     },
     "dabl.EasyPreprocessor": {},
