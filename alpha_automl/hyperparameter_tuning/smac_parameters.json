@@ -752,5 +752,16 @@
     "alpha_automl.builtin_primitives.datetime_encoder.CyclicalFeature": {},
     "alpha_automl.builtin_primitives.datetime_encoder.Datetime64ExpandEncoder": {},
     "alpha_automl.builtin_primitives.datetime_encoder.DummyEncoder": {},
-    "sklearn.preprocessing.OrdinalEncoder": {}
+    "sklearn.preprocessing.OrdinalEncoder": {
+        "handle_unknown": {
+            "type": "Constant",
+            "value": "use_encoded_value",
+            "default": "use_encoded_value"
+        },
+        "unknown_value": {
+            "type": "Constant",
+            "value": -1,
+            "default": -1
+        }
+    }
 }
