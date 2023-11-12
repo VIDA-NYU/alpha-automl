@@ -320,10 +320,18 @@
         "n_estimators": {
             "type": "Integer",
             "value": [
-                100,
+                1,
                 2000
             ],
             "default": 400
+        },
+        "num_leaves": {
+            "type": "Integer",
+            "value": [
+                1,
+                500
+            ],
+            "default": 200
         },
         "max_depth": {
             "type": "Integer",
@@ -336,10 +344,26 @@
         "max_bin": {
             "type": "Integer",
             "value": [
-                200,
+                1,
                 300
             ],
             "default": 300
+        },
+        "learning_rate": {
+            "type": "Float",
+            "value": [
+                0.01,
+                1.0
+            ],
+            "default": 0.1
+        },
+        "subsample": {
+            "type": "Float",
+            "value": [
+                0.01,
+                1.0
+            ],
+            "default": 0.1
         }
     },
     "sklearn.linear_model.ARDRegression": {},
@@ -730,6 +754,14 @@
                 2000
             ],
             "default": 400
+        },
+        "num_leaves": {
+            "type": "Integer",
+            "value": [
+                1,
+                500
+            ],
+            "default": 200
         },
         "max_depth": {
             "type": "Integer",
