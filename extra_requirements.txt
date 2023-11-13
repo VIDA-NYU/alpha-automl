@@ -9,3 +9,5 @@ transformers:               nlp, image
 scikit-image:               image
 imageio[opencv]:            image
 imageio[pyav]:              image
+catboost:                   regression
+pytorch_tabnet:             regression
