@@ -203,7 +203,7 @@ class SmacOptimizer:
             gen_configspace(pipeline),
             deterministic=True,
             n_trials=self.n_trials,
-            walltime_limit=self.time_limit,
+            # walltime_limit=self.time_limit,
         )
 
         smac = HyperparameterOptimizationFacade(scenario, self.train)
