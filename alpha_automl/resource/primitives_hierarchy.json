@@ -69,7 +69,8 @@
         "sklearn.linear_model.RidgeCV",
         "sklearn.linear_model.TheilSenRegressor",
         "xgboost.XGBRegressor",
-        "lightgbm.LGBMRegressor"
+        "lightgbm.LGBMRegressor",
+	"catboost.CatBoostRegressor"
     ],
     "TEXT_ENCODER": [
         "sklearn.feature_extraction.text.CountVectorizer",
