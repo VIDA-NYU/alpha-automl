@@ -72,7 +72,7 @@ class BaseAutoML():
 
         self.optimizing = optimizing
         self.optimizing_number = optimizing_number
-        self.optimizing_timelimit = time_bound*0.2
+        self.optimizing_timelimit = None
 
     def fit(self, X, y):
         """

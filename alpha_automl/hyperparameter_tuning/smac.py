@@ -165,7 +165,7 @@ class SmacOptimizer:
         n_trials=50,
         splitter=make_splitter("holdout"),
         scorer=make_scorer("accuracy_score"),
-        time_limit=300,
+        time_limit=None,
     ):
         self.pipeline = None
         self.X = X
