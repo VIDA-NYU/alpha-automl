@@ -117,10 +117,10 @@
         "min_samples_split": {
             "type": "Float",
             "value": [
-                0,
-                1
+                2,
+                100
             ],
-            "default": 0.8
+            "default": 2
         }
     },
     "sklearn.ensemble.RandomForestClassifier": {
@@ -433,7 +433,7 @@
         "min_samples_split": {
             "type": "Integer",
             "value": [
-                1,
+                2,
                 100
             ],
             "default": 3
@@ -468,7 +468,7 @@
         "min_samples_split": {
             "type": "Integer",
             "value": [
-                1,
+                2,
                 100
             ],
             "default": 3
@@ -594,7 +594,7 @@
         "min_samples_split": {
             "type": "Integer",
             "value": [
-                1,
+                2,
                 100
             ],
             "default": 3
@@ -783,22 +783,6 @@
                 300
             ],
             "default": 100
-        },
-        "learning_rate": {
-            "type": "Float",
-            "value": [
-                0.01,
-                1.0
-            ],
-            "default": 0.1
-        },
-        "subsample": {
-            "type": "Float",
-            "value": [
-                0.01,
-                1.0
-            ],
-            "default": 0.1
         },
         "verbose": {
             "type": "Constant",
