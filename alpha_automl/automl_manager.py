@@ -70,7 +70,7 @@ class AutoMLManager():
 
             if result == 'DONE':
                 search_process.terminate()
-                search_process.join(30)
+                search_process.join(10)
                 logger.debug(f'Found {found_pipelines} pipelines')
                 logger.debug('Search done')
                 break
@@ -93,10 +93,10 @@ class AutoMLManager():
                 yield {'pipeline': pipeline, 'message': 'SCORED'}
 
             if time.time() > search_start_time + self.time_bound:
-                search_process.terminate()
-                search_process.join(30)
-                logger.debug(f'Found {found_pipelines} pipelines')
                 logger.debug('Reached search timeout')
+                search_process.terminate()
+                search_process.join(10)
+                logger.debug(f'Found {found_pipelines} pipelines')
                 break
 
     def check_automl_hyperparams(self, automl_hyperparams):

@@ -1,7 +1,8 @@
-import logging
 import os
+import sys
+import signal
+import logging
 from os.path import join
-
 from alpha_automl.grammar_loader import load_automatic_grammar, load_manual_grammar
 from alpha_automl.pipeline import Pipeline
 from alpha_automl.pipeline_search.Coach import Coach
@@ -41,22 +42,16 @@ config = {
 }
 
 
+def signal_handler(queue, signum):
+    logger.debug(f'Receiving signal {signum}, terminating process')
+    queue.put('DONE')
+    # TODO: Should it save the last status of the NN model?
+    sys.exit(0)
 
 
-def search_pipelines(
-    X,
-    y,
-    scoring,
-    splitting_strategy,
-    task_name,
-    time_bound,
-    automl_hyperparams,
-    metadata,
-    output_folder,
-    verbose,
-    queue,
-):
-        
+def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, automl_hyperparams, metadata,
+                     output_folder, verbose, queue):
+    signal.signal(signal.SIGTERM, lambda signum, frame: signal_handler(queue, signum))
     hide_logs(verbose)  # Hide logs here too, since multiprocessing has some issues with loggers
 
     builder = BaseBuilder(metadata, automl_hyperparams)
