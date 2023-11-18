@@ -1,7 +1,12 @@
 Changelog
 =========
-0.3.0.dev0 (yyyy-mm-dd)
------------------------
+0.3.0 (2023-11-17)
+------------------
+* Add support for time-series forecasting.
+* Add support for semi-supervised classification.
+* Add wrappers for HuggingFace and fastText.
+* Add image encoders.
+* Add datetime encoders.
 
 
 0.2.0 (2023-03-16)
