@@ -332,3 +332,60 @@ class SemiSupervisedLabelEncoder:
             index=df[df.columns[0]][df[df.columns[0]].notnull()].index
         )
         return df.to_numpy()
+
+
+def write_pipeline_code_as_pyfile(pipeline_id, pipeline_obj):
+    index = pipeline_id.split("#")[1]
+    f = open(f"pipeline_{index}_code.py", "w")
+
+    # Import
+    f.write("""import pandas as pd
+from os.path import join, dirname
+from sklearn.pipeline import Pipeline""")
+    print("""import pandas as pd
+from os.path import join, dirname
+from sklearn.pipeline import Pipeline""")
+
+    for step_name, step_obj in pipeline_obj.steps:
+        path_list = step_name.split('.')
+        f.write(f"""from {".".join(path_list[:-1])} import {path_list[-1]}\n""")
+        print(f"""from {".".join(path_list[:-1])} import {path_list[-1]}""")
+
+        if isinstance(step_obj, ColumnTransformer):
+            for transformer_name, _, _ in step_obj.transformers:
+                transformer_list = transformer_name.split('.')
+                f.write(f"""from {".".join(transformer_list[:-1])} import {transformer_list[-1].split("-")[0]}\n""")
+                print(f"""from {".".join(transformer_list[:-1])} import {transformer_list[-1].split("-")[0]}""")
+
+    # Pipeline fit/predict
+    f.write(f"""if __name__ == '__main__':
+    \ttrain_dataset = pd.read_csv(join(dirname(__file__), 'FILLIN_DATASET_PATH_HERE'))
+    \tpred_dataset = pd.read_csv(join(dirname(__file__), 'FILLIN_DATASET_PATH_HERE'))
+    \ttarget_column = 'FILLIN_TARGET_COLUMN_HERE'
+    \tX_train = train_dataset.drop(columns=[target_column])
+    \ty_train = train_dataset[[target_column]]
+    \tX_pred = pred_dataset.drop(columns=[target_column])
+
+    \tpipeline = {pipeline_obj}
+
+    \tpipeline.fit(X_train, y_train)
+
+    \tprint(pipeline.predict(X_pred))
+
+    """)
+
+    print(f"""if __name__ == '__main__':
+    \ttrain_dataset = pd.read_csv(join(dirname(__file__), 'FILLIN_DATASET_PATH_HERE'))
+    \tpred_dataset = pd.read_csv(join(dirname(__file__), 'FILLIN_DATASET_PATH_HERE'))
+    \ttarget_column = 'FILLIN_TARGET_COLUMN_HERE'
+    \tX_train = train_dataset.drop(columns=[target_column])
+    \ty_train = train_dataset[[target_column]]
+    \tX_pred = pred_dataset.drop(columns=[target_column])
+
+    \tpipeline = {pipeline_obj}
+
+    \tpipeline.fit(X_train, y_train)
+
+    \tprint(pipeline.predict(X_pred))
+
+    """)
