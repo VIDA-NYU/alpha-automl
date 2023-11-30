@@ -1,17 +1,22 @@
 hub:
   config:
     Authenticator:
-      admin_users:
+      allowed_users:
         - yfw215
         - demouser
+      admin_users:
+        - yfw215
     DummyAuthenticator:
       password: 'alpha_automl'
     JupyterHub:
       admin_access: true
       authenticator_class: tmpauthenticator.TmpAuthenticator
+    TmpAuthenticator:
+      auto_login: false
   shutdownOnLogout: true
   networkPolicy:
     enabled: false
+  concurrentSpawnLimit: 32
 proxy:
   service:
     type: ClusterIP
@@ -31,6 +36,18 @@ singleuser:
   image:
     name: ghcr.io/vida-nyu/alpha-automl
     tag: latest-jupyterhub
+  extraFiles:
+    jupyter_notebook_config.json:
+      mountPath: /etc/jupyter/jupyter_notebook_config.json
+      data:
+        TerminalManager:
+          cull_inactive_timeout: 1200
+          cull_interval: 120
+        MappingKernelManager:
+          cull_idle_timeout: 1200
+          cull_interval: 120
+          cull_connected: true
+          cull_busy: false
 scheduling:
   userScheduler:
     enabled: false
@@ -46,3 +63,7 @@ ingress:
   tls:
     - hosts:
         - alpha-automl.hsrn.nyu.edu
+cull:
+  enabled: true
+  timeout: 1200 
+  every: 120
