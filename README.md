@@ -1,4 +1,4 @@
-[![PyPI version](https://badge.fury.io/py/alpha-automl.svg)](https://pypi.org/project/alpha-automl/0.2.0/)
+[![PyPI version](https://badge.fury.io/py/alpha-automl.svg)](https://pypi.org/project/alpha-automl)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Tests](https://github.com/VIDA-NYU/alpha-automl/actions/workflows/build.yml/badge.svg)](https://github.com/VIDA-NYU/alpha-automl/actions/workflows/build.yml)
 [![Documentation Status](https://readthedocs.org/projects/alpha-automl/badge/?version=latest)](https://alpha-automl.readthedocs.io/en/latest/?badge=latest)
@@ -21,7 +21,7 @@ This repository is part of New York University's implementation of the
 
 ## Documentation
 
-Documentation is available [here.](https://alpha-automl.readthedocs.io/)
+Documentation is available [here](https://alpha-automl.readthedocs.io/). You can also try this [online demo](https://alpha-automl.hsrn.nyu.edu/) (1 hour limit).
 
 
 ## Installation
