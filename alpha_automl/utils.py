@@ -129,8 +129,8 @@ def make_d3m_pipelines(pipelines, new_primitives, metric, ordering_sign, source_
                 cur_step_idx = add_d3m_step(steps_in_type, cur_step_idx, prev_list, new_prev_list, new_pipeline)
                 prev_list = new_prev_list
             
-            if all_primitive_types[step_id] == 'SEMISUPERVISED_CLASSIFIER':
-                classifier_object = step_object.base_estimator
+            if all_primitive_types[step_id] == 'SEMISUPERVISED_CLASSIFIER' or all_primitive_types[step_id] == 'DATA_CLEANER':
+                classifier_object = step_object.base_estimator if all_primitive_types[step_id] == 'SEMISUPERVISED_CLASSIFIER' else step_object.clf
                 classifier_path = f'classifier.{classifier_object.__class__.__name__}'
                 for primitive_name, primitive_type in all_primitive_types.items():
                     if primitive_type != 'CLASSIFIER':

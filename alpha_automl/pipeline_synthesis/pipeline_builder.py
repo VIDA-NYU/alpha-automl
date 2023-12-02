@@ -98,6 +98,11 @@ class BaseBuilder:
                     return
                 classifier_obj = create_object(primitives[-1], SEMI_CLASSIFIER_PARAMS[primitives[-1]])
                 primitive_object = create_object(primitive_name, {'base_estimator': classifier_obj})
+            elif primitive_type == 'DATA_CLEANER':
+                if self.all_primitives[primitives[-1]]['type'] != 'CLASSIFIER':
+                    return
+                classifier_obj = create_object(primitives[-1], SEMI_CLASSIFIER_PARAMS[primitives[-1]])
+                primitive_object = create_object(primitive_name, {'clf': classifier_obj})
             elif self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
                 if primitive in EXTRA_PARAMS:
                     primitive_object = create_object(primitive, EXTRA_PARAMS[primitive])
@@ -119,7 +124,7 @@ class BaseBuilder:
                     pipeline_primitives.append((COLUMN_TRANSFORMER_ID, transformer_obj))
                     transformers = []
                 pipeline_primitives.append((primitive_name, primitive_object))
-                if primitive_type == 'SEMISUPERVISED_CLASSIFIER':
+                if primitive_type == 'SEMISUPERVISED_CLASSIFIER' or primitive_type == 'DATA_CLEANER':
                     break
             
         return pipeline_primitives
