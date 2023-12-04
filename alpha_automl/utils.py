@@ -129,8 +129,13 @@ def make_d3m_pipelines(pipelines, new_primitives, metric, ordering_sign, source_
                 cur_step_idx = add_d3m_step(steps_in_type, cur_step_idx, prev_list, new_prev_list, new_pipeline)
                 prev_list = new_prev_list
             
-            if all_primitive_types[step_id] == 'SEMISUPERVISED_CLASSIFIER' or all_primitive_types[step_id] == 'DATA_CLEANER':
-                classifier_object = step_object.base_estimator if all_primitive_types[step_id] == 'SEMISUPERVISED_CLASSIFIER' else step_object.clf
+            if all_primitive_types[step_id] == 'SEMISUPERVISED_CLASSIFIER' or all_primitive_types[step_id] == 'DATA_CLEANER' or all_primitive_types[step_id] == 'DATA_CLEANER_REGRESSION':
+                if all_primitive_types[step_id] == 'DATA_CLEANER':
+                    classifier_object = step_object.clf
+                elif all_primitive_types[step_id] == 'DATA_CLEANER_REGRESSION':
+                    classifier_object = step_object.model
+                else:
+                    classifier_object = step_object.base_estimator
                 classifier_path = f'classifier.{classifier_object.__class__.__name__}'
                 for primitive_name, primitive_type in all_primitive_types.items():
                     if primitive_type != 'CLASSIFIER':
@@ -206,6 +211,7 @@ def hide_logs(level):
     - verbose == logging.INFO: show find and scored pipelines
     - verbose <= logging.WARNING: show no logs
     """
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
     warnings.filterwarnings('ignore')
     logging.root.setLevel(logging.CRITICAL)
     logging.getLogger('libav').setLevel(logging.CRITICAL)

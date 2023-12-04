@@ -28,7 +28,7 @@
     ],
     "DATETIME_ENCODER": [
         "sklearn.preprocessing.OrdinalEncoder",
-	    "alpha_automl.builtin_primitives.datetime_encoder.CyclicalFeature",
+        "alpha_automl.builtin_primitives.datetime_encoder.CyclicalFeature",
         "alpha_automl.builtin_primitives.datetime_encoder.Datetime64ExpandEncoder",
         "alpha_automl.builtin_primitives.datetime_encoder.DummyEncoder"
     ],
@@ -98,5 +98,8 @@
     ],
     "DATA_CLEANER": [
         "cleanlab.classification.CleanLearning"
+    ],
+    "DATA_CLEANER_REGRESSION": [
+        "cleanlab.regression.learn.CleanLearning"
     ]
 }
