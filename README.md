@@ -21,7 +21,9 @@ This repository is part of New York University's implementation of the
 
 ## Documentation
 
-Documentation is available [here](https://alpha-automl.readthedocs.io/). You can also try this [online demo](https://alpha-automl.hsrn.nyu.edu/) (1 hour limit).
+Documentation is available [here](https://alpha-automl.readthedocs.io/). You can also try this [online demo](https://alpha-automl.hsrn.nyu.edu/) (1 hour limit per session).
+
+Documentation for the Streamlit app for image triage  developed by Jataware Corp is available [here](https://github.com/jataware/st-image-triage).
 
 
 ## Installation
