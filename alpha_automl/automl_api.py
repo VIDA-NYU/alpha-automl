@@ -64,6 +64,7 @@ class BaseAutoML():
         check_input_for_multiprocessing(self._start_method, self.scorer._score_func, 'metric')
         check_input_for_multiprocessing(self._start_method, self.splitter, 'split strategy')
         self.label_encoder = None
+        self.task_type = task
 
     def fit(self, X, y):
         """
@@ -275,7 +276,7 @@ class BaseAutoML():
         :param pipeline_id: Id of a pipeline
         """
         pipeline_obj = self.pipelines[pipeline_id].get_pipeline()
-        write_pipeline_code_as_pyfile(pipeline_id, pipeline_obj)
+        write_pipeline_code_as_pyfile(pipeline_id, pipeline_obj, self.task_type)
 
     def _fit(self, X, y, pipeline_id):
         self.pipelines[pipeline_id].get_pipeline().fit(X, y)

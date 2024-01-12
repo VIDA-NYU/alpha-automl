@@ -152,7 +152,7 @@ class TestExportPipelineAsCode:
 
     def test_write_pipeline_code_as_pyfile(self):
         assert exists("pipeline_99_code.py") == False
-        write_pipeline_code_as_pyfile(self.pipeline_id, self.pipeline_obj)
+        write_pipeline_code_as_pyfile(self.pipeline_id, self.pipeline_obj, "REGRESSION")
 
         assert exists("pipeline_99_code.py") == True
         remove("pipeline_99_code.py")
