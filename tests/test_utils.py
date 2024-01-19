@@ -1,15 +1,16 @@
-from os.path import dirname, join
+from os import remove
+from os.path import dirname, exists, join
 
 import numpy as np
 import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
 
-from alpha_automl.utils import (
-    SemiSupervisedLabelEncoder,
-    SemiSupervisedSplitter,
-    create_object,
-    sample_dataset,
-    make_d3m_pipelines
-)
+from alpha_automl.utils import (SemiSupervisedLabelEncoder,
+                                SemiSupervisedSplitter, create_object,
+                                make_d3m_pipelines, sample_dataset,
+                                write_pipeline_code_as_pyfile)
 
 
 def test_create_object():
@@ -43,25 +44,38 @@ def test_sample_dataset():
 
 
 def test_make_d3m_pipelines():
-    from alpha_automl.pipeline import Pipeline
+    from feature_engine.selection import SmartCorrelatedSelection
+    from sklearn.ensemble import ExtraTreesClassifier
     from sklearn.pipeline import Pipeline as SKPipeline
     from sklearn.preprocessing import MaxAbsScaler
-    from sklearn.ensemble import ExtraTreesClassifier
-    from feature_engine.selection import SmartCorrelatedSelection
 
-    pipelines = {'Pipeline #1': Pipeline(SKPipeline(steps=[('sklearn.preprocessing.MaxAbsScaler', MaxAbsScaler()),
-                                          ('sklearn.ensemble.ExtraTreesClassifier', ExtraTreesClassifier())]),
-                                          0.90, '2023-10-02T16:52:06.736112Z', '2023-10-02T16:56:06.736112Z')
+    from alpha_automl.pipeline import Pipeline
 
-                 }
-    new_primitives = {'feature_engine.selection.smart_correlation_selection.SmartCorrelatedSelection':
-                          {'primitive_object': SmartCorrelatedSelection(),
-                           'primitive_type': 'FEATURE_SELECTOR'}
-                      }
-    current_d3m_pipelines, _ = make_d3m_pipelines(pipelines, new_primitives, 'accuracy_score', 1)
+    pipelines = {
+        "Pipeline #1": Pipeline(
+            SKPipeline(
+                steps=[
+                    ("sklearn.preprocessing.MaxAbsScaler", MaxAbsScaler()),
+                    ("sklearn.ensemble.ExtraTreesClassifier", ExtraTreesClassifier()),
+                ]
+            ),
+            0.90,
+            "2023-10-02T16:52:06.736112Z",
+            "2023-10-02T16:56:06.736112Z",
+        )
+    }
+    new_primitives = {
+        "feature_engine.selection.smart_correlation_selection.SmartCorrelatedSelection": {
+            "primitive_object": SmartCorrelatedSelection(),
+            "primitive_type": "FEATURE_SELECTOR",
+        }
+    }
+    current_d3m_pipelines, _ = make_d3m_pipelines(
+        pipelines, new_primitives, "accuracy_score", 1
+    )
     assert len(current_d3m_pipelines) == 1
-    first_step_path = current_d3m_pipelines[0]['steps'][0]['primitive']['python_path']
-    assert first_step_path == 'alpha_automl.primitives.preprocessing.MaxAbsScaler'
+    first_step_path = current_d3m_pipelines[0]["steps"][0]["primitive"]["python_path"]
+    assert first_step_path == "alpha_automl.primitives.preprocessing.MaxAbsScaler"
 
 
 class TestSemiSupervisedLabelEncoder:
@@ -124,3 +138,22 @@ class TestSemiSupervisedSplitter:
         split = self.splitter.split(self.X, self.y)
         test_split = list(split)[0][1]
         assert not pd.isnull(self.y["label"][test_split]).all()
+
+
+class TestExportPipelineAsCode:
+    pipeline_obj = Pipeline(
+        steps=[
+            ("sklearn.preprocessing.StandardScaler", StandardScaler()),
+            ("sklearn.linear_model.LogisticRegression", LogisticRegression()),
+        ]
+    )
+
+    pipeline_id = "Pipeline #99"
+
+    def test_write_pipeline_code_as_pyfile(self):
+        assert exists("pipeline_99_code.py") == False
+        write_pipeline_code_as_pyfile(self.pipeline_id, self.pipeline_obj, "REGRESSION")
+
+        assert exists("pipeline_99_code.py") == True
+        remove("pipeline_99_code.py")
+        assert exists("pipeline_99_code.py") == False

@@ -8,7 +8,7 @@ from sklearn.utils.validation import check_is_fitted
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting
 from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing, \
-    setup_output_folder, SemiSupervisedSplitter, SemiSupervisedLabelEncoder
+    setup_output_folder, SemiSupervisedSplitter, SemiSupervisedLabelEncoder, write_pipeline_code_as_pyfile
 from alpha_automl.visualization import plot_comparison_pipelines
 from alpha_automl.pipeline_serializer import PipelineSerializer
 
@@ -64,6 +64,7 @@ class BaseAutoML():
         check_input_for_multiprocessing(self._start_method, self.scorer._score_func, 'metric')
         check_input_for_multiprocessing(self._start_method, self.splitter, 'split strategy')
         self.label_encoder = None
+        self.task_type = task
 
     def fit(self, X, y):
         """
@@ -267,6 +268,15 @@ class BaseAutoML():
             plot_comparison_pipelines(pipelines, primitive_types)
         else:
             plot_comparison_pipelines(precomputed_pipelines, precomputed_primitive_types)
+
+    def export_pipeline_code(self, pipeline_id):
+        """
+        Export Pipeline to executable .py file.
+
+        :param pipeline_id: Id of a pipeline
+        """
+        pipeline_obj = self.pipelines[pipeline_id].get_pipeline()
+        write_pipeline_code_as_pyfile(pipeline_id, pipeline_obj, self.task_type)
 
     def _fit(self, X, y, pipeline_id):
         self.pipelines[pipeline_id].get_pipeline().fit(X, y)

@@ -11,6 +11,7 @@ import torch
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import ShuffleSplit, train_test_split
+from xgboost import XGBClassifier, XGBRegressor
 
 from alpha_automl.primitive_loader import PRIMITIVE_TYPES as INSTALLED_PRIMITIVES
 
@@ -332,3 +333,89 @@ class SemiSupervisedLabelEncoder:
             index=df[df.columns[0]][df[df.columns[0]].notnull()].index
         )
         return df.to_numpy()
+
+
+def write_pipeline_code_as_pyfile(pipeline_id, pipeline_obj, task_type):
+    index = pipeline_id.split("#")[1]
+    f = open(f"pipeline_{index}_code.py", "w")
+
+    pipeline_str = """Pipeline(steps=[\n"""
+    # Import
+    f.write("""import pandas as pd
+from os.path import join, dirname
+from sklearn.pipeline import Pipeline
+""")
+    print("""import pandas as pd
+from os.path import join, dirname
+from sklearn.pipeline import Pipeline""")
+    
+    if task_type == "CLASSIFICATION":
+        f.write("from sklearn.preprocessing import LabelEncoder\n")
+        print("from sklearn.preprocessing import LabelEncoder")
+
+    for step_name, step_obj in pipeline_obj.steps:
+        # Print step Import
+        path_list = step_name.split('.')
+        f.write(f"""from {".".join(path_list[:-1])} import {path_list[-1]}\n""")
+        print(f"""from {".".join(path_list[:-1])} import {path_list[-1]}""")
+
+        if isinstance(step_obj, ColumnTransformer):
+            for transformer_name, _, _ in step_obj.transformers:
+                transformer_list = transformer_name.split('.')
+                f.write(f"""from {".".join(transformer_list[:-1])} import {transformer_list[-1].split("-")[0]}\n""")
+                print(f"""from {".".join(transformer_list[:-1])} import {transformer_list[-1].split("-")[0]}""")
+        
+        # Append to pipeline
+        if isinstance(step_obj, XGBClassifier) or isinstance(step_obj, XGBRegressor):
+            xgb_params = step_obj.get_xgb_params()
+            pipeline_str += (f"""\t\t('{step_name}', {step_obj.__class__.__name__}(**{xgb_params})),\n""")
+        else:
+            pipeline_str += (f"""\t\t('{step_name}', {step_obj}),\n""")
+
+    pipeline_str += ("\t])\n")
+
+    # Pipeline fit/predict
+    f.write(f"""if __name__ == '__main__':
+\ttrain_dataset = pd.read_csv(join(dirname(__file__), 'FILLIN_DATASET_PATH_HERE'))
+\tpred_dataset = pd.read_csv(join(dirname(__file__), 'FILLIN_DATASET_PATH_HERE'))
+\ttarget_column = 'FILLIN_TARGET_COLUMN_HERE'
+\tX_train = train_dataset.drop(columns=[target_column])
+\ty_train = train_dataset[[target_column]]
+\tX_pred = pred_dataset.drop(columns=[target_column])
+    
+\tpipeline = {pipeline_str}""")
+    print(f"""if __name__ == '__main__':
+\ttrain_dataset = pd.read_csv(join(dirname(__file__), 'FILLIN_DATASET_PATH_HERE'))
+\tpred_dataset = pd.read_csv(join(dirname(__file__), 'FILLIN_DATASET_PATH_HERE'))
+\ttarget_column = 'FILLIN_TARGET_COLUMN_HERE'
+\tX_train = train_dataset.drop(columns=[target_column])
+\ty_train = train_dataset[[target_column]]
+\tX_pred = pred_dataset.drop(columns=[target_column])
+\tpipeline = {pipeline_str}
+""")
+
+    if task_type == "CLASSIFICATION":
+        f.write("""
+\tlabel_encoder = LabelEncoder()
+
+\tpipeline.fit(X_train, label_encoder.fit_transform(y_train))
+
+\tprint(label_encoder.inverse_transform(pipeline.predict(X_pred)))
+
+""")
+        print("""
+\tlabel_encoder = LabelEncoder()
+\tpipeline.fit(X_train, label_encoder.fit_transform(y_train))
+\tprint(label_encoder.inverse_transform(pipeline.predict(X_pred)))
+""")
+    else:
+        f.write("""
+\tpipeline.fit(X_train, y_train)
+
+\tprint(pipeline.predict(X_pred))
+
+""")
+        print("""
+\tpipeline.fit(X_train, y_train)
+\tprint(pipeline.predict(X_pred))
+""")
