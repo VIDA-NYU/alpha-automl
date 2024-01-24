@@ -1,6 +1,5 @@
 import os
 import logging
-import numpy as np
 import pandas as pd
 import tempfile as tmp
 from alpha_automl import AutoMLClassifier
@@ -49,7 +48,7 @@ def run(dataset, config):
              )
 
     automl = AutoMLClassifier(time_bound=time_bound, metric=metrics_mapping[metric], time_bound_run=15,
-                              output_folder=output_path, start_mode='spawn', verbose=logging.DEBUG)
+                              output_folder=output_path, verbose=logging.DEBUG)
 
     train_dataset = pd.read_csv(train_dataset_path)
     test_dataset = pd.read_csv(test_dataset_path)
@@ -58,19 +57,28 @@ def run(dataset, config):
     X_test = test_dataset.drop(columns=[target_name])
     y_test = test_dataset[[target_name]]
 
-    with Timer() as training:
+    with Timer() as train_time:
         automl.fit(X_train, y_train)
-        automl.plot_leaderboard(use_print=True)
-        predictions = automl.predict(X_test)
 
-    classes = pd.read_csv(train_dataset)[target_name].unique()
-    probabilities = pd.DataFrame(0, index=np.arange(len(predictions)), columns=classes)
+    automl.plot_leaderboard(use_print=True)
+    best_pipeline = automl.get_pipeline()
 
-    return result(dataset=dataset,
+    with Timer() as test_time:
+        predictions = best_pipeline.predict(X_test)
+        predictions = automl.label_encoder.inverse_transform(predictions)
+
+    probabilities = pd.DataFrame(automl.get_pipeline().predict_proba(X_test),
+                                 columns=automl.label_encoder.inverse_transform(automl.get_pipeline().classes_))
+
+    return result(
                   output_file=config.output_predictions_file,
-                  probabilities=probabilities,
                   predictions=predictions,
-                  training_duration=training.duration)
+                  truth=y_test,
+                  probabilities=probabilities,
+                  probabilities_labels=probabilities.columns.values.astype(str).tolist(),
+                  training_duration=train_time.duration,
+                  predict_duration=test_time.duration,
+                  target_is_encoded=False)
 
 
 if __name__ == '__main__':
