@@ -67,7 +67,7 @@ class BaseAutoML():
         self.label_encoder = None
         self.task_type = task
 
-    def fit(self, X, y):
+    def fit(self, X, y, record_performance=False):
         """
         Search for pipelines and fit the best pipeline.
 
@@ -99,8 +99,9 @@ class BaseAutoML():
         logger.info(f'Found {len(pipelines)} pipelines')
         sign = get_sign_sorting(self.scorer._score_func, self.score_sorting)
         sorted_pipelines = sorted(pipelines, key=lambda x: x.get_score() * sign, reverse=True)
-
-        record_primitive_performance(sorted_pipelines)
+        
+        if record_performance:
+            record_primitive_performance(sorted_pipelines)
 
         leaderboard_data = []
         for index, pipeline in enumerate(sorted_pipelines, start=1):
@@ -336,9 +337,9 @@ class ClassifierBaseAutoML(BaseAutoML):
 
         self.label_encoder = LabelEncoder()
 
-    def fit(self, X, y):
+    def fit(self, X, y, record_performance=False):
         y = self.label_encoder.fit_transform(y)
-        super().fit(X, y)
+        super().fit(X, y, record_performance=record_performance)
 
     def predict(self, X):
         predictions = super().predict(X)
@@ -454,9 +455,9 @@ class AutoMLTimeSeries(BaseAutoML):
         y = X[[self.target_column]]
         return X, y
 
-    def fit(self, X, y=None):
+    def fit(self, X, y=None, record_performance=False):
         X, y = self._column_parser(X)
-        super().fit(X, y)
+        super().fit(X, y, record_performance=record_performance)
 
 
 class AutoMLSemiSupervisedClassifier(ClassifierBaseAutoML):

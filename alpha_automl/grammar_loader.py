@@ -2,7 +2,7 @@ import logging
 import itertools
 from os.path import join, dirname
 from nltk.grammar import Production, Nonterminal, CFG, is_terminal, is_nonterminal
-from alpha_automl.primitive_loader import load_primitives_hierarchy
+from alpha_automl.primitive_loader import load_primitives_hierarchy, load_ranked_primitives_hierarchy
 # from alphad3m_sklearn.metalearning.grammar_builder import create_metalearningdb_grammar
 
 logger = logging.getLogger(__name__)
@@ -128,7 +128,8 @@ def modify_manual_grammar(encoders, use_imputer):
 
 
 def load_manual_grammar(task, encoders, use_imputer, new_primitives, include_primitives, exclude_primitives):
-    primitives = load_primitives_hierarchy()
+#     primitives = load_primitives_hierarchy()
+    primitives = load_ranked_primitives_hierarchy()
 
     for primitive_name in new_primitives.keys():
         primitive_type = new_primitives[primitive_name]['primitive_type']
