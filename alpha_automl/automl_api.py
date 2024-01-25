@@ -8,7 +8,8 @@ from sklearn.utils.validation import check_is_fitted
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting
 from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing, \
-    setup_output_folder, SemiSupervisedSplitter, SemiSupervisedLabelEncoder, write_pipeline_code_as_pyfile
+    setup_output_folder, SemiSupervisedSplitter, SemiSupervisedLabelEncoder, write_pipeline_code_as_pyfile, \
+    record_primitive_performance
 from alpha_automl.visualization import plot_comparison_pipelines
 from alpha_automl.pipeline_serializer import PipelineSerializer
 
@@ -99,6 +100,8 @@ class BaseAutoML():
         sign = get_sign_sorting(self.scorer._score_func, self.score_sorting)
         sorted_pipelines = sorted(pipelines, key=lambda x: x.get_score() * sign, reverse=True)
 
+        record_primitive_performance(sorted_pipelines)
+        
         leaderboard_data = []
         for index, pipeline in enumerate(sorted_pipelines, start=1):
             pipeline_id = PIPELINE_PREFIX + str(index)
