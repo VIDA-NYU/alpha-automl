@@ -25,7 +25,7 @@ mkdir results
 
 3. To test the installation, run the following command. You should get valid ML pipelines after running it.
 ```
- python automlbenchmark/runbenchmark.py Alpha-AutoML  openml/t/12  -f 0 -u user_config/ -i openml_datasets/ -o results/
+ python automlbenchmark/runbenchmark.py Alpha-AutoML  openml/t/12  test -f 0 -u user_config/ -i openml_datasets/ -o results/
 ```
 
 4. We ran all the systems (AutoWEKA, TPOT, H2O, AutoGluon, Auto-Sklearn, and AlphaD3M) using Singularity containers in 
