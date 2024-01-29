@@ -62,13 +62,20 @@ def run(dataset, config):
 
     automl.plot_leaderboard(use_print=True)
     best_pipeline = automl.get_pipeline()
+    classes = automl.label_encoder.inverse_transform(best_pipeline.classes_)
 
     with Timer() as test_time:
+        log.info('Testing pipeline')
         predictions = best_pipeline.predict(X_test)
         predictions = automl.label_encoder.inverse_transform(predictions)
 
-    probabilities = pd.DataFrame(automl.get_pipeline().predict_proba(X_test),
-                                 columns=automl.label_encoder.inverse_transform(automl.get_pipeline().classes_))
+    try:
+        probabilities = pd.DataFrame(best_pipeline.predict_proba(X_test), columns=classes)
+    except:  # Some primitives don't implement predict_proba method
+        log.warning(f'The method predict_proba is not supported, using fallback')
+        probabilities = pd.DataFrame(0, index=range(len(predictions)), columns=classes)  # Dataframe of zeros
+        for index, prediction in enumerate(predictions):
+            probabilities.at[index, prediction] = 1.0
 
     return result(
                   output_file=config.output_predictions_file,
