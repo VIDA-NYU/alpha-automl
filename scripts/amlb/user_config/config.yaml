@@ -6,7 +6,8 @@ benchmarks:                     # configuration namespace for the benchmarks def
                                 # the others are computed only for information purpose.
     binary: ['acc']             # available metrics: auc (AUC), acc (Accuracy), balacc (Balanced Accuracy), pr_auc (Precision Recall AUC), logloss (Log Loss), f1, f2, f05 (F-beta scores with beta=1, 2, or 0.5), max_pce, mean_pce (Max/Mean Per-Class Error).
     multiclass: ['acc']         # available metrics: same as for binary, except auc, replaced by auc_ovo (AUC One-vs-One), auc_ovr (AUC One-vs-Rest). AUC metrics and F-beta metrics are computed with weighted average.
-
+  defaults:
+    max_mem_size_mb: 31744
 frameworks:
   definition_file:  # this allows to add custom framework definitions (in {user}/frameworks.yaml) on top of the default ones.
     - '{root}/resources/frameworks.yaml'
