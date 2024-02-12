@@ -8,6 +8,7 @@ from alpha_automl.utils import RANDOM_SEED
 from sklearn.metrics import accuracy_score, f1_score, jaccard_score, precision_score, recall_score,\
     max_error, mean_absolute_error, mean_squared_error, mean_squared_log_error, median_absolute_error, r2_score,\
     adjusted_mutual_info_score, rand_score, mutual_info_score, normalized_mutual_info_score
+from alpha_automl.pipeline import Pipeline
 from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 
 logger = logging.getLogger(__name__)
@@ -139,7 +140,9 @@ def score_pipeline(pipeline, X, y, scoring, splitting_strategy, task_name):
         logger.debug('Exception scoring a pipeline')
         logger.debug('Detailed error:', exc_info=True)
 
-    return score, start_time, end_time
+    alphaautoml_pipeline = Pipeline(pipeline, score, start_time, end_time)
+
+    return alphaautoml_pipeline
 
 
 def make_str_metric(metric):
