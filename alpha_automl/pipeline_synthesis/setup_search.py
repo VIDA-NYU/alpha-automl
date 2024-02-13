@@ -60,7 +60,7 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, automl_hyperp
         score = None
 
         if pipeline is not None:
-            alphaautoml_pipeline = score_pipeline(pipeline, X, y, scoring, splitting_strategy, task_name)
+            alphaautoml_pipeline = score_pipeline(pipeline, X, y, scoring, splitting_strategy, task_name, verbose)
             score = alphaautoml_pipeline.get_score()
             if alphaautoml_pipeline is not None:
                 queue.put(alphaautoml_pipeline)  # Only send valid pipelines
