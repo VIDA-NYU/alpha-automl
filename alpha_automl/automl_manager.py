@@ -1,6 +1,7 @@
 import logging
 import time
 import multiprocessing
+import queue as Q
 from alpha_automl.data_profiler import profile_data
 from alpha_automl.scorer import make_splitter, score_pipeline
 from alpha_automl.utils import sample_dataset, is_equal_splitting
@@ -31,6 +32,7 @@ class AutoMLManager():
         self.scoring = None
         self.splitting_strategy = None
         self.found_pipelines = None
+        self.running_processes = 1
         self.verbose = verbose
 
     def search_pipelines(self, X, y, scoring, splitting_strategy, automl_hyperparams=None):
@@ -51,6 +53,7 @@ class AutoMLManager():
         metadata = profile_data(self.X)
         X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE, self.task)
         internal_splitting_strategy = make_splitter(SPLITTING_STRATEGY)
+        self.found_pipelines = 0
         need_rescoring = True
 
         if not is_sample and is_equal_splitting(internal_splitting_strategy, self.splitting_strategy):
@@ -65,13 +68,17 @@ class AutoMLManager():
                                                  )
 
         search_process.start()
-        self.found_pipelines = 0
-        scoring_pool = multiprocessing.Pool()
-        self.running_processes = 0
+        self.running_processes += 1
+        scoring_pool = multiprocessing.Pool(MAX_RUNNING_PROCESSES - 2)  # Exclude the main process and search process
         pipelines_to_score = []
+        results = []
 
         while True:
-            result = queue.get()
+            try:
+                result = queue.get(timeout=10)
+            except Q.Empty:
+                logger.debug('Reached timeout getting new pipelines')
+                result = None
 
             if result == 'DONE':
                 search_process.terminate()
@@ -80,22 +87,43 @@ class AutoMLManager():
                 logger.debug('Search done')
                 break
 
-            pipeline = result
-            score = pipeline.get_score()
-            logger.debug('Found new pipeline')
-            yield {'pipeline': pipeline, 'message': 'FOUND'}
+            elif result is not None:
+                pipeline = result
+                score = pipeline.get_score()
+                logger.debug('Found new pipeline')
+                yield {'pipeline': pipeline, 'message': 'FOUND'}
 
-            if need_rescoring:
-                pipelines_to_score.append(pipeline)
-                if self.running_processes < MAX_RUNNING_PROCESSES:
-                    scoring_pool.apply_async(score_pipeline, args=(pipelines_to_score.pop(0).get_pipeline(), self.X,
-                                                                   self.y, self.scoring, self.splitting_strategy,
-                                                                   self.task),
-                                             callback=self._callback_score_pipeline)
-            else:
-                logger.debug(f'Pipeline scored successfully, score={score}')
-                self.found_pipelines += 1
-                yield {'pipeline': pipeline, 'message': 'SCORED'}
+                if need_rescoring:
+                    pipelines_to_score.append(pipeline)
+                    if self.running_processes < MAX_RUNNING_PROCESSES:
+                        pipeline = pipelines_to_score.pop(0).get_pipeline()
+                        result = scoring_pool.apply_async(score_pipeline,
+                                                          args=(pipeline, self.X, self.y, self.scoring,
+                                                                self.splitting_strategy, self.task, self.verbose)
+                                                          )
+                        results.append(result)
+                        self.running_processes += 1
+                    else:
+                        tmp_results = []
+                        for result in results:
+                            if result.ready():
+                                pipeline = result.get()
+                                if pipeline is None:
+                                    self.running_processes -= 1
+                                    continue
+
+                                logger.debug(f'Pipeline scored successfully, score={pipeline.get_score()}')
+                                self.found_pipelines += 1
+                                self.running_processes -= 1
+                                yield {'pipeline': pipeline, 'message': 'SCORED'}
+                            else:
+                                tmp_results.append(result)
+                        results = tmp_results
+
+                else:
+                    logger.debug(f'Pipeline scored successfully, score={score}')
+                    self.found_pipelines += 1
+                    yield {'pipeline': pipeline, 'message': 'SCORED'}
 
             if time.time() > search_start_time + self.time_bound:
                 logger.debug('Reached search timeout')
@@ -105,13 +133,6 @@ class AutoMLManager():
                 scoring_pool.join()
                 logger.debug(f'Found {self.found_pipelines} pipelines')
                 break
-
-    def _callback_score_pipeline(self, result):
-        pipeline = result
-        logger.debug(f'Pipeline scored successfully, score={pipeline.get_score()}')
-        self.found_pipelines += 1
-        self.running_processes -= 1
-        yield {'pipeline': pipeline, 'message': 'SCORED'}
 
     def check_automl_hyperparams(self, automl_hyperparams):
         if 'use_automatic_grammar' not in automl_hyperparams:

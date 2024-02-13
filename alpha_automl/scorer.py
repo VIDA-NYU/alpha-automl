@@ -141,6 +141,8 @@ def score_pipeline(pipeline, X, y, scoring, splitting_strategy, task_name, verbo
         logger.debug('Exception scoring a pipeline')
         logger.debug('Detailed error:', exc_info=True)
 
+        return None
+
     alphaautoml_pipeline = Pipeline(pipeline, score, start_time, end_time)
 
     return alphaautoml_pipeline
