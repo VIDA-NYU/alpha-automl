@@ -71,7 +71,7 @@ class AutoMLManager():
         self.running_processes += 1
         scoring_pool = multiprocessing.Pool(MAX_RUNNING_PROCESSES - 2)  # Exclude the main process and search process
         pipelines_to_score = []
-        results = []
+        scoring_results = []
 
         while True:
             try:
@@ -83,53 +83,53 @@ class AutoMLManager():
             if result == 'DONE':
                 search_process.terminate()
                 search_process.join(10)
+                scoring_pool.close()
+                scoring_pool.join()
                 logger.debug(f'Found {self.found_pipelines} pipelines')
                 logger.debug('Search done')
                 break
 
             elif result is not None:
                 pipeline = result
-                score = pipeline.get_score()
                 logger.debug('Found new pipeline')
                 yield {'pipeline': pipeline, 'message': 'FOUND'}
 
                 if need_rescoring:
                     pipelines_to_score.append(pipeline)
-                    if self.running_processes < MAX_RUNNING_PROCESSES:
-                        pipeline = pipelines_to_score.pop(0).get_pipeline()
-                        result = scoring_pool.apply_async(score_pipeline,
-                                                          args=(pipeline, self.X, self.y, self.scoring,
-                                                                self.splitting_strategy, self.task, self.verbose)
-                                                          )
-                        results.append(result)
-                        self.running_processes += 1
-                    else:
-                        tmp_results = []
-                        for result in results:
-                            if result.ready():
-                                pipeline = result.get()
-                                if pipeline is None:
-                                    self.running_processes -= 1
-                                    continue
-
-                                logger.debug(f'Pipeline scored successfully, score={pipeline.get_score()}')
-                                self.found_pipelines += 1
-                                self.running_processes -= 1
-                                yield {'pipeline': pipeline, 'message': 'SCORED'}
-                            else:
-                                tmp_results.append(result)
-                        results = tmp_results
-
                 else:
-                    logger.debug(f'Pipeline scored successfully, score={score}')
+                    logger.debug(f'Pipeline scored successfully, score={pipeline.get_score()}')
                     self.found_pipelines += 1
                     yield {'pipeline': pipeline, 'message': 'SCORED'}
+
+            if len(pipelines_to_score) > 0:
+                if self.running_processes < MAX_RUNNING_PROCESSES:
+                    pipeline = pipelines_to_score.pop(0).get_pipeline()
+                    scoring_result = scoring_pool.apply_async(
+                        score_pipeline,
+                        args=(pipeline, self.X, self.y, self.scoring, self.splitting_strategy, self.task, self.verbose)
+                        )
+                    scoring_results.append(scoring_result)
+                    self.running_processes += 1
+
+            tmp_scoring_results = []
+            for scoring_result in scoring_results:
+                if scoring_result.ready():
+                    self.running_processes -= 1
+                    pipeline = scoring_result.get()
+                    if pipeline is not None:
+                        logger.debug(f'Pipeline scored successfully, score={pipeline.get_score()}')
+                        self.found_pipelines += 1
+                        yield {'pipeline': pipeline, 'message': 'SCORED'}
+                else:
+                    tmp_scoring_results.append(scoring_result)
+            
+            scoring_results = tmp_scoring_results
 
             if time.time() > search_start_time + self.time_bound:
                 logger.debug('Reached search timeout')
                 search_process.terminate()
                 search_process.join(10)
-                scoring_pool.close()
+                scoring_pool.terminate()
                 scoring_pool.join()
                 logger.debug(f'Found {self.found_pipelines} pipelines')
                 break
