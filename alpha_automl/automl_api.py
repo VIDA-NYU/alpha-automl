@@ -12,7 +12,8 @@ from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, 
 from alpha_automl.visualization import plot_comparison_pipelines
 from alpha_automl.pipeline_serializer import PipelineSerializer
 
-logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
+logging.basicConfig(level=logging.DEBUG, stream=sys.stdout, format='%(levelname)s|%(asctime)s|%(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
 
 AUTOML_NAME = 'AlphaAutoML'
