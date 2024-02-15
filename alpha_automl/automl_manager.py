@@ -83,7 +83,7 @@ class AutoMLManager():
             if result == 'DONE':
                 search_process.terminate()
                 search_process.join(10)
-                scoring_pool.close()
+                scoring_pool.terminate()
                 scoring_pool.join()
                 logger.debug(f'Found {self.found_pipelines} pipelines')
                 logger.debug('Search done')
@@ -122,7 +122,7 @@ class AutoMLManager():
                         yield {'pipeline': pipeline, 'message': 'SCORED'}
                 else:
                     tmp_scoring_results.append(scoring_result)
-            
+
             scoring_results = tmp_scoring_results
 
             if time.time() > search_start_time + self.time_bound:
