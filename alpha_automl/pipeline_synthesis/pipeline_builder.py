@@ -44,7 +44,7 @@ def change_default_hyperparams(primitive_object):
     elif isinstance(primitive_object, OrdinalEncoder):
         primitive_object.set_params(handle_unknown='use_encoded_value', unknown_value=-1)
     elif isinstance(primitive_object, SimpleImputer):
-        primitive_object.set_params(strategy='most_frequent')
+        primitive_object.set_params(strategy='most_frequent', keep_empty_features=True)
 
 
 class BaseBuilder:
