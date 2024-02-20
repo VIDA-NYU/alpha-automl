@@ -24,7 +24,7 @@ class BaseAutoML():
 
     def __init__(self, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,  output_folder=None,
-                 start_mode='auto', verbose=logging.INFO):
+                 num_cpus=None, start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an BaseAutoML object.
 
@@ -39,6 +39,7 @@ class BaseAutoML():
         :param metric_kwargs: Additional arguments for metric.
         :param split_strategy_kwargs: Additional arguments for splitting_strategy.
         :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
+        :param num_cpus: Number of CPUs to be used.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: The logs level.
         """
@@ -59,7 +60,7 @@ class BaseAutoML():
         self.X = None
         self.y = None
         self.leaderboard = None
-        self.automl_manager = AutoMLManager(self.output_folder, time_bound, time_bound_run, task, verbose)
+        self.automl_manager = AutoMLManager(self.output_folder, time_bound, time_bound_run, task, num_cpus, verbose)
         self._start_method = get_start_method(start_mode)
         set_start_method(self._start_method, force=True)
         check_input_for_multiprocessing(self._start_method, self.scorer._score_func, 'metric')
@@ -310,7 +311,7 @@ class ClassifierBaseAutoML(BaseAutoML):
 
     def __init__(self, time_bound=15, metric='accuracy_score', split_strategy='holdout', time_bound_run=5, task=None,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
-                 start_mode='auto', verbose=logging.INFO):
+                 num_cpus=None, start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLClassifier object.
 
@@ -325,12 +326,13 @@ class ClassifierBaseAutoML(BaseAutoML):
         :param metric_kwargs: Additional arguments for metric.
         :param split_strategy_kwargs: Additional arguments for splitting_strategy.
         :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
+        :param num_cpus: Number of CPUs to be used.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: The logs level.
         """
 
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
-                         split_strategy_kwargs, output_folder, start_mode, verbose)
+                         split_strategy_kwargs, output_folder, num_cpus, start_mode, verbose)
 
         self.label_encoder = LabelEncoder()
 
@@ -366,7 +368,7 @@ class AutoMLClassifier(ClassifierBaseAutoML):
 
     def __init__(self, time_bound=15, metric='accuracy_score', split_strategy='holdout', time_bound_run=5,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
-                 start_mode='auto', verbose=logging.INFO):
+                 num_cpus=None, start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLClassifier object.
 
@@ -380,20 +382,21 @@ class AutoMLClassifier(ClassifierBaseAutoML):
         :param metric_kwargs: Additional arguments for metric.
         :param split_strategy_kwargs: Additional arguments for splitting_strategy.
         :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
+        :param num_cpus: Number of CPUs to be used.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: The logs level.
         """
 
         task = 'CLASSIFICATION'
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
-                         split_strategy_kwargs, output_folder, start_mode, verbose)
+                         split_strategy_kwargs, output_folder, num_cpus, start_mode, verbose)
 
 
 class AutoMLRegressor(BaseAutoML):
 
     def __init__(self, time_bound=15, metric='mean_absolute_error', split_strategy='holdout', time_bound_run=5,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
-                 start_mode='auto', verbose=logging.INFO):
+                 num_cpus=None, start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLRegressor object.
 
@@ -407,19 +410,20 @@ class AutoMLRegressor(BaseAutoML):
         :param metric_kwargs: Additional arguments for metric.
         :param split_strategy_kwargs: Additional arguments for splitting_strategy.
         :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
+        :param num_cpus: Number of CPUs to be used.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: The logs level.
         """
 
         task = 'REGRESSION'
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
-                         split_strategy_kwargs, output_folder, start_mode, verbose)
+                         split_strategy_kwargs, output_folder, num_cpus, start_mode, verbose)
 
 
 class AutoMLTimeSeries(BaseAutoML):
     def __init__(self, time_bound=15, metric='mean_squared_error', split_strategy='timeseries', time_bound_run=5,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
-                 start_mode='auto', verbose=logging.INFO, date_column=None, target_column=None):
+                 num_cpus=None, start_mode='auto', verbose=logging.INFO, date_column=None, target_column=None):
         """
         Create/instantiate an AutoMLTimeSeries object.
 
@@ -433,6 +437,7 @@ class AutoMLTimeSeries(BaseAutoML):
         :param metric_kwargs: Additional arguments for metric.
         :param split_strategy_kwargs: Additional arguments for TimeSeriesSplit, E.g. n_splits and test_size(int).
         :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
+        :param num_cpus: Number of CPUs to be used.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: The logs level.
         """
@@ -442,7 +447,7 @@ class AutoMLTimeSeries(BaseAutoML):
         self.target_column = target_column
 
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
-                         split_strategy_kwargs, output_folder, start_mode, verbose)
+                         split_strategy_kwargs, output_folder, num_cpus, start_mode, verbose)
 
     def _column_parser(self, X):
         cols = list(X.columns.values)
@@ -461,7 +466,7 @@ class AutoMLSemiSupervisedClassifier(ClassifierBaseAutoML):
 
     def __init__(self, time_bound=15, metric='accuracy_score', split_strategy='holdout', time_bound_run=5,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
-                 start_mode='auto', verbose=logging.INFO):
+                 num_cpus=None, start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLSemiSupervisedClassifier object.
 
@@ -476,13 +481,14 @@ class AutoMLSemiSupervisedClassifier(ClassifierBaseAutoML):
         :param split_strategy_kwargs: Additional arguments for splitting_strategy. In SemiSupervised case, `n_splits`
             and `test_size`(test proportion from 0 to 1) can be pass to the splitter.
         :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
+        :param num_cpus: Number of CPUs to be used.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
         :param verbose: The logs level.
         """
 
         task = 'SEMISUPERVISED'
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
-                         split_strategy_kwargs, output_folder, start_mode, verbose)
+                         split_strategy_kwargs, output_folder, num_cpus, start_mode, verbose)
 
         if split_strategy_kwargs is None:
             split_strategy_kwargs = {'test_size': 0.25}

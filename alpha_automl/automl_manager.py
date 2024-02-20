@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 class AutoMLManager():
 
-    def __init__(self, output_folder, time_bound, time_bound_run, task, verbose):
+    def __init__(self, output_folder, time_bound, time_bound_run, task, num_cpus, verbose):
         self.output_folder = output_folder
         self.time_bound = time_bound * 60
         self.time_bound_run = time_bound_run * 60
@@ -34,6 +34,7 @@ class AutoMLManager():
         self.found_pipelines = None
         self.running_processes = 1
         self.verbose = verbose
+        self.num_cpus = num_cpus if num_cpus is not None else MAX_RUNNING_PROCESSES
 
     def search_pipelines(self, X, y, scoring, splitting_strategy, automl_hyperparams=None):
         if automl_hyperparams is None:
@@ -69,7 +70,8 @@ class AutoMLManager():
 
         search_process.start()
         self.running_processes += 1
-        scoring_pool = multiprocessing.Pool(MAX_RUNNING_PROCESSES - 2)  # Exclude the main process and search process
+        num_processes = self.num_cpus - 2  # Exclude the main process and search process
+        scoring_pool = multiprocessing.Pool(max(1, num_processes))
         pipelines_to_score = []
         scoring_results = []
 
