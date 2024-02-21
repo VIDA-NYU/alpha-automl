@@ -20,14 +20,10 @@ This repository is part of New York University's implementation of the
 
 
 ## Documentation
-
 Documentation is available [here](https://alpha-automl.readthedocs.io/). You can also try this [online demo](https://alpha-automl.hsrn.nyu.edu/) (1 hour limit per session).
-
-Documentation for the Streamlit app for image triage  developed by Jataware Corp is available [here](https://github.com/jataware/st-image-triage), see this [video demo](https://drive.google.com/file/d/1h3o0C0wNfT2AQduhqfgGEWl8fInFkdFZ/view).
 
 
 ## Installation
-
 This package works with Python 3.6+ in Linux, Mac, and Windows.
 
 You can install the latest stable version of this library from [PyPI](https://pypi.org/project/alpha-automl/):
@@ -44,7 +40,6 @@ pip install git+https://github.com/VIDA-NYU/alpha-automl@devel
 
 
 ## Trying it using Docker
-
 We provide pre-built docker images with Jupyter and Alpha-AutoML pre-installed that you can use to quickly test Alpha-AutoML.
 To test it, you can run the following command in your machine, and open Jupyter Notebook on your browser:
 
@@ -63,8 +58,8 @@ If you are running the Jupyter Notebook in a secure environment, the authenticat
 docker run -p 8888:8888 ghcr.io/vida-nyu/alpha-automl --NotebookApp.token=''
 ```
 
-## Building a Docker image from scratch
 
+## Building a Docker image from scratch
 If you need to build an image from sources, you can use our [Dockerfile](https://github.com/VIDA-NYU/alpha-automl/blob/devel/Dockerfile). You can use a docker-build argument to select the packages that will be installed in the image (e.g., `full`, `timeseries`, `nlp`, etc) as follows:
 
 ```
@@ -81,3 +76,7 @@ You can also build an image to use with JupyterHub as follows:
 docker build -t alpha-automl:latest-jupyterhub --target alpha-automl-jupyterhub .
 ```
 See also the documentation on how to setup Alpha-AutoML + JupyterHub on [Kubernetes](https://github.com/VIDA-NYU/alpha-automl/tree/devel/kubernetes).
+
+
+## Others
+Documentation for the Streamlit app for image triage  developed by Jataware Corp is available [here](https://github.com/jataware/st-image-triage), see this [video demo](https://drive.google.com/file/d/1h3o0C0wNfT2AQduhqfgGEWl8fInFkdFZ/view).
