@@ -68,4 +68,4 @@ autoclass_content = 'both'
 add_module_names = False
 
 autodoc_mock_imports = ['sklearn',  'pandas', 'numpy', 'datamart_profiler', 'PipelineProfiler', 'IPython', 'torch',
-                        'nltk']
+                        'nltk', 'xgboost']
