@@ -4,7 +4,6 @@ import signal
 import logging
 from os.path import join
 from alpha_automl.grammar_loader import load_automatic_grammar, load_manual_grammar
-from alpha_automl.pipeline import Pipeline
 from alpha_automl.pipeline_search.Coach import Coach
 from alpha_automl.pipeline_search.pipeline.NNet import NNetWrapper
 from alpha_automl.pipeline_search.pipeline.PipelineGame import PipelineGame
@@ -49,8 +48,8 @@ def signal_handler(queue, signum):
     sys.exit(0)
 
 
-def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, automl_hyperparams, metadata,
-                     output_folder, verbose, queue):
+def search_pipelines(X, y, scoring, splitting_strategy, task_name, automl_hyperparams, metadata, output_folder, verbose,
+                     queue):
     signal.signal(signal.SIGTERM, lambda signum, frame: signal_handler(queue, signum))
     hide_logs(verbose)  # Hide logs here too, since multiprocessing has some issues with loggers
 
@@ -61,12 +60,10 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
         score = None
 
         if pipeline is not None:
-            score, start_time, end_time = score_pipeline(
-                pipeline, X, y, scoring, splitting_strategy, task_name
-            )
-            if score is not None:
-                pipeline_alphaautoml = Pipeline(pipeline, score, start_time, end_time)
-                queue.put(pipeline_alphaautoml)  # Only send valid pipelines
+            alphaautoml_pipeline = score_pipeline(pipeline, X, y, scoring, splitting_strategy, task_name, verbose)
+            if alphaautoml_pipeline is not None:
+                score = alphaautoml_pipeline.get_score()
+                queue.put(alphaautoml_pipeline)  # Only send valid pipelines
 
         return score
 
