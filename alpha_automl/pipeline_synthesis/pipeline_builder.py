@@ -63,8 +63,16 @@ class BaseBuilder:
             self.all_primitives[primitive_name] = {'type': primitive_type, 'origin': ADDED_PRIMITIVE}
 
     def make_pipeline(self, primitives):
-        pipeline_primitives = self.make_primitive_objects(primitives)
-        pipeline = self.make_linear_pipeline(pipeline_primitives)
+        if self.all_primitives[primitives[-1]]['type'] == 'ENSEMBLER':
+            ensembler_name = primitives[-1]
+            pipeline_primitives = self.make_primitive_objects(primitives[:-1])
+            pipeline = self.make_linear_pipeline(pipeline_primitives)
+            ensembler_obj = create_object(ensembler_name, {'estimator': pipeline})
+            pipeline = Pipeline([(ensembler_name, ensembler_obj)])
+        else:
+            pipeline_primitives = self.make_primitive_objects(primitives)
+            pipeline = self.make_linear_pipeline(pipeline_primitives)
+
         logger.debug(f'New pipelined created:\n{pipeline}')
 
         return pipeline

@@ -95,5 +95,9 @@
     "LABELPROPAGATION_CLASSIFIER": [
         "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelSpreading",
         "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelPropagation"
+    ],
+    "ENSEMBLER": [
+        "sklearn.ensemble.AdaBoostClassifier",
+        "sklearn.ensemble.BaggingClassifier"
     ]
 }
