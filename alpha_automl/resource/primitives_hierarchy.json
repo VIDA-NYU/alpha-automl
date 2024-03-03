@@ -28,7 +28,7 @@
     ],
     "DATETIME_ENCODER": [
         "sklearn.preprocessing.OrdinalEncoder",
-	    "alpha_automl.builtin_primitives.datetime_encoder.CyclicalFeature",
+        "alpha_automl.builtin_primitives.datetime_encoder.CyclicalFeature",
         "alpha_automl.builtin_primitives.datetime_encoder.Datetime64ExpandEncoder",
         "alpha_automl.builtin_primitives.datetime_encoder.DummyEncoder"
     ],
@@ -95,5 +95,11 @@
     "LABELPROPAGATION_CLASSIFIER": [
         "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelSpreading",
         "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelPropagation"
+    ],
+    "DATA_CLEANER": [
+        "cleanlab.classification.CleanLearning"
+    ],
+    "DATA_CLEANER_REGRESSION": [
+        "cleanlab.regression.learn.CleanLearning"
     ]
 }

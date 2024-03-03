@@ -118,6 +118,22 @@ class BaseAutoML():
                         pipeline.get_score(),
                     ]
                 )
+            elif pipeline.get_pipeline().steps[-1][0] == 'cleanlab.classification.CleanLearning':
+                leaderboard_data.append(
+                    [
+                        index,
+                        f'{pipeline.get_summary()}, {pipeline.get_pipeline().steps[-1][1].clf.__class__.__name__}',
+                        pipeline.get_score(),
+                    ]
+                )
+            elif pipeline.get_pipeline().steps[-1][0] == 'cleanlab.regression.learn.CleanLearning':
+                leaderboard_data.append(
+                    [
+                        index,
+                        f'{pipeline.get_summary()}, {pipeline.get_pipeline().steps[-1][1].model.__class__.__name__}',
+                        pipeline.get_score(),
+                    ]
+                )
             else:
                 leaderboard_data.append([index, pipeline.get_summary(), pipeline.get_score()])
 
