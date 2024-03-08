@@ -1,12 +1,14 @@
-import os
-import sys
-import signal
 import logging
+import os
+import signal
+import sys
+from datetime import datetime
 from os.path import join
-from alpha_automl.grammar_loader import load_automatic_grammar, load_manual_grammar
-from alpha_automl.pipeline_search.Coach import Coach
-from alpha_automl.pipeline_search.pipeline.NNet import NNetWrapper
+
+from alpha_automl.grammar_loader import (load_automatic_grammar,
+                                         load_manual_grammar)
 from alpha_automl.pipeline_search.pipeline.PipelineGame import PipelineGame
+from alpha_automl.pipeline_search.RlLib import pipeline_search_rllib, dump_result_to_json, read_result_to_pipeline
 from alpha_automl.pipeline_synthesis.pipeline_builder import BaseBuilder
 from alpha_automl.scorer import score_pipeline
 from alpha_automl.utils import hide_logs
@@ -43,17 +45,31 @@ config = {
 
 def signal_handler(queue, signum):
     logger.debug(f'Receiving signal {signum}, terminating process')
-    queue.put('DONE')
+    queue.append('DONE')
     # TODO: Should it save the last status of the NN model?
     sys.exit(0)
 
 
-def search_pipelines(X, y, scoring, splitting_strategy, task_name, automl_hyperparams, metadata, output_folder, verbose,
-                     queue):
-    signal.signal(signal.SIGTERM, lambda signum, frame: signal_handler(queue, signum))
-    hide_logs(verbose)  # Hide logs here too, since multiprocessing has some issues with loggers
+def search_pipelines(
+    X,
+    y,
+    scoring,
+    splitting_strategy,
+    task_name,
+    time_bound,
+    automl_hyperparams,
+    metadata,
+    output_folder,
+    verbose,
+):
+#     signal.signal(signal.SIGTERM, lambda signum, frame: signal_handler(queue, signum))
+    hide_logs(
+        verbose
+    )  # Hide logs here too, since multiprocessing has some issues with loggers
 
     builder = BaseBuilder(metadata, automl_hyperparams)
+    
+    task_start = datetime.now()
 
     def evaluate_pipeline(primitives, origin):
         pipeline = builder.make_pipeline(primitives)
@@ -63,8 +79,8 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, automl_hyperp
             alphaautoml_pipeline = score_pipeline(pipeline, X, y, scoring, splitting_strategy, task_name, verbose)
             if alphaautoml_pipeline is not None:
                 score = alphaautoml_pipeline.get_score()
-                queue.put(alphaautoml_pipeline)  # Only send valid pipelines
-
+                if score is not None:
+                    dump_result_to_json(primitives, task_start)       
         return score
 
     if task_name is None:
@@ -75,6 +91,7 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, automl_hyperp
     include_primitives = automl_hyperparams['include_primitives']
     exclude_primitives = automl_hyperparams['exclude_primitives']
     new_primitives = automl_hyperparams['new_primitives']
+    save_checkpoint = automl_hyperparams['save_checkpoint']
     grammar = None
 
     if use_automatic_grammar:
@@ -105,28 +122,17 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, automl_hyperp
         )
 
     metric = scoring._score_func.__name__
-    config_updated = update_config(task_name, metric, output_folder, grammar)
+    config_updated = update_config(task_name, metric, output_folder, grammar, metadata)
     game = PipelineGame(config_updated, evaluate_pipeline)
-    nnet = NNetWrapper(game)
+    pipeline_search_rllib(game, time_bound, save_checkpoint=save_checkpoint)
 
-    if config['ARGS'].get('load_model'):
-        model_file = join(
-            config['ARGS'].get('load_folder_file')[0],
-            config['ARGS'].get('load_folder_file')[1],
-        )
-        if os.path.isfile(model_file):
-            nnet.load_checkpoint(
-                config['ARGS'].get('load_folder_file')[0],
-                config['ARGS'].get('load_folder_file')[1],
-            )
-
-    c = Coach(game, nnet, config['ARGS'])
-    c.learn()
     logger.debug('Search completed')
-    queue.put('DONE')
+    
+    return read_result_to_pipeline(builder)
+    # queue.put('DONE')
 
 
-def update_config(task_name, metric, output_folder, grammar):
+def update_config(task_name, metric, output_folder, grammar, metadata):
     config['PROBLEM'] = task_name
     config['DATA_TYPE'] = 'TABULAR'
     config['METRIC'] = metric
@@ -140,8 +146,47 @@ def update_config(task_name, metric, output_folder, grammar):
     )
     config['GRAMMAR'] = grammar
     # metafeatures_extractor = ComputeMetafeatures(dataset, targets, features, DBSession)
-    config['DATASET_METAFEATURES'] = [
-        0
-    ] * 50  # metafeatures_extractor.compute_metafeatures('Compute_metafeatures')
-
+    # config['DATASET_METAFEATURES'] = [
+    #     0
+    # ] * 50  # metafeatures_extractor.compute_metafeatures('Compute_metafeatures')
+    metafeatures = compute_metafeatures(metadata)
+    config['DATASET_METAFEATURES'] = metafeatures + [0] * (8 - len(metafeatures))
     return config
+
+
+def compute_metafeatures(metadata):
+    metafeatures = []
+    # IMPUTE
+    metafeatures.append(1 if metadata['missing_values'] else 0)
+    # ENCODE
+    nonnumeric_columns = metadata['nonnumeric_columns']
+    if nonnumeric_columns != {}:
+        metafeatures.append(1)
+        # TEXT
+        metafeatures.append(
+            len(nonnumeric_columns['TEXT_ENCODER'])
+            if 'TEXT_ENCODER' in nonnumeric_columns
+            else 0
+        )
+        # CATEGORICAL
+        metafeatures.append(
+            len(nonnumeric_columns['CATEGORICAL_ENCODER'])
+            if 'CATEGORICAL_ENCODER' in nonnumeric_columns
+            else 0
+        )
+        # DATETIME
+        metafeatures.append(
+            len(nonnumeric_columns['DATETIME_ENCODER'])
+            if 'DATETIME_ENCODER' in nonnumeric_columns
+            else 0
+        )
+        # IMAGE
+        metafeatures.append(
+            len(nonnumeric_columns['IMAGE_ENCODER'])
+            if 'IMAGE_ENCODER' in nonnumeric_columns
+            else 0
+        )
+    else:
+        metafeatures.append(0)
+
+    return metafeatures

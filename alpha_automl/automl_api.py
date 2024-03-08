@@ -24,7 +24,7 @@ class BaseAutoML():
 
     def __init__(self, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,  output_folder=None,
-                 num_cpus=None, start_mode='auto', verbose=logging.INFO):
+                 num_cpus=None, start_mode='auto', verbose=logging.INFO, save_checkpoint=False):
         """
         Create/instantiate an BaseAutoML object.
 
@@ -67,6 +67,7 @@ class BaseAutoML():
         check_input_for_multiprocessing(self._start_method, self.splitter, 'split strategy')
         self.label_encoder = None
         self.task_type = task
+        self.save_checkpoint = save_checkpoint
 
     def fit(self, X, y):
         """
@@ -77,7 +78,7 @@ class BaseAutoML():
         """
         self.X = X
         self.y = y
-        automl_hyperparams = {'new_primitives': self.new_primitives}
+        automl_hyperparams = {'new_primitives': self.new_primitives, 'save_checkpoint': self.save_checkpoint}
         pipelines = []
         start_time = datetime.datetime.utcnow()
 
@@ -311,7 +312,7 @@ class ClassifierBaseAutoML(BaseAutoML):
 
     def __init__(self, time_bound=15, metric='accuracy_score', split_strategy='holdout', time_bound_run=5, task=None,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
-                 num_cpus=None, start_mode='auto', verbose=logging.INFO):
+                 num_cpus=None, start_mode='auto', verbose=logging.INFO, save_checkpoint=False):
         """
         Create/instantiate an AutoMLClassifier object.
 
@@ -332,7 +333,7 @@ class ClassifierBaseAutoML(BaseAutoML):
         """
 
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
-                         split_strategy_kwargs, output_folder, num_cpus, start_mode, verbose)
+                         split_strategy_kwargs, output_folder, num_cpus, start_mode, verbose, save_checkpoint)
 
         self.label_encoder = LabelEncoder()
 
@@ -368,7 +369,7 @@ class AutoMLClassifier(ClassifierBaseAutoML):
 
     def __init__(self, time_bound=15, metric='accuracy_score', split_strategy='holdout', time_bound_run=5,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
-                 num_cpus=None, start_mode='auto', verbose=logging.INFO):
+                 num_cpus=None, start_mode='auto', verbose=logging.INFO, save_checkpoint=False):
         """
         Create/instantiate an AutoMLClassifier object.
 
@@ -389,14 +390,14 @@ class AutoMLClassifier(ClassifierBaseAutoML):
 
         task = 'CLASSIFICATION'
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
-                         split_strategy_kwargs, output_folder, num_cpus, start_mode, verbose)
+                         split_strategy_kwargs, output_folder, num_cpus, start_mode, verbose, save_checkpoint)
 
 
 class AutoMLRegressor(BaseAutoML):
 
     def __init__(self, time_bound=15, metric='mean_absolute_error', split_strategy='holdout', time_bound_run=5,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
-                 num_cpus=None, start_mode='auto', verbose=logging.INFO):
+                 num_cpus=None, start_mode='auto', verbose=logging.INFO, save_checkpoint=False):
         """
         Create/instantiate an AutoMLRegressor object.
 
@@ -417,7 +418,7 @@ class AutoMLRegressor(BaseAutoML):
 
         task = 'REGRESSION'
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
-                         split_strategy_kwargs, output_folder, num_cpus, start_mode, verbose)
+                         split_strategy_kwargs, output_folder, num_cpus, start_mode, verbose, save_checkpoint)
 
 
 class AutoMLTimeSeries(BaseAutoML):
