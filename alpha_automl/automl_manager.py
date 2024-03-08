@@ -69,14 +69,15 @@ class AutoMLManager():
         while pipelines:
             pipeline = pipelines.pop()
 
-            score, start_time, end_time = score_pipeline(pipeline, self.X, self.y, self.scoring,
-                                                             self.splitting_strategy, self.task)
+            alphaautoml_pipeline = score_pipeline(pipeline, self.X, self.y, self.scoring,
+                                                  self.splitting_strategy, self.task,
+                                                  self.verbose)
 
-            if score is not None:
-                pipeline_alphaautoml = Pipeline(pipeline, score, start_time, end_time)
+            if alphaautoml_pipeline is not None:
+                score = alphaautoml_pipeline.get_score()
                 logger.debug(f'Pipeline scored successfully, score={score}')
                 found_pipelines += 1
-                yield {'pipeline': pipeline_alphaautoml, 'message': 'SCORED'}
+                yield {'pipeline': alphaautoml_pipeline, 'message': 'SCORED'}
         
         logger.debug(f'Found {found_pipelines} pipelines')
         logger.debug('Search done')
