@@ -122,14 +122,14 @@ class PipelineGame(Game):
         b.set_pipeline(board)
         if not b.is_terminal_pipeline():
             return 0
-        if len(self.evaluations) > 0:
-            sorted_evals = sorted([eval for eval in list(self.evaluations.values()) if eval != float('inf')])
-            if len(sorted_evals) > 0:
-                if 'error' in self.metric.lower():
-                    win_threshold = sorted_evals[0]
-                else:
-                    win_threshold = sorted_evals[-1]
-                b.win_threshold = win_threshold
+#         if len(self.evaluations) > 0:
+#             sorted_evals = sorted([eval for eval in list(self.evaluations.values()) if eval != float('inf')])
+#             if len(sorted_evals) > 0:
+#                 if 'error' in self.metric.lower():
+#                     win_threshold = sorted_evals[0]
+#                 else:
+#                     win_threshold = sorted_evals[-1]
+#                 b.win_threshold = win_threshold
 
         eval_val = self.getEvaluation(board)
 

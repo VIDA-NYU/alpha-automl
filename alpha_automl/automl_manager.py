@@ -1,7 +1,7 @@
 import logging
 import time
 import multiprocessing
-import queue as Q
+from alpha_automl.pipeline import Pipeline
 from alpha_automl.data_profiler import profile_data
 from alpha_automl.scorer import make_splitter, score_pipeline
 from alpha_automl.utils import sample_dataset, is_equal_splitting
@@ -60,81 +60,27 @@ class AutoMLManager():
         if not is_sample and is_equal_splitting(internal_splitting_strategy, self.splitting_strategy):
             need_rescoring = False
 
-        queue = multiprocessing.Queue()
-        search_process = multiprocessing.Process(target=search_pipelines_proc,
-                                                 args=(X, y, self.scoring, internal_splitting_strategy, self.task,
-                                                       automl_hyperparams, metadata, self.output_folder, self.verbose,
-                                                       queue
-                                                       )
-                                                 )
+        pipelines = search_pipelines_proc(X, y, self.scoring, internal_splitting_strategy, self.task,
+                        self.time_bound, automl_hyperparams, metadata,
+                        self.output_folder, self.verbose)
 
-        search_process.start()
-        self.running_processes += 1
-        num_processes = self.num_cpus - 2  # Exclude the main process and search process
-        scoring_pool = multiprocessing.Pool(max(1, num_processes))
-        pipelines_to_score = []
-        scoring_results = []
+        found_pipelines = 0
 
-        while True:
-            try:
-                result = queue.get(timeout=10)
-            except Q.Empty:
-                logger.debug('Reached timeout getting new pipelines')
-                result = None
+        while pipelines:
+            pipeline = pipelines.pop()
 
-            if result == 'DONE':
-                search_process.terminate()
-                search_process.join(10)
-                scoring_pool.terminate()
-                scoring_pool.join()
-                logger.debug(f'Found {self.found_pipelines} pipelines')
-                logger.debug('Search done')
-                break
+            score, start_time, end_time = score_pipeline(pipeline, self.X, self.y, self.scoring,
+                                                             self.splitting_strategy, self.task)
 
-            elif result is not None:
-                pipeline = result
-                logger.debug('Found new pipeline')
-                yield {'pipeline': pipeline, 'message': 'FOUND'}
+            if score is not None:
+                pipeline_alphaautoml = Pipeline(pipeline, score, start_time, end_time)
+                logger.debug(f'Pipeline scored successfully, score={score}')
+                found_pipelines += 1
+                yield {'pipeline': pipeline_alphaautoml, 'message': 'SCORED'}
+        
+        logger.debug(f'Found {found_pipelines} pipelines')
+        logger.debug('Search done')
 
-                if need_rescoring:
-                    pipelines_to_score.append(pipeline)
-                else:
-                    logger.debug(f'Pipeline scored successfully, score={pipeline.get_score()}')
-                    self.found_pipelines += 1
-                    yield {'pipeline': pipeline, 'message': 'SCORED'}
-
-            if len(pipelines_to_score) > 0:
-                if self.running_processes < MAX_RUNNING_PROCESSES:
-                    pipeline = pipelines_to_score.pop(0).get_pipeline()
-                    scoring_result = scoring_pool.apply_async(
-                        score_pipeline,
-                        args=(pipeline, self.X, self.y, self.scoring, self.splitting_strategy, self.task, self.verbose)
-                        )
-                    scoring_results.append(scoring_result)
-                    self.running_processes += 1
-
-            tmp_scoring_results = []
-            for scoring_result in scoring_results:
-                if scoring_result.ready():
-                    self.running_processes -= 1
-                    pipeline = scoring_result.get()
-                    if pipeline is not None:
-                        logger.debug(f'Pipeline scored successfully, score={pipeline.get_score()}')
-                        self.found_pipelines += 1
-                        yield {'pipeline': pipeline, 'message': 'SCORED'}
-                else:
-                    tmp_scoring_results.append(scoring_result)
-
-            scoring_results = tmp_scoring_results
-
-            if time.time() > search_start_time + self.time_bound:
-                logger.debug('Reached search timeout')
-                search_process.terminate()
-                search_process.join(10)
-                scoring_pool.terminate()
-                scoring_pool.join()
-                logger.debug(f'Found {self.found_pipelines} pipelines')
-                break
 
     def check_automl_hyperparams(self, automl_hyperparams):
         if 'use_automatic_grammar' not in automl_hyperparams:
