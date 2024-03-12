@@ -22,7 +22,7 @@ def pipeline_search_rllib(game, time_bound, save_checkpoint=False):
     """
     Search for pipelines using Rllib
     """
-    ray.init(local_mode=True)
+    ray.init(local_mode=True, num_cpus=4)
     num_cpus = int(ray.available_resources()["CPU"])
     logger.debug("[RlLib] Ready")
 
