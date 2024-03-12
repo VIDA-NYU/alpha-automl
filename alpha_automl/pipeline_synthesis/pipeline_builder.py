@@ -11,27 +11,6 @@ from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 
 logger = logging.getLogger(__name__)
 
-SEMI_CLASSIFIER_PARAMS = {
-    "sklearn.discriminant_analysis.LinearDiscriminantAnalysis": {},
-    "sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis": {},
-    "sklearn.ensemble.BaggingClassifier": {},
-    "sklearn.ensemble.ExtraTreesClassifier": {},
-    "sklearn.ensemble.GradientBoostingClassifier": {},
-    "sklearn.ensemble.RandomForestClassifier": {},
-    "sklearn.naive_bayes.BernoulliNB": {},
-    "sklearn.naive_bayes.GaussianNB": {},
-    "sklearn.naive_bayes.MultinomialNB": {},
-    "sklearn.neighbors.KNeighborsClassifier": {},
-    "sklearn.linear_model.LogisticRegression": {},
-    "sklearn.linear_model.PassiveAggressiveClassifier": {},
-    "sklearn.linear_model.SGDClassifier": dict(alpha=1e-5, penalty="l2", loss="log_loss"),
-    "sklearn.svm.LinearSVC": {},
-    "sklearn.svm.SVC": {},
-    "sklearn.tree.DecisionTreeClassifier": {},
-    "xgboost.XGBClassifier": {},
-    "lightgbm.LGBMClassifier": dict(verbose=-1),
-}
-
 
 EXTRA_PARAMS = {
     "lightgbm.LGBMClassifier": dict(verbose=-1),
@@ -68,7 +47,6 @@ class BaseBuilder:
     def make_pipeline(self, primitives):
         pipeline_primitives = self.make_primitive_objects(primitives)
         pipeline = self.make_linear_pipeline(pipeline_primitives)
-
         logger.debug(f'New pipelined created:\n{pipeline}')
 
         return pipeline
@@ -92,25 +70,19 @@ class BaseBuilder:
             transformer_obj = ColumnTransformer([selector], remainder='passthrough')
             pipeline_primitives.append((COLUMN_TRANSFORMER_ID, transformer_obj))
 
-        for primitive in primitives:
-            primitive_name = primitive
+        for primitive_name in primitives:
             primitive_type = self.all_primitives[primitive_name]['type']
 
             # Make sure that SEMISUPERVISED_CLASSIFIER primitive has a classifier primitive behind
             if primitive_type == 'SEMISUPERVISED_CLASSIFIER':
-                if self.all_primitives[primitives[-1]]['type'] != 'CLASSIFIER':
-                    return
-                classifier_obj = create_object(primitives[-1], SEMI_CLASSIFIER_PARAMS[primitives[-1]])
+                classifier_obj = pipeline_primitives.pop()[1]
                 primitive_object = create_object(primitive_name, {'base_estimator': classifier_obj})
             elif primitive_type == 'ENSEMBLER':
                 classifier_obj = pipeline_primitives.pop()[1]
                 primitive_object = create_object(primitive_name, {'estimator': classifier_obj})
 
             elif self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
-                if primitive in EXTRA_PARAMS:
-                    primitive_object = create_object(primitive, EXTRA_PARAMS[primitive])
-                else:
-                    primitive_object = create_object(primitive)
+                primitive_object = create_object(primitive_name, EXTRA_PARAMS.get(primitive_name, None))
             else:
                 primitive_object = self.automl_hyperparams['new_primitives'][primitive_name]['primitive_object']
 
@@ -127,8 +99,6 @@ class BaseBuilder:
                     pipeline_primitives.append((COLUMN_TRANSFORMER_ID, transformer_obj))
                     transformers = []
                 pipeline_primitives.append((primitive_name, primitive_object))
-                if primitive_type == 'SEMISUPERVISED_CLASSIFIER':
-                    break
             
         return pipeline_primitives
 
