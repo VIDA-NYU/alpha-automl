@@ -3,6 +3,7 @@ import logging
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.compose import ColumnTransformer
 from alpha_automl.utils import create_object, COLUMN_TRANSFORMER_ID, COLUMN_SELECTOR_ID, NATIVE_PRIMITIVE, \
     ADDED_PRIMITIVE
@@ -45,6 +46,8 @@ def change_default_hyperparams(primitive_object):
         primitive_object.set_params(handle_unknown='use_encoded_value', unknown_value=-1)
     elif isinstance(primitive_object, SimpleImputer):
         primitive_object.set_params(strategy='most_frequent', keep_empty_features=True)
+    elif isinstance(primitive_object, AdaBoostClassifier):
+        primitive_object.set_params(algorithm='SAMME')
 
 
 class BaseBuilder:
@@ -63,15 +66,8 @@ class BaseBuilder:
             self.all_primitives[primitive_name] = {'type': primitive_type, 'origin': ADDED_PRIMITIVE}
 
     def make_pipeline(self, primitives):
-        if self.all_primitives[primitives[-1]]['type'] == 'ENSEMBLER':
-            ensembler_name = primitives[-1]
-            pipeline_primitives = self.make_primitive_objects(primitives[:-1])
-            pipeline = self.make_linear_pipeline(pipeline_primitives)
-            ensembler_obj = create_object(ensembler_name, {'estimator': pipeline})
-            pipeline = Pipeline([(ensembler_name, ensembler_obj)])
-        else:
-            pipeline_primitives = self.make_primitive_objects(primitives)
-            pipeline = self.make_linear_pipeline(pipeline_primitives)
+        pipeline_primitives = self.make_primitive_objects(primitives)
+        pipeline = self.make_linear_pipeline(pipeline_primitives)
 
         logger.debug(f'New pipelined created:\n{pipeline}')
 
@@ -106,6 +102,10 @@ class BaseBuilder:
                     return
                 classifier_obj = create_object(primitives[-1], SEMI_CLASSIFIER_PARAMS[primitives[-1]])
                 primitive_object = create_object(primitive_name, {'base_estimator': classifier_obj})
+            elif primitive_type == 'ENSEMBLER':
+                classifier_obj = pipeline_primitives.pop()[1]
+                primitive_object = create_object(primitive_name, {'estimator': classifier_obj})
+
             elif self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
                 if primitive in EXTRA_PARAMS:
                     primitive_object = create_object(primitive, EXTRA_PARAMS[primitive])
