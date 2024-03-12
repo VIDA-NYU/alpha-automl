@@ -29,6 +29,21 @@ def change_default_hyperparams(primitive_object):
         primitive_object.set_params(algorithm='SAMME')
 
 
+def extract_estimators(pipeline_primitives, all_primitives):
+    estimators = []
+    classifier_name, classifier_obj = pipeline_primitives.pop()
+    primitive_type_tmp = all_primitives[classifier_name]['type']
+    counter = 0
+
+    while primitive_type_tmp == 'CLASSIFIER':
+        estimators.append((f'{classifier_name}-{counter}', classifier_obj))
+        classifier_name, classifier_obj = pipeline_primitives.pop()
+        primitive_type_tmp = all_primitives[classifier_name]['type']
+        counter += 1
+    
+    return estimators
+
+
 class BaseBuilder:
 
     def __init__(self, metadata, automl_hyperparams):
@@ -73,14 +88,15 @@ class BaseBuilder:
         for primitive_name in primitives:
             primitive_type = self.all_primitives[primitive_name]['type']
 
-            # Make sure that SEMISUPERVISED_CLASSIFIER primitive has a classifier primitive behind
             if primitive_type == 'SEMISUPERVISED_CLASSIFIER':
                 classifier_obj = pipeline_primitives.pop()[1]
                 primitive_object = create_object(primitive_name, {'base_estimator': classifier_obj})
-            elif primitive_type == 'ENSEMBLER':
+            elif primitive_type == 'SINGLE_ENSEMBLER':
                 classifier_obj = pipeline_primitives.pop()[1]
                 primitive_object = create_object(primitive_name, {'estimator': classifier_obj})
-
+            elif primitive_type == 'MULTI_ENSEMBLER':
+                estimators = extract_estimators(pipeline_primitives, self.all_primitives)
+                primitive_object = create_object(primitive_name, {'estimators': estimators})
             elif self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
                 primitive_object = create_object(primitive_name, EXTRA_PARAMS.get(primitive_name, None))
             else:

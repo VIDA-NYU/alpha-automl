@@ -5,7 +5,6 @@
     "CLASSIFIER": [
         "sklearn.discriminant_analysis.LinearDiscriminantAnalysis",
         "sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis",
-        "sklearn.ensemble.BaggingClassifier",
         "sklearn.ensemble.ExtraTreesClassifier",
         "sklearn.ensemble.GradientBoostingClassifier",
         "sklearn.ensemble.RandomForestClassifier",
@@ -96,8 +95,12 @@
         "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelSpreading",
         "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelPropagation"
     ],
-    "ENSEMBLER": [
+    "SINGLE_ENSEMBLER": [
         "sklearn.ensemble.AdaBoostClassifier",
         "sklearn.ensemble.BaggingClassifier"
+    ],
+    "MULTI_ENSEMBLER": [
+        "sklearn.ensemble.StackingClassifier",
+        "sklearn.ensemble.VotingClassifier"
     ]
 }
