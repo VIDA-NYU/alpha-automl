@@ -80,11 +80,12 @@ def train_rllib_model(algo, time_bound, save_checkpoint=False):
     timeout = time.time() + time_bound
     result = algo.train()
     last_best = result["episode_reward_mean"]
+    best_unchanged_iter = 1
     logger.info(pretty_print(result))
     while True:
         if (
-            time.time()
-            > timeout
+            time.time() > timeout
+            or best_unchanged_iter >= 7
             # or result["episode_reward_mean"] >= 70
         ):
             logger.info(f"[RlLib] Train Timeout")
@@ -94,8 +95,11 @@ def train_rllib_model(algo, time_bound, save_checkpoint=False):
         # stop training of the target train steps or reward are reached
         if result["episode_reward_mean"] > last_best:
             last_best = result["episode_reward_mean"]
+            best_unchanged_iter = 1
             if save_checkpoint:
                 save_rllib_checkpoint(algo)
+        else:
+            best_unchanged_iter += 1
     algo.stop()
 
 
