@@ -9,27 +9,13 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer
 from sklearn.semi_supervised import (
     LabelPropagation,
-    LabelSpreading,
-    SelfTrainingClassifier,
+    LabelSpreading
 )
 
 from alpha_automl.base_primitive import BasePrimitive
 from alpha_automl.utils import SemiSupervisedSplitter
 
 logger = logging.getLogger(__name__)
-
-
-class SkSelfTrainingClassifier(BasePrimitive):
-    sdg_params = dict(alpha=1e-5, penalty="l2", loss="log_loss")
-    model = SelfTrainingClassifier(SGDClassifier(**sdg_params), verbose=True)
-
-    def fit(self, X, y=None):
-        self.model.fit(X, y)
-
-    def predict(self, X):
-        pred = self.model.predict(X)
-
-        return np.array(pred)
 
 
 def make_label_pipeline(method, X):

@@ -32,13 +32,13 @@ def change_default_hyperparams(primitive_object):
 def extract_estimators(pipeline_primitives, all_primitives):
     estimators = []
     classifier_name, classifier_obj = pipeline_primitives.pop()
-    primitive_type_tmp = all_primitives[classifier_name]['type']
+    current_primitive_type = all_primitives[classifier_name]['type']
     counter = 0
 
-    while primitive_type_tmp == 'CLASSIFIER':
+    while current_primitive_type == 'CLASSIFIER':
         estimators.append((f'{classifier_name}-{counter}', classifier_obj))
         classifier_name, classifier_obj = pipeline_primitives.pop()
-        primitive_type_tmp = all_primitives[classifier_name]['type']
+        current_primitive_type = all_primitives[classifier_name]['type']
         counter += 1
     
     return estimators
@@ -88,7 +88,7 @@ class BaseBuilder:
         for primitive_name in primitives:
             primitive_type = self.all_primitives[primitive_name]['type']
 
-            if primitive_type == 'SEMISUPERVISED_CLASSIFIER':
+            if primitive_type == 'SEMISUPERVISED_SELFTRAINER':
                 classifier_obj = pipeline_primitives.pop()[1]
                 primitive_object = create_object(primitive_name, {'base_estimator': classifier_obj})
             elif primitive_type == 'SINGLE_ENSEMBLER':

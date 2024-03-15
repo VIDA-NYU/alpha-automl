@@ -8,8 +8,7 @@ from sklearn.pipeline import Pipeline
 from alpha_automl.builtin_primitives.semisupervised_classifier import (
     AutonBox,
     SkLabelPropagation,
-    SkLabelSpreading,
-    SkSelfTrainingClassifier,
+    SkLabelSpreading
 )
 
 
@@ -49,14 +48,6 @@ class TestSemiSupervisedClassifier:
         ]
     )
     X = st_pipeline.fit_transform(X)
-
-    def test_self_training_classifier(self):
-        encoder = SkSelfTrainingClassifier()
-
-        encoder.fit(self.X, self.y)
-        pred = encoder.predict(self.X)
-        print(pred, self.y)
-        assert pred[0] == 0
 
     def test_label_spreading(self):
         encoder = SkLabelSpreading()

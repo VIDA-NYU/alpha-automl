@@ -81,17 +81,17 @@
     "COLUMN_TRANSFORMER": [
         "sklearn.compose.ColumnTransformer"
     ],
-    "TIME_SERIES_FORECAST": [
+    "TIME_SERIES_FORECASTER": [
         "alpha_automl.builtin_primitives.time_series_forecasting.ArimaEstimator",
         "alpha_automl.builtin_primitives.time_series_forecasting.DeeparEstimator",
         "alpha_automl.builtin_primitives.time_series_forecasting.NBEATSEstimator",
         "alpha_automl.builtin_primitives.time_series_forecasting.NHITSEstimator"
     ],
-    "SEMISUPERVISED_CLASSIFIER": [
+    "SEMISUPERVISED_SELFTRAINER": [
         "alpha_automl.builtin_primitives.semisupervised_classifier.AutonBox",
         "sklearn.semi_supervised.SelfTrainingClassifier"
     ],
-    "LABELPROPAGATION_CLASSIFIER": [
+    "SEMISUPERVISED_LABELPROPAGATOR": [
         "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelSpreading",
         "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelPropagation"
     ],
