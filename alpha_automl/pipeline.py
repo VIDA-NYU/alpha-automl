@@ -1,5 +1,7 @@
 import logging
 from sklearn.compose import ColumnTransformer
+from sklearn.semi_supervised import SelfTrainingClassifier
+from alpha_automl.builtin_primitives.semisupervised_classifier import AutonBox
 from alpha_automl.utils import COLUMN_SELECTOR_ID
 
 
@@ -56,5 +58,8 @@ class Pipeline():
                     step_name = transformer_name.split('-')[0].split('.')[-1]
                     if step_name not in step_names:
                         step_names.append(step_name)
+            elif isinstance(step_object, SelfTrainingClassifier) or isinstance(step_object, AutonBox):
+                estimator_name = step_object.base_estimator.__class__.__name__
+                step_names.append(estimator_name)
 
         self.summary = ', '.join(step_names)
