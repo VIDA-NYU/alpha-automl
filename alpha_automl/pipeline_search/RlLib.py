@@ -85,7 +85,7 @@ def train_rllib_model(algo, time_bound, save_checkpoint=False):
     while True:
         if (
             time.time() > timeout
-            or best_unchanged_iter >= 7
+            or (best_unchanged_iter >= 6 and result["episode_reward_mean"] >= 0)
             # or result["episode_reward_mean"] >= 70
         ):
             logger.info(f"[RlLib] Train Timeout")
