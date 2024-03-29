@@ -112,12 +112,13 @@ def save_rllib_checkpoint(algo):
     )
 
 
-def dump_result_to_json(primitives, task_start):
+def dump_result_to_json(primitives, task_start, output_folder=None):
+    output_path = generate_json_path(output_folder)
     # Read JSON data from input file
-    if not os.path.exists(PATH_TO_RESULT_JSON) or os.path.getsize(PATH_TO_RESULT_JSON) == 0:
-        with open(PATH_TO_RESULT_JSON, 'w') as f:
+    if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
+        with open(output_path, 'w') as f:
             json.dump({}, f)
-    with open(PATH_TO_RESULT_JSON, 'r') as f:
+    with open(output_path, 'r') as f:
         data = json.load(f)
     
     
@@ -130,19 +131,21 @@ def dump_result_to_json(primitives, task_start):
     data[timestamp] = primitives
 
     # Write unique elements to output file
-    with open(PATH_TO_RESULT_JSON, "w") as f:
+    with open(output_path, "w") as f:
         json.dump(data, f)
 
 
-def read_result_to_pipeline(builder):
+def read_result_to_pipeline(builder, output_folder=None):
+    output_path = generate_json_path(output_folder)
+    
     pipelines = []
     # Read JSON data from input file
     if (
-        not os.path.exists(PATH_TO_RESULT_JSON)
-        or os.path.getsize(PATH_TO_RESULT_JSON) == 0
+        not os.path.exists(output_path)
+        or os.path.getsize(output_path) == 0
     ):
         return []
-    with open(PATH_TO_RESULT_JSON, "r") as f:
+    with open(output_path, "r") as f:
         data = json.load(f)
 
     # Check for duplicate elements
@@ -152,3 +155,12 @@ def read_result_to_pipeline(builder):
             pipelines.append(pipeline)
 
     return pipelines
+
+
+def generate_json_path(output_folder=None):
+    if output_folder is None:
+        output_path = PATH_TO_RESULT_JSON
+    else:
+        output_path = os.path.join(output_folder, "result.json")
+        
+    return output_path
