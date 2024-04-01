@@ -46,11 +46,12 @@ def run(dataset, config):
              f'target_name: {target_name}\n'
              f'time_bound: {time_bound}\n'
              f'metric: {metric}\n'
-             f'cores: {cores}'
+             f'cores: {cores}\n'
+             f'output_folder: {output_path}\n'
              )
 
     automl = AutoMLClassifier(time_bound=time_bound, metric=metrics_mapping[metric], time_bound_run=15,
-                              output_folder=output_path, num_cpus=cores, verbose=logging.DEBUG)
+                              output_folder=output_path, verbose=logging.INFO, save_checkpoint=True)
 
     train_dataset = pd.read_csv(train_dataset_path)
     test_dataset = pd.read_csv(test_dataset_path)
