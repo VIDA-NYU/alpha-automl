@@ -27,7 +27,7 @@ def pipeline_search_rllib(game, time_bound, save_checkpoint=False):
     logger.debug("[RlLib] Ready")
 
     # load checkpoint or create a new one
-    algo = load_rllib_checkpoint(game, num_rollout_workers=num_cpus)
+    algo = load_rllib_checkpoint(game, num_rollout_workers=3)
     logger.debug("[RlLib] Create Algo object done")
 
     # train model
@@ -47,8 +47,8 @@ def load_rllib_checkpoint(game, num_rollout_workers):
         .framework("torch")
         # Use GPUs iff `RLLIB_NUM_GPUS` env var set to > 0.
         .resources(
-            num_gpus=1,
-            num_gpus_per_worker=1 / (num_rollout_workers + 1),
+            # num_gpus=1,
+            # num_gpus_per_worker=1 / (num_rollout_workers + 1),
             num_cpus_per_worker=1,
         )
         .rollouts(num_rollout_workers=num_rollout_workers)
@@ -61,6 +61,7 @@ def load_rllib_checkpoint(game, num_rollout_workers):
         )
     )
     config.lr = 1e-4
+    config.simple_optimizer = True
     logger.debug("[RlLib] Create Config done")
 
     # Checking if the list is empty or not
