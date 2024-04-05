@@ -48,14 +48,57 @@ def signal_handler(queue, signum):
     sys.exit(0)
 
 
+def check_repeated_classifiers(pipeline_primitives, all_primitives, ensemble_pipelines_hash):
+    # Verify if the classifiers are repeated in the ensembles (regardless of the order)
+    classifiers = []
+    pipeline_hash = ''
+    has_ensemble_primitive = False
+    has_repeated_classifiers = False
+
+    for primitive_name in pipeline_primitives:
+        primitive_type = all_primitives[primitive_name]['type']
+
+        if primitive_type == 'CLASSIFIER':
+            classifiers.append(primitive_name)
+        elif primitive_type == 'MULTI_ENSEMBLER':
+            has_ensemble_primitive = True
+            pipeline_hash += primitive_name
+            if len(classifiers) != len(set(classifiers)):  # All classifiers should be different
+                has_repeated_classifiers = True
+        else:
+            pipeline_hash += primitive_name
+
+    if not has_ensemble_primitive:
+        return False
+
+    if has_repeated_classifiers:
+        return True
+
+    pipeline_hash += ''.join(sorted(classifiers))
+
+    if pipeline_hash in ensemble_pipelines_hash:
+        return True
+    else:
+        ensemble_pipelines_hash.add(pipeline_hash)
+        return False
+
+
 def search_pipelines(X, y, scoring, splitting_strategy, task_name, automl_hyperparams, metadata, output_folder, verbose,
                      queue):
     signal.signal(signal.SIGTERM, lambda signum, frame: signal_handler(queue, signum))
     hide_logs(verbose)  # Hide logs here too, since multiprocessing has some issues with loggers
 
     builder = BaseBuilder(metadata, automl_hyperparams)
+    all_primitives = builder.all_primitives
+    ensemble_pipelines_hash = set()
 
     def evaluate_pipeline(primitives, origin):
+        has_repeated_classifiers = check_repeated_classifiers(primitives, all_primitives, ensemble_pipelines_hash)
+
+        if has_repeated_classifiers:
+            logger.debug('Repeated classifiers detected in ensembles, ignoring pipeline')
+            return None
+
         pipeline = builder.make_pipeline(primitives)
         score = None
 

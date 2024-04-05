@@ -104,7 +104,7 @@ class BaseBuilder:
 
             change_default_hyperparams(primitive_object)
 
-            if primitive_type in nonnumeric_columns:  # Create a  new transformer and add it to the list
+            if primitive_type in nonnumeric_columns:  # Create a new transformer and add it to the list
                 transformers += self.create_transformers(primitive_object, primitive_name, primitive_type)
             else:
                 if len(transformers) > 0:  # Add previous transformers to the pipeline

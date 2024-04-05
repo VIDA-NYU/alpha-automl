@@ -95,17 +95,20 @@ class Board():
 
     def next_state(self, action):
         s = self.valid_moves[action]
-        nt = self.non_terminals[s[:s.index('-')].strip()]
+        nt = self.non_terminals[s[:s.index('->')].strip()]
         r = [self.non_terminals[p] if p in self.non_terminals.keys() else
-             self.terminals[p] for p in s[s.index('-')+2:].strip().split(' ')]
+             self.terminals[p] for p in s[s.index('->')+2:].strip().split(' ')]
         r = [x for x in r if x != 0]
         s = []
+        not_used = True
+
         for p in self.pieces_p:
             if p == 0:
                 continue
 
-            if p == nt:
+            if p == nt and not_used:  # Chose one primitive at the time
                 s += r
+                not_used = False
             else:
                 s.append(p)
 
