@@ -159,9 +159,10 @@ def read_result_to_pipeline(builder, output_folder=None):
 
 
 def generate_json_path(output_folder=None):
-    if output_folder is None:
-        output_path = PATH_TO_RESULT_JSON
-    else:
-        output_path = os.path.join(output_folder, "result.json")
+    output_path = PATH_TO_RESULT_JSON
+    # if output_folder is None:
+    #     output_path = PATH_TO_RESULT_JSON
+    # else:
+    #     output_path = os.path.join(output_folder, "result.json")
         
     return output_path

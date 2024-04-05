@@ -73,7 +73,7 @@ class AlphaAutoMLEnv(gym.Env):
                 if self.game.problem == "REGRESSION":
                     reward = 10 + (100 / self.game.getEvaluation(self.board))
                 else:
-                    reward = 10 + (self.game.getEvaluation(self.board)) ** 5 * 100
+                    reward = 10 + (self.game.getEvaluation(self.board)) ** 2 * 100
                 if tuple(self.board[self.game.m :]) not in self.found:
                     self.found.add(tuple(self.board[self.game.m :]))
                     logger.debug(
