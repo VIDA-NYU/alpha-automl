@@ -94,8 +94,10 @@ def train_rllib_model(algo, time_bound, save_checkpoint=False):
         ):
             logger.info(f"[RlLib] Train Timeout")
             break
-        weights = load_rllib_policy_weights()
-        algo.set_weights(weights)
+            
+        if [f for f in os.listdir(PATH_TO_CHECKPOINT) if not f.startswith(".")] != []:
+            weights = load_rllib_policy_weights()
+            algo.set_weights(weights)
         result = algo.train()
         logger.info(pretty_print(result))
         # stop training of the target train steps or reward are reached
