@@ -8,6 +8,7 @@ import tempfile
 import numpy as np
 import pandas as pd
 import torch
+from enum import Enum
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import ShuffleSplit, train_test_split
@@ -22,6 +23,25 @@ COLUMN_SELECTOR_ID = 'ColumnSelector'
 NATIVE_PRIMITIVE = 'native'
 ADDED_PRIMITIVE = 'added'
 RANDOM_SEED = 0
+
+
+class PrimitiveType(Enum):
+    IMPUTER = 'IMPUTER'
+    CATEGORICAL_ENCODER = 'CATEGORICAL_ENCODER'
+    DATETIME_ENCODER = 'DATETIME_ENCODER'
+    TEXT_ENCODER = 'TEXT_ENCODER'
+    IMAGE_ENCODER = 'IMAGE_ENCODER'
+    FEATURE_SCALER = 'FEATURE_SCALER'
+    FEATURE_SELECTOR = 'FEATURE_SELECTOR'
+    COLUMN_TRANSFORMER = 'COLUMN_TRANSFORMER'
+    TIME_SERIES_FORECASTER = 'TIME_SERIES_FORECASTER'
+    CLASSIFIER = 'CLASSIFIER'
+    REGRESSOR = 'REGRESSOR'
+    CLUSTERER = 'CLUSTERER'
+    SINGLE_ENSEMBLER = 'SINGLE_ENSEMBLER'
+    MULTI_ENSEMBLER = 'MULTI_ENSEMBLER'
+    SEMISUPERVISED_SELFTRAINER = 'SEMISUPERVISED_SELFTRAINER'
+    SEMISUPERVISED_LABELPROPAGATOR = 'SEMISUPERVISED_LABELPROPAGATOR'
 
 
 def create_object(import_path, class_params=None):
@@ -130,7 +150,7 @@ def make_d3m_pipelines(pipelines, new_primitives, metric, ordering_sign, source_
                 cur_step_idx = add_d3m_step(steps_in_type, cur_step_idx, prev_list, new_prev_list, new_pipeline)
                 prev_list = new_prev_list
             
-            if all_primitive_types[step_id] == 'SEMISUPERVISED_CLASSIFIER':
+            if all_primitive_types[step_id] == 'SEMISUPERVISED_SELFTRAINER':
                 classifier_object = step_object.base_estimator
                 classifier_path = f'classifier.{classifier_object.__class__.__name__}'
                 for primitive_name, primitive_type in all_primitive_types.items():

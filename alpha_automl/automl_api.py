@@ -105,21 +105,7 @@ class BaseAutoML():
         for index, pipeline in enumerate(sorted_pipelines, start=1):
             pipeline_id = PIPELINE_PREFIX + str(index)
             self.pipelines[pipeline_id] = pipeline
-            if (
-                pipeline.get_pipeline().steps[-1][0]
-                == 'sklearn.semi_supervised.SelfTrainingClassifier'
-                or pipeline.get_pipeline().steps[-1][0]
-                == 'alpha_automl.builtin_primitives.semisupervised_classifier.AutonBox'
-            ):
-                leaderboard_data.append(
-                    [
-                        index,
-                        f'{pipeline.get_summary()}, {pipeline.get_pipeline().steps[-1][1].base_estimator.__class__.__name__}',
-                        pipeline.get_score(),
-                    ]
-                )
-            else:
-                leaderboard_data.append([index, pipeline.get_summary(), pipeline.get_score()])
+            leaderboard_data.append([index, pipeline.get_summary(), pipeline.get_score()])
 
         self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'pipeline', self.metric])
 
