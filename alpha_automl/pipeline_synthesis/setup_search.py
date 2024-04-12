@@ -24,7 +24,7 @@ config = {
         'SEMISUPERVISED': 6,
     },
     'DATA_TYPES': {'TABULAR': 1, 'GRAPH': 2, 'IMAGE': 3},
-    'PIPELINE_SIZE': 8,
+    'PIPELINE_SIZE': 10,
     'ARGS': {
         'numIters': 25,
         'numEps': 5,
@@ -100,6 +100,8 @@ def search_pipelines(
     )  # Hide logs here too, since multiprocessing has some issues with loggers
 
     builder = BaseBuilder(metadata, automl_hyperparams)
+    all_primitives = builder.all_primitives
+    ensemble_pipelines_hash = set()
     
     task_start = datetime.now()
 
@@ -107,7 +109,7 @@ def search_pipelines(
         has_repeated_classifiers = check_repeated_classifiers(primitives, all_primitives, ensemble_pipelines_hash)
 
         if has_repeated_classifiers:
-            logger.debug('Repeated classifiers detected in ensembles, ignoring pipeline')
+            logger.info('Repeated classifiers detected in ensembles, ignoring pipeline')
             return None
 
         pipeline = builder.make_pipeline(primitives)

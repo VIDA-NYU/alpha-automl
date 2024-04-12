@@ -29,6 +29,7 @@ def pipeline_search_rllib(game, time_bound, save_checkpoint=False):
 
     # load checkpoint or create a new one
     algo = load_rllib_checkpoint(game, num_rollout_workers=3)
+    # algo = load_rllib_checkpoint_dqn(game, num_rollout_workers=3)
     logger.debug("[RlLib] Create Algo object done")
 
     # train model
@@ -55,13 +56,13 @@ def load_rllib_checkpoint(game, num_rollout_workers):
         .rollouts(num_rollout_workers=num_rollout_workers)
         .training(
             gamma=0.99,
-            clip_param=0.2,
-            kl_coeff=0.2,
+            clip_param=0.3,
+            kl_coeff=0.3,
             entropy_coeff=0.01,
-            train_batch_size=5000,
+            train_batch_size=10000,
         )
     )
-    config.lr = 1e-4
+    config.lr = 1e-5
     config.simple_optimizer = True
     logger.debug("[RlLib] Create Config done")
 
@@ -79,7 +80,6 @@ def load_rllib_checkpoint(game, num_rollout_workers):
         # checkpoint_info = get_checkpoint_info(PATH_TO_CHECKPOINT)
         return algo
 
-
 def train_rllib_model(algo, time_bound, save_checkpoint=False):
     timeout = time.time() + time_bound
     result = algo.train()
@@ -95,7 +95,7 @@ def train_rllib_model(algo, time_bound, save_checkpoint=False):
             logger.info(f"[RlLib] Train Timeout")
             break
             
-        if [f for f in os.listdir(PATH_TO_CHECKPOINT) if not f.startswith(".")] != []:
+        if save_checkpoint and [f for f in os.listdir(PATH_TO_CHECKPOINT) if not f.startswith(".")] != []:
             weights = load_rllib_policy_weights()
             algo.set_weights(weights)
         result = algo.train()
