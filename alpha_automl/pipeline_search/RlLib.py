@@ -10,6 +10,7 @@ from ray.rllib.policy import Policy
 from ray.rllib.utils.checkpoints import get_checkpoint_info
 from ray.tune.logger import pretty_print
 from ray.tune.registry import get_trainable_cls
+from ray import tune
 
 from alpha_automl.pipeline_search.AlphaAutoMLEnv import AlphaAutoMLEnv
 
@@ -23,13 +24,12 @@ def pipeline_search_rllib(game, time_bound, save_checkpoint=False):
     """
     Search for pipelines using Rllib
     """
-    ray.init(local_mode=True, num_cpus=4)
+    ray.init(local_mode=True, num_cpus=8)
     num_cpus = int(ray.available_resources()["CPU"])
     logger.debug("[RlLib] Ready")
 
     # load checkpoint or create a new one
-    algo = load_rllib_checkpoint(game, num_rollout_workers=3)
-    # algo = load_rllib_checkpoint_dqn(game, num_rollout_workers=3)
+    algo = load_rllib_checkpoint(game, num_rollout_workers=7)
     logger.debug("[RlLib] Create Algo object done")
 
     # train model
@@ -58,7 +58,7 @@ def load_rllib_checkpoint(game, num_rollout_workers):
             gamma=0.99,
             clip_param=0.3,
             kl_coeff=0.3,
-            entropy_coeff=0.01,
+            entropy_coeff=0.05,
             train_batch_size=10000,
         )
     )
@@ -79,6 +79,7 @@ def load_rllib_checkpoint(game, num_rollout_workers):
         # algo.restore(PATH_TO_CHECKPOINT)
         # checkpoint_info = get_checkpoint_info(PATH_TO_CHECKPOINT)
         return algo
+
 
 def train_rllib_model(algo, time_bound, save_checkpoint=False):
     timeout = time.time() + time_bound
@@ -129,7 +130,7 @@ def save_rllib_checkpoint(algo):
     )
 
 
-def dump_result_to_json(primitives, task_start, output_folder=None):
+def dump_result_to_json(primitives, task_start, score, output_folder=None):
     output_path = generate_json_path(output_folder)
     # Read JSON data from input file
     if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
@@ -145,7 +146,7 @@ def dump_result_to_json(primitives, task_start, output_folder=None):
     # Check for duplicate elements
     if primitives in data.values():
         return
-    data[timestamp] = primitives
+    data[score] = primitives
 
     # Write unique elements to output file
     with open(output_path, "w") as f:
@@ -166,7 +167,7 @@ def read_result_to_pipeline(builder, output_folder=None):
         data = json.load(f)
 
     # Check for duplicate elements
-    for primitives in data.values():
+    for score, primitives in sorted(data.items(), reverse=True):
         pipeline = builder.make_pipeline(primitives)
         if pipeline:
             pipelines.append(pipeline)

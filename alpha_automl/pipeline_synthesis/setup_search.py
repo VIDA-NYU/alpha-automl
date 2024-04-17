@@ -120,7 +120,7 @@ def search_pipelines(
             if alphaautoml_pipeline is not None:
                 score = alphaautoml_pipeline.get_score()
                 if score is not None:
-                    dump_result_to_json(primitives, task_start, output_folder)       
+                    dump_result_to_json(primitives, task_start, score, output_folder)       
         return score
 
     if task_name is None:
@@ -168,7 +168,7 @@ def search_pipelines(
 
     logger.debug('Search completed')
     
-    return read_result_to_pipeline(builder, output_folder)
+    return read_result_to_pipeline(builder, output_folder)[:20]
     # queue.put('DONE')
 
 
