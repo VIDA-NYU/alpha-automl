@@ -167,11 +167,11 @@ def read_result_to_pipeline(builder, output_folder=None):
         data = json.load(f)
 
     # Check for duplicate elements
-    for score, primitives in sorted(data.items(), reverse=True):
+    for score, primitives in sorted(data.items()):
         pipeline = builder.make_pipeline(primitives)
         if pipeline:
             pipelines.append(pipeline)
-
+    
     return pipelines
 
 
