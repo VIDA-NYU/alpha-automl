@@ -167,8 +167,9 @@ def search_pipelines(
     pipeline_search_rllib(game, time_bound, save_checkpoint=save_checkpoint)
 
     logger.debug('Search completed')
-    
-    return read_result_to_pipeline(builder, output_folder)[:20]
+
+    results = read_result_to_pipeline(builder, output_folder)
+    return results
     # queue.put('DONE')
 
 

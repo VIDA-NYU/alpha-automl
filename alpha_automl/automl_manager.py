@@ -66,7 +66,8 @@ class AutoMLManager():
 
         found_pipelines = 0
 
-        while pipelines:
+        pipeline_threshold = 20
+        while pipelines and found_pipelines < pipeline_threshold:
             pipeline = pipelines.pop()
             try:
                 alphaautoml_pipeline = score_pipeline(pipeline, self.X, self.y, self.scoring,
