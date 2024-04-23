@@ -67,10 +67,10 @@ def sample_dataset(X, y, sample_size, task):
     if original_size > sample_size:
         ratio = sample_size / original_size
         try:
-            _, X_test, _, y_test = train_test_split(X, y, random_state=datetime.now().timestamp(), test_size=ratio, stratify=y, shuffle=shuffle)
+            _, X_test, _, y_test = train_test_split(X, y, random_state=int(datetime.now().microsecond), test_size=ratio, stratify=y, shuffle=shuffle)
         except Exception:
             # Not using stratified sampling when the minority class has few instances, not enough for all the folds
-            _, X_test, _, y_test = train_test_split(X, y, random_state=datetime.now().timestamp(), test_size=ratio, shuffle=shuffle)
+            _, X_test, _, y_test = train_test_split(X, y, random_state=int(datetime.now().microsecond), test_size=ratio, shuffle=shuffle)
         logger.debug(f'Sampling down data from {original_size} to {len(X_test)}')
         if isinstance(X_test, pd.DataFrame):
             X_test = X_test.reset_index(drop=True)
