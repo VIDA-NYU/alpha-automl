@@ -5,7 +5,7 @@ from os.path import join
 
 from alpha_automl.grammar_loader import (load_automatic_grammar,
                                          load_manual_grammar)
-from alpha_automl.pipeline_search.pipeline.PipelineGame import PipelineGame
+from alpha_automl.pipeline_search.PipelineGame import PipelineGame
 from alpha_automl.pipeline_search.RlLib import pipeline_search_rllib, dump_result_to_json, read_result_to_pipeline
 from alpha_automl.pipeline_synthesis.pipeline_builder import BaseBuilder
 from alpha_automl.scorer import score_pipeline

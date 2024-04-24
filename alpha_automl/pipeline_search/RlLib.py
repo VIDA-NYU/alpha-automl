@@ -16,6 +16,7 @@ from alpha_automl.pipeline_search.AlphaAutoMLEnv import AlphaAutoMLEnv
 
 logger = logging.getLogger(__name__)
 
+
 PATH_TO_CHECKPOINT = "rllib/ppo_model"
 PATH_TO_RESULT_JSON = "rllib/result.json"
 

@@ -4,8 +4,7 @@ import pickle
 import math
 import logging
 from copy import deepcopy
-from alpha_automl.pipeline_search.Game import Game
-from alpha_automl.pipeline_search.pipeline.PipelineLogic import Board
+from alpha_automl.pipeline_search.PipelineLogic import Board
 import numpy as np
 import traceback
 import time
@@ -13,7 +12,7 @@ import time
 logger = logging.getLogger(__name__)
 
 
-class PipelineGame(Game):
+class PipelineGame():
     # FIXEME: Maybe the input parameters can be in json
     def __init__(self, input={}, eval_pipeline=None, args=None):
         self.steps = 0
