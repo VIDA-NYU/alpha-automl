@@ -89,9 +89,6 @@ class AutoMLManager():
 
 
     def check_automl_hyperparams(self, automl_hyperparams):
-        if 'use_automatic_grammar' not in automl_hyperparams:
-            automl_hyperparams['use_automatic_grammar'] = USE_AUTOMATIC_GRAMMAR
-
         if 'prioritize_primitives' not in automl_hyperparams:
             automl_hyperparams['prioritize_primitives'] = PRIORITIZE_PRIMITIVES
 

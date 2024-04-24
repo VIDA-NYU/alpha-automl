@@ -19,25 +19,17 @@ config = {
         'CLASSIFICATION': 1,
         'REGRESSION': 2,
         'CLUSTERING': 3,
-        'NA': 4,
-        'TIME_SERIES_FORECAST': 5,
-        'SEMISUPERVISED': 6,
+        'TIME_SERIES_FORECAST': 4,
+        'SEMISUPERVISED': 5,
+        'NA': 6
     },
-    'DATA_TYPES': {'TABULAR': 1, 'GRAPH': 2, 'IMAGE': 3},
-    'PIPELINE_SIZE': 10,
-    'ARGS': {
-        'numIters': 25,
-        'numEps': 5,
-        'tempThreshold': 15,
-        'updateThreshold': 0.6,
-        'maxlenOfQueue': 200000,
-        'numMCTSSims': 5,
-        'arenaCompare': 40,
-        'cpuct': 1,
-        'load_model': False,
-        'metafeatures_path': '/d3m/data/metafeatures',
-        'verbose': True,
+    'DATA_TYPES': {
+        'TABULAR': 1, 
+        'TEXT': 2, 
+        'IMAGE': 3, 
+        'VIDEO': 4
     },
+    'PIPELINE_SIZE': 10
 }
 
 
@@ -105,7 +97,7 @@ def search_pipelines(
     
     task_start = datetime.now()
 
-    def evaluate_pipeline(primitives, origin):
+    def evaluate_pipeline(primitives):
         has_repeated_classifiers = check_repeated_classifiers(primitives, all_primitives, ensemble_pipelines_hash)
 
         if has_repeated_classifiers:
@@ -127,71 +119,43 @@ def search_pipelines(
         task_name = 'NA'
 
     task_name_id = task_name + '_TASK'
-    use_automatic_grammar = automl_hyperparams['use_automatic_grammar']
     include_primitives = automl_hyperparams['include_primitives']
     exclude_primitives = automl_hyperparams['exclude_primitives']
     new_primitives = automl_hyperparams['new_primitives']
     save_checkpoint = automl_hyperparams['save_checkpoint']
-    grammar = None
+    use_imputer = metadata['missing_values']
+    nonnumeric_columns = metadata['nonnumeric_columns']
 
-    if use_automatic_grammar:
-        logger.debug('Creating an automatic grammar')
-        prioritize_primitives = automl_hyperparams['prioritize_primitives']
-        target_column = ''
-        dataset_path = ''
-        grammar = load_automatic_grammar(
-            task_name_id,
-            dataset_path,
-            target_column,
-            include_primitives,
-            exclude_primitives,
-            prioritize_primitives,
-        )
-
-    if grammar is None:
-        logger.debug('Creating a manual grammar')
-        use_imputer = metadata['missing_values']
-        nonnumeric_columns = metadata['nonnumeric_columns']
-        grammar = load_manual_grammar(
-            task_name_id,
-            nonnumeric_columns,
-            use_imputer,
-            new_primitives,
-            include_primitives,
-            exclude_primitives,
-        )
+    logger.debug('Creating a manual grammar')
+    grammar = load_manual_grammar(
+        task_name_id,
+        nonnumeric_columns,
+        use_imputer,
+        new_primitives,
+        include_primitives,
+        exclude_primitives,
+    )
 
     metric = scoring._score_func.__name__
-    config_updated = update_config(task_name, metric, output_folder, grammar, metadata)
+    config_updated = update_config(task_name, metric, grammar, metadata)
     game = PipelineGame(config_updated, evaluate_pipeline)
     pipeline_search_rllib(game, time_bound, save_checkpoint=save_checkpoint)
-
     logger.debug('Search completed')
-
     results = read_result_to_pipeline(builder, output_folder)
-    return results
+
     # queue.put('DONE')
+    return results
 
 
-def update_config(task_name, metric, output_folder, grammar, metadata):
+def update_config(task_name, metric, grammar, metadata):
     config['PROBLEM'] = task_name
     config['DATA_TYPE'] = 'TABULAR'
     config['METRIC'] = metric
     config['DATASET'] = f'DATASET_{task_name}'
-    config['ARGS']['stepsfile'] = join(
-        output_folder, f'DATASET_{task_name}_pipeline_steps.txt'
-    )
-    config['ARGS']['checkpoint'] = join(output_folder, 'nn_models')
-    config['ARGS']['load_folder_file'] = join(
-        output_folder, 'nn_models', 'best.pth.tar'
-    )
     config['GRAMMAR'] = grammar
-    # metafeatures_extractor = ComputeMetafeatures(dataset, targets, features, DBSession)
-    # config['DATASET_METAFEATURES'] = [
-    #     0
-    # ] * 50  # metafeatures_extractor.compute_metafeatures('Compute_metafeatures')
     metafeatures = compute_metafeatures(metadata)
     config['DATASET_METAFEATURES'] = metafeatures + [0] * (8 - len(metafeatures))
+
     return config
 
 

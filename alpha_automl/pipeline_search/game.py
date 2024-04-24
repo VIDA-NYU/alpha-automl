@@ -14,9 +14,8 @@ logger = logging.getLogger(__name__)
 
 class PipelineGame():
     # FIXEME: Maybe the input parameters can be in json
-    def __init__(self, input={}, eval_pipeline=None, args=None):
+    def __init__(self, input={}, eval_pipeline=None):
         self.steps = 0
-        self.args = input['ARGS']
         self.evaluations = {}
         self.eval_times = {}
 
@@ -30,21 +29,7 @@ class PipelineGame():
         self.data_type = input['DATA_TYPE'].upper()
         self.metric = input['METRIC']
         self.dataset = input['DATASET']
-
-        self.dataset_metafeatures = input['DATASET_METAFEATURES']
-        if self.dataset_metafeatures is None:
-            metafeatures_path = args.get('metafeatures_path')
-            if metafeatures_path is not None:
-                metafeatures_file = os.path.join(metafeatures_path, args['dataset'] + '_metafeatures.pkl')
-                if os.path.isfile(metafeatures_file):
-                    m_f = open(metafeatures_file, 'rb')
-                    self.dataset_metafeatures = pickle.load(m_f)[args['dataset']]
-
-        if self.dataset_metafeatures is None:
-            logger.warning('No Dataset Metafeatures specified - Initializing to empty')
-            self.dataset_metafeatures = []
-        else:
-            self.dataset_metafeatures = list(np.nan_to_num(np.asarray(self.dataset_metafeatures)))
+        self.dataset_metafeatures = list(np.nan_to_num(np.asarray(input['DATASET_METAFEATURES'])))
 
         self.m = len(self.dataset_metafeatures)+2
         self.p = input['PIPELINE_SIZE']
@@ -101,7 +86,7 @@ class PipelineGame():
         if eval_val is None:
             self.steps = self.steps + 1
             try:
-                eval_val = self.eval_pipeline(pipeline, 'AlphaAutoML')
+                eval_val = self.eval_pipeline(pipeline)
             except Exception:
                 logger.warning('Error in Pipeline Execution %s', eval_val)
                 traceback.print_exc()
