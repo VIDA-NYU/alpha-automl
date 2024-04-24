@@ -4,7 +4,7 @@ import pickle
 import math
 import logging
 from copy import deepcopy
-from alpha_automl.pipeline_search.PipelineLogic import Board
+from alpha_automl.pipeline_search.game_logic import Board
 import numpy as np
 import traceback
 import time

@@ -12,13 +12,14 @@ from ray.tune.logger import pretty_print
 from ray.tune.registry import get_trainable_cls
 from ray import tune
 
-from alpha_automl.pipeline_search.AlphaAutoMLEnv import AlphaAutoMLEnv
+from alpha_automl.pipeline_search.agent_environment import AutoMLEnv
 
 logger = logging.getLogger(__name__)
 
-
-PATH_TO_CHECKPOINT = "rllib/ppo_model"
-PATH_TO_RESULT_JSON = "rllib/result.json"
+PATH_TO_CHECKPOINT = "/Users/rlopez/D3M/rllib/ppo_model"
+PATH_TO_RESULT_JSON = "/Users/rlopez/D3M/rllib/result.json"
+#PATH_TO_CHECKPOINT = "rllib/ppo_model"
+#PATH_TO_RESULT_JSON = "rllib/result.json"
 
 
 def pipeline_search_rllib(game, time_bound, save_checkpoint=False):
@@ -46,7 +47,7 @@ def load_rllib_checkpoint(game, num_rollout_workers):
         get_trainable_cls("PPO")
         .get_default_config()
         # or "corridor" if registered above
-        .environment(AlphaAutoMLEnv, env_config={"game": game})
+        .environment(AutoMLEnv, env_config={"game": game})
         .framework("torch")
         # Use GPUs iff `RLLIB_NUM_GPUS` env var set to > 0.
         .resources(

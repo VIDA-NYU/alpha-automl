@@ -8,7 +8,7 @@ from ray.rllib.env.env_context import EnvContext
 logger = logging.getLogger(__name__)
 
 
-class AlphaAutoMLEnv(gym.Env):
+class AutoMLEnv(gym.Env):
     """
     Customized environment for RLlib Reinforcement Learning.
     reset: reset the environment to the initial state
