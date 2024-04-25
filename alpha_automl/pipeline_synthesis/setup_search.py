@@ -104,7 +104,7 @@ def update_config(task_name, metric, grammar, metadata):
     config['METRIC'] = metric
     config['DATASET'] = f'DATASET_{task_name}'
     config['GRAMMAR'] = grammar
-    metafeatures = compute_metafeatures(metadata)
+    metafeatures = compute_metafeatures(metric, metadata)
     config['DATASET_METAFEATURES'] = metafeatures + [0] * (8 - len(metafeatures))
 
     return config
@@ -145,8 +145,18 @@ def check_repeated_classifiers(pipeline_primitives, all_primitives, ensemble_pip
         return False
 
 
-def compute_metafeatures(metadata):
+def compute_metafeatures(metric, metadata):
     metafeatures = []
+    # SCORING METRIC
+    scoring_type = 0
+    if metric in ['accuracy_score', 'f1_score', 'precision_score', 'recall_score', 'jaccard_score']:
+        scoring_type = 1
+    elif metric in ['max_error', 'mean_absolute_error', 'mean_squared_error', 'mean_squared_log_error', 'median_absolute_error', 'r2_score']:
+        scoring_type = 2
+    elif metric in ['adjusted_mutual_info_score', 'rand_score', 'mutual_info_score', 'normalized_mutual_info_score']:
+        scoring_type = 3
+    metafeatures.append(scoring_type)
+    
     # IMPUTE
     metafeatures.append(1 if metadata['missing_values'] else 0)
     # ENCODE
