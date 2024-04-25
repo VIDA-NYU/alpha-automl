@@ -1,10 +1,7 @@
-import logging
 import sys
+import logging
 from datetime import datetime
-from os.path import join
-
-from alpha_automl.grammar_loader import (load_automatic_grammar,
-                                         load_manual_grammar)
+from alpha_automl.grammar_loader import load_manual_grammar
 from alpha_automl.pipeline_search.game import PipelineGame
 from alpha_automl.pipeline_search.agent_lab import pipeline_search_rllib, dump_result_to_json, read_result_to_pipeline
 from alpha_automl.pipeline_synthesis.pipeline_builder import BaseBuilder
@@ -27,7 +24,8 @@ config = {
         'TABULAR': 1, 
         'TEXT': 2, 
         'IMAGE': 3, 
-        'VIDEO': 4
+        'VIDEO': 4,
+        'MULTIMODAL': 5
     },
     'PIPELINE_SIZE': 10
 }
@@ -40,56 +38,9 @@ def signal_handler(queue, signum):
     sys.exit(0)
 
 
-def check_repeated_classifiers(pipeline_primitives, all_primitives, ensemble_pipelines_hash):
-    # Verify if the classifiers are repeated in the ensembles (regardless of the order)
-    classifiers = []
-    pipeline_hash = ''
-    has_ensemble_primitive = False
-    has_repeated_classifiers = False
-
-    for primitive_name in pipeline_primitives:
-        primitive_type = all_primitives[primitive_name]['type']
-
-        if primitive_type == 'CLASSIFIER':
-            classifiers.append(primitive_name)
-        elif primitive_type == 'MULTI_ENSEMBLER':
-            has_ensemble_primitive = True
-            pipeline_hash += primitive_name
-            if len(classifiers) != len(set(classifiers)):  # All classifiers should be different
-                has_repeated_classifiers = True
-        else:
-            pipeline_hash += primitive_name
-
-    if not has_ensemble_primitive:
-        return False
-
-    if has_repeated_classifiers:
-        return True
-
-    pipeline_hash += ''.join(sorted(classifiers))
-
-    if pipeline_hash in ensemble_pipelines_hash:
-        return True
-    else:
-        ensemble_pipelines_hash.add(pipeline_hash)
-        return False
-
-def search_pipelines(
-    X,
-    y,
-    scoring,
-    splitting_strategy,
-    task_name,
-    time_bound,
-    automl_hyperparams,
-    metadata,
-    output_folder,
-    verbose,
-):
+def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, automl_hyperparams, metadata, output_folder, verbose):
     # signal.signal(signal.SIGTERM, lambda signum, frame: signal_handler(queue, signum))
-    hide_logs(
-        verbose
-    )  # Hide logs here too, since multiprocessing has some issues with loggers
+    hide_logs(verbose)  # Hide logs here too, since multiprocessing has some issues with loggers
 
     builder = BaseBuilder(metadata, automl_hyperparams)
     all_primitives = builder.all_primitives
@@ -157,6 +108,41 @@ def update_config(task_name, metric, grammar, metadata):
     config['DATASET_METAFEATURES'] = metafeatures + [0] * (8 - len(metafeatures))
 
     return config
+
+
+def check_repeated_classifiers(pipeline_primitives, all_primitives, ensemble_pipelines_hash):
+    # Verify if the classifiers are repeated in the ensembles (regardless of the order)
+    classifiers = []
+    pipeline_hash = ''
+    has_ensemble_primitive = False
+    has_repeated_classifiers = False
+
+    for primitive_name in pipeline_primitives:
+        primitive_type = all_primitives[primitive_name]['type']
+
+        if primitive_type == 'CLASSIFIER':
+            classifiers.append(primitive_name)
+        elif primitive_type == 'MULTI_ENSEMBLER':
+            has_ensemble_primitive = True
+            pipeline_hash += primitive_name
+            if len(classifiers) != len(set(classifiers)):  # All classifiers should be different
+                has_repeated_classifiers = True
+        else:
+            pipeline_hash += primitive_name
+
+    if not has_ensemble_primitive:
+        return False
+
+    if has_repeated_classifiers:
+        return True
+
+    pipeline_hash += ''.join(sorted(classifiers))
+
+    if pipeline_hash in ensemble_pipelines_hash:
+        return True
+    else:
+        ensemble_pipelines_hash.add(pipeline_hash)
+        return False
 
 
 def compute_metafeatures(metadata):

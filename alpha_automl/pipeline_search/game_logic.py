@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class Board():
 
-    def __init__(self, m=30, grammar={}, pipeline_size=6, metric='f1macro', win_threshold=0.01):
+    def __init__(self, m=30, grammar=None, pipeline_size=6, metric='accuracy', win_threshold=0.01):
         "Set up initial board configuration."
 
         self.terminals = grammar['TERMINALS']
@@ -61,7 +61,7 @@ class Board():
                 return False
         return True
 
-    def findWin(self, player, eval_val=None):
+    def findWin(self, eval_val=None):
         """Find win of the given color in row, column, or diagonal
         (1 for x, -1 for o)"""
         if not any(self[0:]):
@@ -135,7 +135,7 @@ class Board():
     def get_board_size(self):
         return self.m+(len(self.terminals)+len(self.non_terminals))
 
-    def execute_move(self, action, player):
+    def execute_move(self, action):
         """Perform the given move on the board;
         color gives the color of the piece to play (1=x,-1=o)
         """

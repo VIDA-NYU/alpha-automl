@@ -40,8 +40,6 @@ class AutoMLEnv(gym.Env):
         self.action_offsets = self.generate_action_offsets()
         self.action_space = Discrete(self.max_actions)
 
-        
-        self.cur_player = 1  # NEVER USED - ONLY ONE PLAYER
 
     def reset(self, *, seed=None, options=None):
         # init number of steps
@@ -59,7 +57,7 @@ class AutoMLEnv(gym.Env):
         offseted_action = self.action_offsets[curr_step]+action
         valid_action_size = self.action_spaces[curr_step]
         # Check the action is illegal
-        valid_moves = self.game.getValidMoves(self.board, self.cur_player)
+        valid_moves = self.game.getValidMoves(self.board)
         if action >= valid_action_size or valid_moves[offseted_action-1] != 1:
             return (
                 {"board": np.array(self.board).astype(np.uint8)},
@@ -89,13 +87,13 @@ class AutoMLEnv(gym.Env):
 
         # update board with new action
         #         print(f"action: {action}\n board: {self.board}")
-        self.board, _ = self.game.getNextState(self.board, self.cur_player, offseted_action-1)
+        self.board = self.game.getNextState(self.board, offseted_action-1)
 
         if self.num_steps > 9:
-            logger.info(f"[YFW]================={self.board[self.game.m:]}")
+            logger.debug(f"[YFW]================={self.board[self.game.m:]}")
         # reward: win(1) - pipeline score, not end(0) - 0, bad(2) - 0
         reward = 0
-        game_end = self.game.getGameEnded(self.board, self.cur_player)
+        game_end = self.game.getGameEnded(self.board)
         if game_end == 1:  # pipeline score over threshold
             try:
                 if self.game.problem == "REGRESSION":

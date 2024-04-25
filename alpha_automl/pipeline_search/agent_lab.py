@@ -70,7 +70,7 @@ def load_rllib_checkpoint(game, num_rollout_workers):
 
     # Checking if the list is empty or not
     if [f for f in os.listdir(PATH_TO_CHECKPOINT) if not f.startswith(".")] == []:
-        logger.info("[RlLib] Cannot read RlLib checkpoint, create a new one.")
+        logger.debug("[RlLib] Cannot read RlLib checkpoint, create a new one.")
         return config.build()
     else:
         algo = config.build()
@@ -88,21 +88,21 @@ def train_rllib_model(algo, time_bound, save_checkpoint=False):
     result = algo.train()
     last_best = result["episode_reward_mean"]
     best_unchanged_iter = 1
-    logger.info(pretty_print(result))
+    logger.debug(pretty_print(result))
     while True:
         if (
             time.time() > timeout
             or (best_unchanged_iter >= 600 and result["episode_reward_mean"] >= 0)
             # or result["episode_reward_mean"] >= 70
         ):
-            logger.info(f"[RlLib] Train Timeout")
+            logger.debug(f"[RlLib] Train Timeout")
             break
             
         if save_checkpoint and [f for f in os.listdir(PATH_TO_CHECKPOINT) if not f.startswith(".")] != []:
             weights = load_rllib_policy_weights()
             algo.set_weights(weights)
         result = algo.train()
-        logger.info(pretty_print(result))
+        logger.debug(pretty_print(result))
         # stop training of the target train steps or reward are reached
         if result["episode_reward_mean"] > last_best:
             last_best = result["episode_reward_mean"]
@@ -115,7 +115,7 @@ def train_rllib_model(algo, time_bound, save_checkpoint=False):
 
 
 def load_rllib_policy_weights():
-    logger.info(f"[RlLib] Synchronizing model weights...")
+    logger.debug(f"[RlLib] Synchronizing model weights...")
     policy = Policy.from_checkpoint(PATH_TO_CHECKPOINT)
     policy = policy['default_policy']
     weights = policy.get_weights()
@@ -127,7 +127,7 @@ def save_rllib_checkpoint(algo):
     save_result = algo.save(checkpoint_dir=PATH_TO_CHECKPOINT)
     path_to_checkpoint = save_result.checkpoint.path
 
-    logger.info(
+    logger.debug(
         f"[RlLib] An Algorithm checkpoint has been created inside directory: '{path_to_checkpoint}'."
     )
 
