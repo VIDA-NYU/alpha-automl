@@ -237,7 +237,7 @@ def hide_logs(level):
 def setup_output_folder(output_folder):
     if output_folder is None:
         output_folder = tempfile.mkdtemp(prefix="alpha_automl", suffix="_log")
-        logger.debug(f'Created temporary directory: {output_folder}')
+        logger.info(f'Created temporary directory: {output_folder}')
     else:
         os.makedirs(output_folder, exist_ok=True)
 

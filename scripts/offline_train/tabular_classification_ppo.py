@@ -12,10 +12,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
         "-s",
-        "--save",
-        type=bool,
-        default=False,
-        help="If AlphaAutoML PPO need to learn from the weights from this task.",
+        "--save-dir",
+        default=None,
+        help="The saving directory for the PPO model checkpoint.",
+    )
+    parser.add_argument(
+        "-o",
+        "--output-dir",
+        default=None,
+        help="The output directory for saving results.json and other caching files.",
     )
     parser.add_argument(
         "-d",
@@ -77,7 +82,7 @@ if __name__ == "__main__":
         y_test = y.iloc[test_indices]
 
     # Add settings
-    automl = AutoMLClassifier(time_bound=args.time_bound, save_checkpoint=args.save)
+    automl = AutoMLClassifier(time_bound=args.time_bound, output_folder=args.output_dir, checkpoints_folder=args.save_dir)
 
     # Perform the search
     automl.fit(X_train, y_train)

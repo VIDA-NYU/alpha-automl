@@ -1,0 +1,5 @@
+automl_job_*
+**/automl_job_*
+
+logs
+results.json
