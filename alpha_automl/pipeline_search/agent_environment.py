@@ -1,5 +1,6 @@
 import logging
 import random
+
 import gymnasium as gym
 import numpy as np
 from gymnasium.spaces import Box, Dict, Discrete
@@ -40,7 +41,6 @@ class AutoMLEnv(gym.Env):
         self.action_offsets = self.generate_action_offsets()
         self.action_space = Discrete(self.max_actions)
 
-
     def reset(self, *, seed=None, options=None):
         # init number of steps
         self.num_steps = 0
@@ -54,11 +54,11 @@ class AutoMLEnv(gym.Env):
 
     def step(self, action):
         curr_step = self.step_stack.pop()
-        offseted_action = self.action_offsets[curr_step]+action
+        offseted_action = self.action_offsets[curr_step] + action
         valid_action_size = self.action_spaces[curr_step]
         # Check the action is illegal
         valid_moves = self.game.getValidMoves(self.board)
-        if action >= valid_action_size or valid_moves[offseted_action-1] != 1:
+        if action >= valid_action_size or valid_moves[offseted_action - 1] != 1:
             return (
                 {"board": np.array(self.board).astype(np.uint8)},
                 -1,
@@ -78,19 +78,19 @@ class AutoMLEnv(gym.Env):
                 False,
                 {},
             )
-        if non_terminals_moves[0] != "E" and non_terminals_moves[0].upper() == non_terminals_moves[0]:
+        if (
+            non_terminals_moves[0] != "E"
+            and non_terminals_moves[0].upper() == non_terminals_moves[0]
+        ):
             self.step_stack.extend(non_terminals_moves[::-1])
-        
 
         # update number of steps
         self.num_steps += 1
 
         # update board with new action
         #         print(f"action: {action}\n board: {self.board}")
-        self.board = self.game.getNextState(self.board, offseted_action-1)
+        self.board = self.game.getNextState(self.board, offseted_action - 1)
 
-        if self.num_steps > 9:
-            logger.debug(f"[YFW]================={self.board[self.game.m:]}")
         # reward: win(1) - pipeline score, not end(0) - 0, bad(2) - 0
         reward = 0
         game_end = self.game.getGameEnded(self.board)
@@ -118,7 +118,7 @@ class AutoMLEnv(gym.Env):
             # else:
             #     split_move = move_string.split("->")
             #     non_terminals_moves = move_string.split("->")[1].strip().split(" ")
-                    
+
             #     if split_move[0].strip() == "ENSEMBLER":
             #         if "E" in non_terminals_moves:
             #             rewards = 5
@@ -126,8 +126,6 @@ class AutoMLEnv(gym.Env):
             #             rewards = 5 - len(non_terminals_moves)
             #     else:
             #         rewards = random.uniform(0, 1)
-                
-                
 
         # done & truncated
         truncated = self.num_steps >= 20
@@ -153,21 +151,20 @@ class AutoMLEnv(gym.Env):
         action_spaces = {}
         for action in self.game.grammar["RULES"].values():
             move_type, non_terminals_moves = self.extract_action_details(action)
-        
+
             if move_type not in action_spaces:
                 action_spaces[move_type] = 1
             else:
                 action_spaces[move_type] += 1
-    
+
         return action_spaces
 
     def generate_action_offsets(self):
         action_offsets = {}
         for action in self.game.grammar["RULES"].values():
             move_type, non_terminals_moves = self.extract_action_details(action)
-        
+
             if move_type not in action_offsets:
                 action_offsets[move_type] = action
-    
+
         return action_offsets
-            

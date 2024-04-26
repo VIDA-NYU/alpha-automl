@@ -2,22 +2,21 @@ import json
 import logging
 import os
 import time
-import json
 from datetime import datetime
 
 import ray
+from alpha_automl.pipeline_search.agent_environment import AutoMLEnv
 from ray.rllib.policy import Policy
 from ray.rllib.utils.checkpoints import get_checkpoint_info
 from ray.tune.logger import pretty_print
 from ray.tune.registry import get_trainable_cls
-from ray import tune
-
-from alpha_automl.pipeline_search.agent_environment import AutoMLEnv
 
 logger = logging.getLogger(__name__)
 
 
-def pipeline_search_rllib(game, time_bound, checkpoint_load_folder, checkpoint_save_folder):
+def pipeline_search_rllib(
+    game, time_bound, checkpoint_load_folder, checkpoint_save_folder
+):
     """
     Search for pipelines using Rllib
     """
@@ -31,7 +30,6 @@ def pipeline_search_rllib(game, time_bound, checkpoint_load_folder, checkpoint_s
 
     # train model
     train_rllib_model(algo, time_bound, checkpoint_load_folder, checkpoint_save_folder)
-    save_rllib_checkpoint(algo, checkpoint_save_folder)
     logger.debug("[RlLib] Done")
     ray.shutdown()
 
@@ -63,13 +61,13 @@ def load_rllib_checkpoint(game, checkpoint_load_folder, num_rollout_workers):
     logger.debug("[RlLib] Create Config done")
 
     # Checking if the list is empty or not
-    if [f for f in os.listdir(checkpoint_load_folder) if not f.startswith(".")] == []:
+    if contain_checkpoints(checkpoint_load_folder):
         logger.debug("[RlLib] Cannot read RlLib checkpoint, create a new one.")
         return config.build()
     else:
         algo = config.build()
         weights = load_rllib_policy_weights(checkpoint_load_folder)
-        
+
         algo.set_weights(weights)
         # Restore the old state.
         # algo.restore(load_folder)
@@ -77,7 +75,7 @@ def load_rllib_checkpoint(game, checkpoint_load_folder, num_rollout_workers):
         return algo
 
 
-def train_rllib_model(algo, time_bound, load_folder, checkpoint_save_folder):
+def train_rllib_model(algo, time_bound, checkpoint_load_folder, checkpoint_save_folder):
     timeout = time.time() + time_bound
     result = algo.train()
     last_best = result["episode_reward_mean"]
@@ -92,9 +90,12 @@ def train_rllib_model(algo, time_bound, load_folder, checkpoint_save_folder):
         ):
             logger.debug(f"[RlLib] Train Timeout")
             break
-            
-        if [f for f in os.listdir(load_folder) if not f.startswith(".")] != []:
-            weights = load_rllib_policy_weights()
+
+        if contain_checkpoints(checkpoint_save_folder):
+            weights = load_rllib_policy_weights(checkpoint_save_folder)
+            algo.set_weights(weights)
+        elif contain_checkpoints(checkpoint_load_folder):
+            weights = load_rllib_policy_weights(checkpoint_load_folder)
             algo.set_weights(weights)
         result = algo.train()
         logger.debug(pretty_print(result))
@@ -108,15 +109,16 @@ def train_rllib_model(algo, time_bound, load_folder, checkpoint_save_folder):
     algo.stop()
 
 
-def load_rllib_policy_weights(checkpoint_load_folder):
+def load_rllib_policy_weights(checkpoint_folder):
     logger.debug(f"[RlLib] Synchronizing model weights...")
-    policy = Policy.from_checkpoint(checkpoint_load_folder)
-    policy = policy['default_policy']
+    policy = Policy.from_checkpoint(checkpoint_folder)
+    policy = policy["default_policy"]
     weights = policy.get_weights()
 
-    weights = {'default_policy': weights}
+    weights = {"default_policy": weights}
 
     return weights
+
 
 def save_rllib_checkpoint(algo, checkpoint_save_folder):
     save_result = algo.save(checkpoint_dir=checkpoint_save_folder)
@@ -131,15 +133,14 @@ def dump_result_to_json(primitives, task_start, score, output_folder=None):
     output_path = generate_json_path(output_folder)
     # Read JSON data from input file
     if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             json.dump({}, f)
-    with open(output_path, 'r') as f:
+    with open(output_path, "r") as f:
         data = json.load(f)
-    
-    
+
     timestamp = str(datetime.now() - task_start)
     # strftime("%Y-%m-%d %H:%M:%S")
-    
+
     # Check for duplicate elements
     if primitives in data.values():
         return
@@ -152,13 +153,10 @@ def dump_result_to_json(primitives, task_start, score, output_folder=None):
 
 def read_result_to_pipeline(builder, output_folder=None):
     output_path = generate_json_path(output_folder)
-    
+
     pipelines = []
     # Read JSON data from input file
-    if (
-        not os.path.exists(output_path)
-        or os.path.getsize(output_path) == 0
-    ):
+    if not os.path.exists(output_path) or os.path.getsize(output_path) == 0:
         return []
     with open(output_path, "r") as f:
         data = json.load(f)
@@ -168,11 +166,34 @@ def read_result_to_pipeline(builder, output_folder=None):
         pipeline = builder.make_pipeline(primitives)
         if pipeline:
             pipelines.append(pipeline)
-    
+
     return pipelines
 
 
 def generate_json_path(output_folder=None):
     output_path = os.path.join(output_folder, "result.json")
-        
+
     return output_path
+
+
+def contain_checkpoints(folder_path):
+    if folder_path is None:
+        return False
+
+    file_list = os.listdir(folder_path)
+
+    if [f for f in file_list if not f.startswith(".")] == []:
+        return False
+
+    if (
+        "algorithm_state.pkl" in file_list
+        and "policies" in file_list
+        and "rllib_checkpoint.json" in file_list
+    ):
+        return True
+    else:
+        logger.info(
+            f"[RlLib] Checkpoint folder {folder_path} does not contain all necessary files, files: {file_list}."
+        )
+
+    return False
