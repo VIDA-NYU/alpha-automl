@@ -16,13 +16,8 @@ from alpha_automl.pipeline_search.agent_environment import AutoMLEnv
 
 logger = logging.getLogger(__name__)
 
-PATH_TO_CHECKPOINT = "/Users/rlopez/D3M/rllib/ppo_model"
-PATH_TO_RESULT_JSON = "/Users/rlopez/D3M/rllib/result.json"
-#PATH_TO_CHECKPOINT = "rllib/ppo_model"
-#PATH_TO_RESULT_JSON = "rllib/result.json"
 
-
-def pipeline_search_rllib(game, time_bound, save_checkpoint=False):
+def pipeline_search_rllib(game, time_bound, checkpoint_load_folder, checkpoint_save_folder):
     """
     Search for pipelines using Rllib
     """
@@ -31,18 +26,17 @@ def pipeline_search_rllib(game, time_bound, save_checkpoint=False):
     logger.debug("[RlLib] Ready")
 
     # load checkpoint or create a new one
-    algo = load_rllib_checkpoint(game, num_rollout_workers=7)
+    algo = load_rllib_checkpoint(game, checkpoint_load_folder, num_rollout_workers=7)
     logger.debug("[RlLib] Create Algo object done")
 
     # train model
-    train_rllib_model(algo, time_bound, save_checkpoint=save_checkpoint)
-    if save_checkpoint:
-        save_rllib_checkpoint(algo)
+    train_rllib_model(algo, time_bound, checkpoint_load_folder, checkpoint_save_folder)
+    save_rllib_checkpoint(algo, checkpoint_save_folder)
     logger.debug("[RlLib] Done")
     ray.shutdown()
 
 
-def load_rllib_checkpoint(game, num_rollout_workers):
+def load_rllib_checkpoint(game, checkpoint_load_folder, num_rollout_workers):
     config = (
         get_trainable_cls("PPO")
         .get_default_config()
@@ -69,26 +63,27 @@ def load_rllib_checkpoint(game, num_rollout_workers):
     logger.debug("[RlLib] Create Config done")
 
     # Checking if the list is empty or not
-    if [f for f in os.listdir(PATH_TO_CHECKPOINT) if not f.startswith(".")] == []:
+    if [f for f in os.listdir(checkpoint_load_folder) if not f.startswith(".")] == []:
         logger.debug("[RlLib] Cannot read RlLib checkpoint, create a new one.")
         return config.build()
     else:
         algo = config.build()
-        weights = load_rllib_policy_weights()
+        weights = load_rllib_policy_weights(checkpoint_load_folder)
         
         algo.set_weights(weights)
-        # Restore the old (checkpointed) state.
-        # algo.restore(PATH_TO_CHECKPOINT)
-        # checkpoint_info = get_checkpoint_info(PATH_TO_CHECKPOINT)
+        # Restore the old state.
+        # algo.restore(load_folder)
+        # checkpoint_info = get_checkpoint_info(load_folder)
         return algo
 
 
-def train_rllib_model(algo, time_bound, save_checkpoint=False):
+def train_rllib_model(algo, time_bound, load_folder, checkpoint_save_folder):
     timeout = time.time() + time_bound
     result = algo.train()
     last_best = result["episode_reward_mean"]
     best_unchanged_iter = 1
     logger.debug(pretty_print(result))
+
     while True:
         if (
             time.time() > timeout
@@ -98,7 +93,7 @@ def train_rllib_model(algo, time_bound, save_checkpoint=False):
             logger.debug(f"[RlLib] Train Timeout")
             break
             
-        if save_checkpoint and [f for f in os.listdir(PATH_TO_CHECKPOINT) if not f.startswith(".")] != []:
+        if [f for f in os.listdir(load_folder) if not f.startswith(".")] != []:
             weights = load_rllib_policy_weights()
             algo.set_weights(weights)
         result = algo.train()
@@ -107,24 +102,24 @@ def train_rllib_model(algo, time_bound, save_checkpoint=False):
         if result["episode_reward_mean"] > last_best:
             last_best = result["episode_reward_mean"]
             best_unchanged_iter = 1
-            if save_checkpoint:
-                save_rllib_checkpoint(algo)
+            save_rllib_checkpoint(algo, checkpoint_save_folder)
         else:
             best_unchanged_iter += 1
     algo.stop()
 
 
-def load_rllib_policy_weights():
+def load_rllib_policy_weights(checkpoint_load_folder):
     logger.debug(f"[RlLib] Synchronizing model weights...")
-    policy = Policy.from_checkpoint(PATH_TO_CHECKPOINT)
+    policy = Policy.from_checkpoint(checkpoint_load_folder)
     policy = policy['default_policy']
     weights = policy.get_weights()
 
     weights = {'default_policy': weights}
+
     return weights
 
-def save_rllib_checkpoint(algo):
-    save_result = algo.save(checkpoint_dir=PATH_TO_CHECKPOINT)
+def save_rllib_checkpoint(algo, checkpoint_save_folder):
+    save_result = algo.save(checkpoint_dir=checkpoint_save_folder)
     path_to_checkpoint = save_result.checkpoint.path
 
     logger.debug(
@@ -178,10 +173,6 @@ def read_result_to_pipeline(builder, output_folder=None):
 
 
 def generate_json_path(output_folder=None):
-    output_path = PATH_TO_RESULT_JSON
-    if output_folder is None:
-        output_path = PATH_TO_RESULT_JSON
-    else:
-        output_path = os.path.join(output_folder, "result.json")
+    output_path = os.path.join(output_folder, "result.json")
         
     return output_path

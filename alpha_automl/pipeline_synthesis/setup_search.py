@@ -1,14 +1,16 @@
 import sys
 import logging
 from datetime import datetime
+from os.path import join, dirname
 from alpha_automl.grammar_loader import load_manual_grammar
 from alpha_automl.pipeline_search.game import PipelineGame
 from alpha_automl.pipeline_search.agent_lab import pipeline_search_rllib, dump_result_to_json, read_result_to_pipeline
 from alpha_automl.pipeline_synthesis.pipeline_builder import BaseBuilder
 from alpha_automl.scorer import score_pipeline
-from alpha_automl.utils import hide_logs
+from alpha_automl.utils import hide_logs, contain_checkpoints
 
 logger = logging.getLogger(__name__)
+DEFAULT_CHECKPOINT_PATH = join(dirname(__file__), '../resource/checkpoints/')
 
 
 config = {
@@ -38,7 +40,8 @@ def signal_handler(queue, signum):
     sys.exit(0)
 
 
-def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, automl_hyperparams, metadata, output_folder, verbose):
+def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, automl_hyperparams, metadata,
+                     output_folder, checkpoints_folder, verbose):
     # signal.signal(signal.SIGTERM, lambda signum, frame: signal_handler(queue, signum))
     hide_logs(verbose)  # Hide logs here too, since multiprocessing has some issues with loggers
 
@@ -73,7 +76,6 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
     include_primitives = automl_hyperparams['include_primitives']
     exclude_primitives = automl_hyperparams['exclude_primitives']
     new_primitives = automl_hyperparams['new_primitives']
-    save_checkpoint = automl_hyperparams['save_checkpoint']
     use_imputer = metadata['missing_values']
     nonnumeric_columns = metadata['nonnumeric_columns']
 
@@ -89,8 +91,10 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
 
     metric = scoring._score_func.__name__
     config_updated = update_config(task_name, metric, grammar, metadata)
+    checkpoint_load_folder = checkpoints_folder if contain_checkpoints(checkpoints_folder) else DEFAULT_CHECKPOINT_PATH
+    checkpoint_save_folder = checkpoints_folder if checkpoints_folder is not None else output_folder
     game = PipelineGame(config_updated, evaluate_pipeline)
-    pipeline_search_rllib(game, time_bound, save_checkpoint=save_checkpoint)
+    pipeline_search_rllib(game, time_bound, checkpoint_load_folder, checkpoint_save_folder)
     logger.debug('Search completed')
     results = read_result_to_pipeline(builder, output_folder)
 

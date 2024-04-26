@@ -284,6 +284,16 @@ def check_input_for_multiprocessing(start_method, callable_input, input_type):
                               f'from my_external_module import {object_name}"')
 
 
+def contain_checkpoints(folder_path):
+    if folder_path is None:
+        return False
+    
+    if False: # Add logic here when the folder contains checkpoint files
+        return True
+    
+    return False
+
+
 class SemiSupervisedSplitter:
     """
     SemiSupervisedSplitter makes sure that unlabeled rows not being
