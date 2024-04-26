@@ -417,7 +417,8 @@ class AutoMLRegressor(BaseAutoML):
 class AutoMLTimeSeries(BaseAutoML):
     def __init__(self, time_bound=15, metric='mean_squared_error', split_strategy='timeseries', time_bound_run=5,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
-                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO, date_column=None):
+                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO, date_column=None,
+                 target_column=None):
         """
         Create/instantiate an AutoMLTimeSeries object.
 
