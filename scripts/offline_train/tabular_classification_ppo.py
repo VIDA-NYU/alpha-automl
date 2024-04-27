@@ -82,7 +82,11 @@ if __name__ == "__main__":
         y_test = y.iloc[test_indices]
 
     # Add settings
-    automl = AutoMLClassifier(time_bound=args.time_bound, output_folder=args.output_dir, checkpoints_folder=args.save_dir)
+    automl = AutoMLClassifier(
+        time_bound=args.time_bound,
+        output_folder=args.output_dir,
+        checkpoints_folder=args.save_dir,
+    )
 
     # Perform the search
     automl.fit(X_train, y_train)
