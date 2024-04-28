@@ -1,9 +1,9 @@
 import argparse
-from os.path import dirname, join
-
 import openml
 import pandas as pd
+from os.path import dirname, join
 from alpha_automl import AutoMLClassifier
+
 
 if __name__ == "__main__":
     # If running it in Windows or CUDA environment, Alpha-AutoML should be used inside of "if __name__ == '__main__':"
@@ -32,7 +32,7 @@ if __name__ == "__main__":
         "-c",
         "--target-column",
         default="class",
-        help="The target column name for local dataset csv files, 'class' by defualt",
+        help="The target column name for local dataset csv files, 'class' by default",
     )
 
     parser.add_argument(
