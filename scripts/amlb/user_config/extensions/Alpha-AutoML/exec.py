@@ -50,8 +50,8 @@ def run(dataset, config):
              f'output_folder: {output_path}\n'
              )
 
-    automl = AutoMLClassifier(time_bound=10, metric=metrics_mapping[metric], time_bound_run=15,
-                              output_folder=output_path, verbose=logging.INFO, save_checkpoint=True)
+    automl = AutoMLClassifier(time_bound=time_bound, metric=metrics_mapping[metric], time_bound_run=15,
+                              output_folder=output_path, verbose=logging.INFO)
 
     train_dataset = pd.read_csv(train_dataset_path)
     test_dataset = pd.read_csv(test_dataset_path)
