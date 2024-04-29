@@ -82,7 +82,7 @@ class AutoMLManager():
                     found_pipelines += 1
                     yield {'pipeline': alphaautoml_pipeline, 'message': 'SCORED'}
             except:
-                logger.info(f'Pipeline scoring error!')
+                logger.debug(f'Pipeline scoring error!')
                 continue
         
         logger.debug(f'Found {found_pipelines} pipelines')
