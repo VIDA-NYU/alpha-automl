@@ -121,8 +121,7 @@ def make_splitter(splitting_strategy, splitting_strategy_kwargs=None):
                          f'instance of BaseCrossValidator, BaseShuffleSplit, RepeatedSplits.')
 
 
-def score_pipeline(pipeline, X, y, scoring, splitting_strategy, task_name, verbose):
-    hide_logs(verbose)  # Hide logs here too, since multiprocessing has some issues with loggers
+def score_pipeline(pipeline, X, y, scoring, splitting_strategy, task_name):
     score = None
     start_time = None
     end_time = None

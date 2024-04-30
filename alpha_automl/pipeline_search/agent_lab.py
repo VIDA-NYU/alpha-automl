@@ -18,7 +18,7 @@ def pipeline_search_rllib(game, time_bound, checkpoint_load_folder, checkpoint_s
     """
     Search for pipelines using Rllib
     """
-    ray.init(local_mode=True, num_cpus=8)
+    ray.init(local_mode=True, num_cpus=8, logging_level=logging.CRITICAL, log_to_driver=False)
     num_cpus = int(ray.available_resources()["CPU"])
 
     # load checkpoint or create a new one

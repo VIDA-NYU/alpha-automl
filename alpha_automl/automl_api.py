@@ -63,10 +63,10 @@ class BaseAutoML():
         self.y = None
         self.leaderboard = None
         self.automl_manager = AutoMLManager(self.output_folder, checkpoints_folder, time_bound, time_bound_run, task, num_cpus, verbose)
-        self._start_method = get_start_method(start_mode)
-        set_start_method(self._start_method, force=True)
-        check_input_for_multiprocessing(self._start_method, self.scorer._score_func, 'metric')
-        check_input_for_multiprocessing(self._start_method, self.splitter, 'split strategy')
+        #self._start_method = get_start_method(start_mode)
+        #set_start_method(self._start_method, force=True)
+        #check_input_for_multiprocessing(self._start_method, self.scorer._score_func, 'metric')
+        #check_input_for_multiprocessing(self._start_method, self.splitter, 'split strategy')
         self.label_encoder = None
         self.task_type = task
 
@@ -196,7 +196,7 @@ class BaseAutoML():
         :param new_primitives: Set of new primitives, tuples of name and object primitive
         """
         for primitive_object, primitive_type in new_primitives:
-            check_input_for_multiprocessing(self._start_method, primitive_object, 'primitive')
+            #check_input_for_multiprocessing(self._start_method, primitive_object, 'primitive')
             primitive_name = f'{primitive_object.__module__}.{primitive_object.__class__.__name__}'
             primitive_name = primitive_name.replace('__', '')  # Sklearn restriction on estimator names
             self.new_primitives[primitive_name] = {'primitive_object': primitive_object,

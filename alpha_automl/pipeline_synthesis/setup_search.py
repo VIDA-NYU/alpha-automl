@@ -31,31 +31,7 @@ config = {
 }
 
 
-def signal_handler(queue, signum):
-    logger.debug(f"Receiving signal {signum}, terminating process")
-    queue.append("DONE")
-    # TODO: Should it save the last status of the NN model?
-    sys.exit(0)
-
-
-def search_pipelines(
-    X,
-    y,
-    scoring,
-    splitting_strategy,
-    task_name,
-    time_bound,
-    automl_hyperparams,
-    metadata,
-    output_folder,
-    checkpoints_folder,
-    verbose,
-):
-    # signal.signal(signal.SIGTERM, lambda signum, frame: signal_handler(queue, signum))
-    hide_logs(
-        verbose
-    )  # Hide logs here too, since multiprocessing has some issues with loggers
-
+def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, automl_hyperparams, metadata, output_folder, checkpoints_folder):
     builder = BaseBuilder(metadata, automl_hyperparams)
     all_primitives = builder.all_primitives
     ensemble_pipelines_hash = set()
@@ -75,9 +51,7 @@ def search_pipelines(
         score = None
 
         if pipeline is not None:
-            alphaautoml_pipeline = score_pipeline(
-                pipeline, X, y, scoring, splitting_strategy, task_name, verbose
-            )
+            alphaautoml_pipeline = score_pipeline(pipeline, X, y, scoring, splitting_strategy, task_name)
             if alphaautoml_pipeline is not None:
                 score = alphaautoml_pipeline.get_score()
                 if score is not None:

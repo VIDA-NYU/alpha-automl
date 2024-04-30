@@ -63,7 +63,7 @@ class AutoMLManager():
 
         pipelines = search_pipelines_proc(X, y, self.scoring, internal_splitting_strategy, self.task,
                         self.time_bound, automl_hyperparams, metadata, self.output_folder, 
-                        self.checkpoints_folder, self.verbose)
+                        self.checkpoints_folder)
 
         found_pipelines = 0
 
@@ -72,9 +72,7 @@ class AutoMLManager():
         while pipelines and found_pipelines < pipeline_threshold:
             pipeline = pipelines.pop()
             try:
-                alphaautoml_pipeline = score_pipeline(pipeline, X, y, self.scoring,
-                                                      self.splitting_strategy, self.task,
-                                                      self.verbose)
+                alphaautoml_pipeline = score_pipeline(pipeline, X, y, self.scoring, self.splitting_strategy, self.task)
     
                 if alphaautoml_pipeline is not None:
                     score = alphaautoml_pipeline.get_score()
