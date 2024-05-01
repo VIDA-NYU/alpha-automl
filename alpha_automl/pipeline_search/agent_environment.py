@@ -34,10 +34,10 @@ class AutoMLEnv(gym.Env):
                 ),  # Ray env board contains pipeline and metadata
             }
         )
-        self.max_actions = 24  # max number of actions (depends on the largest step in the grammar, i.e. CLASSIFIER)
         self.action_spaces = (
             self.generate_action_spaces()
         )  # number of actions for each step
+        self.max_actions = max(list(self.action_spaces.values()))  # max number of actions (depends on the largest step in the grammar, i.e. CLASSIFIER)
         self.action_offsets = (
             self.generate_action_offsets()
         )  # offset for each step, for translating action to PipelineGame action

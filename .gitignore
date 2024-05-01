@@ -60,3 +60,6 @@ lightning_logs
 .cache
 **/smac3_output
 /venv
+
+.vscode
+**/.vscode
