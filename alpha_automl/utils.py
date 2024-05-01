@@ -8,6 +8,7 @@ import tempfile
 import numpy as np
 import pandas as pd
 import torch
+from datetime import datetime
 from enum import Enum
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import LabelEncoder
@@ -66,10 +67,10 @@ def sample_dataset(X, y, sample_size, task):
     if original_size > sample_size:
         ratio = sample_size / original_size
         try:
-            _, X_test, _, y_test = train_test_split(X, y, random_state=RANDOM_SEED, test_size=ratio, stratify=y, shuffle=shuffle)
+            _, X_test, _, y_test = train_test_split(X, y, random_state=int(datetime.now().microsecond), test_size=ratio, stratify=y, shuffle=shuffle)
         except Exception:
             # Not using stratified sampling when the minority class has few instances, not enough for all the folds
-            _, X_test, _, y_test = train_test_split(X, y, random_state=RANDOM_SEED, test_size=ratio, shuffle=shuffle)
+            _, X_test, _, y_test = train_test_split(X, y, random_state=int(datetime.now().microsecond), test_size=ratio, shuffle=shuffle)
         logger.debug(f'Sampling down data from {original_size} to {len(X_test)}')
         if isinstance(X_test, pd.DataFrame):
             X_test = X_test.reset_index(drop=True)
@@ -236,7 +237,7 @@ def hide_logs(level):
 def setup_output_folder(output_folder):
     if output_folder is None:
         output_folder = tempfile.mkdtemp(prefix="alpha_automl", suffix="_log")
-        logger.debug(f'Created temporary directory: {output_folder}')
+        logger.info(f'Created temporary directory: {output_folder}')
     else:
         os.makedirs(output_folder, exist_ok=True)
 

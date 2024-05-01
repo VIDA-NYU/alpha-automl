@@ -48,8 +48,9 @@ def create_task_grammar(global_grammar, task):
 
     for production in global_grammar.productions():
         for new_production in new_productions:
-            if production.lhs() in new_production.rhs() and production not in new_productions:
-                new_productions.append(production)
+            if production not in new_productions:
+                if str(production.lhs()) != "S" and "_TASK" not in str(production.lhs()):
+                    new_productions.append(production)
 
     task_grammar = CFG(start_token, new_productions)
     logger.debug(f'Task grammar: {task_grammar}')

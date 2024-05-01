@@ -1,1 +1,1 @@
-alpha-automl
+alpha-automl @ git+https://github.com/VIDA-NYU/alpha-automl@dqn_implementation
