@@ -31,14 +31,14 @@ def change_default_hyperparams(primitive_object):
 
 def extract_estimators(pipeline_primitives, all_primitives):
     estimators = []
-    classifier_name, classifier_obj = pipeline_primitives.pop()
-    current_primitive_type = all_primitives[classifier_name]['type']
+    estimator_name, estimator_obj = pipeline_primitives.pop()
+    current_primitive_type = all_primitives[estimator_name]['type']
     counter = 0
 
-    while current_primitive_type == 'CLASSIFIER':
-        estimators.append((f'{classifier_name}-{counter}', classifier_obj))
-        classifier_name, classifier_obj = pipeline_primitives.pop()
-        current_primitive_type = all_primitives[classifier_name]['type']
+    while current_primitive_type == 'CLASSIFIER' or current_primitive_type == 'REGRESSOR':
+        estimators.append((f'{estimator_name}-{counter}', estimator_obj))
+        estimator_name, estimator_obj = pipeline_primitives.pop()
+        current_primitive_type = all_primitives[estimator_name]['type']
         counter += 1
     
     return estimators
@@ -91,10 +91,10 @@ class BaseBuilder:
             if primitive_type == 'SEMISUPERVISED_SELFTRAINER':
                 classifier_obj = pipeline_primitives.pop()[1]
                 primitive_object = create_object(primitive_name, {'base_estimator': classifier_obj})
-            elif primitive_type == 'SINGLE_ENSEMBLER':
+            elif primitive_type == 'CLASSIFICATION_SINGLE_ENSEMBLER' or primitive_type == 'REGRESSION_SINGLE_ENSEMBLER':
                 classifier_obj = pipeline_primitives.pop()[1]
                 primitive_object = create_object(primitive_name, {'estimator': classifier_obj})
-            elif primitive_type == 'MULTI_ENSEMBLER':
+            elif primitive_type == 'CLASSIFICATION_MULTI_ENSEMBLER' or primitive_type == 'REGRESSION_MULTI_ENSEMBLER':
                 estimators = extract_estimators(pipeline_primitives, self.all_primitives)
                 primitive_object = create_object(primitive_name, {'estimators': estimators})
             elif self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive

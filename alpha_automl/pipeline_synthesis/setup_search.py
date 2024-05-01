@@ -26,7 +26,13 @@ config = {
         "SEMISUPERVISED": 5,
         "NA": 6,
     },
-    "DATA_TYPES": {"TABULAR": 1, "TEXT": 2, "IMAGE": 3, "VIDEO": 4, "MULTIMODAL": 5},
+    "DATA_TYPES": {
+        "TABULAR": 1, 
+        "TEXT": 2, 
+        "IMAGE": 3, 
+        "VIDEO": 4, 
+        "MULTIMODAL": 5
+    },
     "PIPELINE_SIZE": 10,
 }
 
@@ -39,12 +45,10 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
     task_start = datetime.now()
 
     def evaluate_pipeline(primitives):
-        has_repeated_classifiers = check_repeated_classifiers(
-            primitives, all_primitives, ensemble_pipelines_hash
-        )
+        has_repeated_estimators = check_repeated_classifiers(primitives, all_primitives, ensemble_pipelines_hash)
 
-        if has_repeated_classifiers:
-            logger.info("Repeated classifiers detected in ensembles, ignoring pipeline")
+        if has_repeated_estimators:
+            logger.info("Repeated estimators detected in ensembles, ignoring pipeline")
             return None
 
         pipeline = builder.make_pipeline(primitives)
@@ -113,37 +117,34 @@ def update_config(task_name, metric, grammar, metadata):
     return config
 
 
-def check_repeated_classifiers(
-    pipeline_primitives, all_primitives, ensemble_pipelines_hash
-):
-    # Verify if the classifiers are repeated in the ensembles (regardless of the order)
-    classifiers = []
+def check_repeated_classifiers(pipeline_primitives, all_primitives, ensemble_pipelines_hash):
+    # We should rename this function to check_repeated_estimators, but loading checkpoints raise errors
+    # Verify if the estimators are repeated in the ensembles (regardless of the order)
+    estimators = []
     pipeline_hash = ""
     has_ensemble_primitive = False
-    has_repeated_classifiers = False
+    has_repeated_estimators = False
 
     for primitive_name in pipeline_primitives:
         primitive_type = all_primitives[primitive_name]["type"]
 
-        if primitive_type == "CLASSIFIER":
-            classifiers.append(primitive_name)
-        elif primitive_type == "MULTI_ENSEMBLER":
+        if primitive_type == "CLASSIFIER" or primitive_type == "REGRESSOR":
+            estimators.append(primitive_name)
+        elif primitive_type == "CLASSIFICATION_MULTI_ENSEMBLER" or primitive_type == "REGRESSION_MULTI_ENSEMBLER":
             has_ensemble_primitive = True
             pipeline_hash += primitive_name
-            if len(classifiers) != len(
-                set(classifiers)
-            ):  # All classifiers should be different
-                has_repeated_classifiers = True
+            if len(estimators) != len(set(estimators)):  # All estimators should be different
+                has_repeated_estimators = True
         else:
             pipeline_hash += primitive_name
 
     if not has_ensemble_primitive:
         return False
 
-    if has_repeated_classifiers:
+    if has_repeated_estimators:
         return True
 
-    pipeline_hash += "".join(sorted(classifiers))
+    pipeline_hash += "".join(sorted(estimators))
 
     if pipeline_hash in ensemble_pipelines_hash:
         return True
