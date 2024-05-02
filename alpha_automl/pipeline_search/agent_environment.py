@@ -30,7 +30,7 @@ class AutoMLEnv(gym.Env):
         self.observation_space = Dict(
             {
                 "board": Box(
-                    0, 85, shape=(self.game.p + self.game.m,), dtype=np.uint8
+                    0, 90, shape=(self.game.p + self.game.m,), dtype=np.uint8
                 ),  # Ray env board contains pipeline and metadata
             }
         )
@@ -94,7 +94,8 @@ class AutoMLEnv(gym.Env):
         if game_end == 1:  # pipeline score over threshold
             try:
                 if self.game.problem == "REGRESSION":
-                    reward = 10 + (100 / self.game.getEvaluation(self.board))
+                    # reward = 10 + (100 / self.game.getEvaluation(self.board))
+                    reward = 10 + (self.game.getEvaluation(self.board)) ** 3 * 100
                 else:
                     reward = 10 + (self.game.getEvaluation(self.board)) ** 2 * 100
             except Exception as e:
