@@ -19,7 +19,8 @@
         "sklearn.svm.SVC",
         "sklearn.tree.DecisionTreeClassifier",
         "xgboost.XGBClassifier",
-        "lightgbm.LGBMClassifier"
+        "lightgbm.LGBMClassifier",
+        "catboost.CatBoostClassifier"
     ],
     "CLUSTERER": [
         "sklearn.cluster.KMeans",
@@ -32,10 +33,14 @@
         "alpha_automl.builtin_primitives.datetime_encoder.DummyEncoder"
     ],
     "FEATURE_SCALER": [
-        "sklearn.preprocessing.RobustScaler"
+        "sklearn.preprocessing.MaxAbsScaler",
+        "sklearn.preprocessing.RobustScaler",
+        "sklearn.preprocessing.StandardScaler"
     ],
     "FEATURE_SELECTOR": [
-        "sklearn.feature_selection.SelectPercentile"
+        "sklearn.feature_selection.GenericUnivariateSelect",
+        "sklearn.feature_selection.SelectPercentile",
+        "sklearn.feature_selection.SelectKBest"
     ],
     "IMPUTER": [
         "sklearn.impute.SimpleImputer"

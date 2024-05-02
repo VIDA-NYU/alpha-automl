@@ -16,14 +16,13 @@ EXTRA_PARAMS = {
     "lightgbm.LGBMClassifier": {'verbose': -1},
     "lightgbm.LGBMRegressor": {'verbose': -1},
     "catboost.CatBoostRegressor": {
-        'depth': 8,
         'grow_policy': 'Depthwise',
-        'l2_leaf_reg': 2.7997999596449104,
-        'learning_rate': 0.031375015734637225,
-        'max_ctr_complexity': 2,
-        'one_hot_max_size': 3,
         'logging_level': 'Silent'
     },
+    "catboost.CatBoostClassifier": {
+        'grow_policy': 'Depthwise',
+        'logging_level': 'Silent'
+    }
 }
 
 

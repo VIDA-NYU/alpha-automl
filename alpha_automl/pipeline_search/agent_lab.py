@@ -82,7 +82,7 @@ def train_rllib_model(algo, time_bound, checkpoint_load_folder, checkpoint_save_
     while True:
         if (
             time.time() > timeout
-            or (best_unchanged_iter >= 600 and result["episode_reward_mean"] >= 0)
+            or (best_unchanged_iter >= 10 and result["episode_reward_mean"] >= 0)
             # or result["episode_reward_mean"] >= 70
         ):
             logger.debug(f"Training timeout reached")
