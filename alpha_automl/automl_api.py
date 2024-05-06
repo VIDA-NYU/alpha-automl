@@ -373,7 +373,7 @@ class AutoMLClassifier(ClassifierBaseAutoML):
 
     def __init__(self, time_bound=15, metric='accuracy_score', split_strategy='holdout', time_bound_run=5,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
-                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO):
+                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO, optimizing=False):
         """
         Create/instantiate an AutoMLClassifier object.
 
@@ -396,14 +396,15 @@ class AutoMLClassifier(ClassifierBaseAutoML):
 
         task = 'CLASSIFICATION'
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
-                         split_strategy_kwargs, output_folder, checkpoints_folder, num_cpus, start_mode, verbose)
+                         split_strategy_kwargs, output_folder, checkpoints_folder, num_cpus, start_mode, verbose,
+                         optimizing)
 
 
 class AutoMLRegressor(BaseAutoML):
 
     def __init__(self, time_bound=15, metric='mean_absolute_error', split_strategy='holdout', time_bound_run=5,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
-                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO):
+                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO, optimizing=False):
         """
         Create/instantiate an AutoMLRegressor object.
 
@@ -426,7 +427,8 @@ class AutoMLRegressor(BaseAutoML):
 
         task = 'REGRESSION'
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
-                         split_strategy_kwargs, output_folder, checkpoints_folder, num_cpus, start_mode, verbose)
+                         split_strategy_kwargs, output_folder, checkpoints_folder, num_cpus, start_mode, verbose,
+                         optimizing)
 
 
 class AutoMLTimeSeries(BaseAutoML):
