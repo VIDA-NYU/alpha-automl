@@ -240,5 +240,12 @@
     },
     "sklearn.tree.DecisionTreeClassifier": {},
     "xgboost.XGBClassifier": {},
-    "lightgbm.LGBMClassifier": {}
+    "lightgbm.LGBMClassifier": {},
+    "sklearn.ensemble.AdaBoostClassifier": {},
+    "sklearn.ensemble.StackingClassifier": {},
+    "sklearn.ensemble.VotingClassifier": {},
+    "sklearn.ensemble.AdaBoostRegressor": {},
+    "sklearn.ensemble.BaggingRegressor": {},
+    "sklearn.ensemble.StackingRegressor": {},
+    "sklearn.ensemble.VotingRegressor": {}
 }
