@@ -95,12 +95,20 @@
         "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelSpreading",
         "alpha_automl.builtin_primitives.semisupervised_classifier.SkLabelPropagation"
     ],
-    "SINGLE_ENSEMBLER": [
+    "CLASSIFICATION_SINGLE_ENSEMBLER": [
         "sklearn.ensemble.AdaBoostClassifier",
         "sklearn.ensemble.BaggingClassifier"
     ],
-    "MULTI_ENSEMBLER": [
+    "CLASSIFICATION_MULTI_ENSEMBLER": [
         "sklearn.ensemble.StackingClassifier",
         "sklearn.ensemble.VotingClassifier"
+    ],
+    "REGRESSION_SINGLE_ENSEMBLER": [
+        "sklearn.ensemble.AdaBoostRegressor",
+        "sklearn.ensemble.BaggingRegressor"
+    ],
+    "REGRESSION_MULTI_ENSEMBLER": [
+        "sklearn.ensemble.StackingRegressor",
+        "sklearn.ensemble.VotingRegressor"
     ]
 }
