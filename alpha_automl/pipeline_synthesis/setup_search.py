@@ -45,7 +45,7 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
     task_start = datetime.now()
 
     def evaluate_pipeline(primitives):
-        has_repeated_estimators = check_repeated_classifiers(primitives, all_primitives, ensemble_pipelines_hash)
+        has_repeated_estimators = check_repeated_estimators(primitives, all_primitives, ensemble_pipelines_hash)
 
         if has_repeated_estimators:
             logger.info("Repeated estimators detected in ensembles, ignoring pipeline")
@@ -117,8 +117,7 @@ def update_config(task_name, metric, grammar, metadata):
     return config
 
 
-def check_repeated_classifiers(pipeline_primitives, all_primitives, ensemble_pipelines_hash):
-    # We should rename this function to check_repeated_estimators, but loading checkpoints raise errors
+def check_repeated_estimators(pipeline_primitives, all_primitives, ensemble_pipelines_hash):
     # Verify if the estimators are repeated in the ensembles (regardless of the order)
     estimators = []
     pipeline_hash = ""
