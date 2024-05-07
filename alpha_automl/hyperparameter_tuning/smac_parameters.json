@@ -247,5 +247,64 @@
     "sklearn.ensemble.AdaBoostRegressor": {},
     "sklearn.ensemble.BaggingRegressor": {},
     "sklearn.ensemble.StackingRegressor": {},
-    "sklearn.ensemble.VotingRegressor": {}
+    "sklearn.ensemble.VotingRegressor": {},
+    "catboost.CatBoostClassifier": {
+        "iterations": {
+            "type": "Integer",
+            "value": [
+                100,
+                2000
+            ],
+            "default": 1000
+        },
+        "learning_rate": {
+            "type": "Float",
+            "value": [
+                0.01,
+                0.3
+            ],
+            "default": 0.1
+        },
+        "depth": {
+            "type": "Integer",
+            "value": [
+                1,
+                16
+            ],
+            "default": 6
+        },
+        "l2_leaf_reg": {
+            "type": "Float",
+            "value": [
+                1,
+                10
+            ],
+            "default": 3
+        },
+        "border_count": {
+            "type": "Integer",
+            "value": [
+                32,
+                255
+            ],
+            "default": 254
+        },
+        "ctr_border_count": {
+            "type": "Integer",
+            "value": [
+                50,
+                200
+            ],
+            "default": 50
+        },
+        "auto_class_weights": {
+            "type": "Categorical",
+            "value": [
+                "None",
+                "Balanced",
+                "SqrtBalanced"
+            ],
+            "default": "None"
+        }
+    }
 }
