@@ -281,14 +281,6 @@
             ],
             "default": 254
         },
-        "ctr_border_count": {
-            "type": "Integer",
-            "value": [
-                50,
-                200
-            ],
-            "default": 50
-        },
         "auto_class_weights": {
             "type": "Categorical",
             "value": [
