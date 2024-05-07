@@ -249,14 +249,6 @@
     "sklearn.ensemble.StackingRegressor": {},
     "sklearn.ensemble.VotingRegressor": {},
     "catboost.CatBoostClassifier": {
-        "iterations": {
-            "type": "Integer",
-            "value": [
-                100,
-                2000
-            ],
-            "default": 1000
-        },
         "learning_rate": {
             "type": "Float",
             "value": [
