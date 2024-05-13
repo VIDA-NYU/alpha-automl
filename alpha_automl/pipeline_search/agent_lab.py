@@ -22,7 +22,7 @@ def pipeline_search_rllib(game, time_bound, checkpoint_load_folder, checkpoint_s
     num_cpus = int(ray.available_resources()["CPU"])
 
     # load checkpoint or create a new one
-    algo = load_rllib_checkpoint(game, checkpoint_load_folder, num_rollout_workers=1)
+    algo = load_rllib_checkpoint(game, checkpoint_load_folder, num_rollout_workers=7)
     logger.debug("Create Algo object done")
 
     # train model

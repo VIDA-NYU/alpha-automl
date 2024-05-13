@@ -106,18 +106,17 @@ class BaseAutoML():
         sign = get_sign_sorting(self.scorer._score_func, self.score_sorting)
         sorted_pipelines = sorted(pipelines, key=lambda x: x.get_score() * sign, reverse=True)
 
-        # [SMAC] added here!!
-        if self.optimizing:
-            optimizer = SmacOptimizer(X=X, y=y, splitter=self.splitter, scorer=self.scorer, n_trials=200)
         
         leaderboard_data = []
         for index, pipeline in enumerate(sorted_pipelines, start=1):
             pipeline_id = PIPELINE_PREFIX + str(index)
             self.pipelines[pipeline_id] = pipeline
             # [SMAC] added here!!
-            if self.optimizing and index <= 10:
+            if self.optimizing and index <= 5:
+                optimizer = SmacOptimizer(X=X, y=y, splitter=self.splitter, scorer=self.scorer, n_trials=50)
                 opt_pipeline = optimizer.optimize_pipeline(pipeline.get_pipeline())
-                opt_score, _, _ = score_pipeline(opt_pipeline, X, y, self.scorer, self.splitter)
+                alphaautoml_pipeline = score_pipeline(opt_pipeline, X, y, self.scorer, self.splitter, self.task_type)
+                opt_score = alphaautoml_pipeline.get_score()
                 logger.critical(f'[SMAC] {pipeline_id} successfully optimized: {pipeline.get_score()} => {opt_score}')
                 pipeline.set_pipeline(opt_pipeline)
                 pipeline.set_score(opt_score)

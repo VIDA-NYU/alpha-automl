@@ -67,7 +67,7 @@ class AutoMLManager():
 
         found_pipelines = 0
 
-        pipeline_threshold = 20
+        pipeline_threshold = 5
         X, y, _ = sample_dataset(self.X, self.y, SAMPLE_SIZE, self.task)
         while pipelines and found_pipelines < pipeline_threshold:
             pipeline = pipelines.pop()

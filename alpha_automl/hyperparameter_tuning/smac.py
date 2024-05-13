@@ -1,5 +1,6 @@
 import json
 import logging
+import copy
 from os.path import dirname, join
 
 import numpy as np
@@ -10,6 +11,7 @@ from ConfigSpace import (
     Constant,
     Float,
     Integer,
+    
 )
 from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import make_pipeline
@@ -53,7 +55,8 @@ def gen_pipeline(config, pipeline):
             primitive_object = create_object(step_name, {'estimator': estimator})
             new_pipeline.steps.append([step_name, primitive_object])
         elif step_type == 'CLASSIFICATION_MULTI_ENSEMBLER' or step_type == 'REGRESSION_MULTI_ENSEMBLER':
-            estimators = extract_estimators_smac(step_obj, PRIMITIVE_TYPES)
+            estimators = extract_estimators_smac(step_obj, config)
+            logger.critical(f"[YFW] =========== {config} --- {estimators} ==========")
             primitive_object = create_object(step_name, {'estimators': estimators})
             new_pipeline.steps.append([step_name, primitive_object])
         else:
@@ -64,7 +67,7 @@ def gen_pipeline(config, pipeline):
 
 def extract_estimators_smac(step_obj, config):
     new_estimators = []
-    estimators = step_obj.estimators
+    estimators = copy.deepcopy(step_obj.estimators)
     while estimators:
         estimator_name, estimator_obj = estimators.pop()
         estimator_name_lookup, estimator_name_counter = estimator_name.split('-')
@@ -85,29 +88,39 @@ def get_primitive_params(config, step_name):
 def gen_configspace(pipeline):
     # (from build_configspace) Build Configuration Space which defines all parameters and their ranges
     configspace = ConfigurationSpace(seed=0)
+    all_params = {}
     for primitive, prim_obj in pipeline.steps:
         step_type = PRIMITIVE_TYPES[primitive]
         try:
             params = SMAC_DICT[primitive]
-            configspace.add_hyperparameters(cast_primitive(params))
+            add_params(params, all_params)
             if step_type == 'COLUMN_TRANSFORMER':
                 for trans_name, _, _ in prim_obj.__dict__['transformers']:
                     trans_prim_name = trans_name.split('-')[0]
                     params = SMAC_DICT[trans_prim_name]
-                    configspace.add_hyperparameters(cast_primitive(params))
-            # elif step_type == 'CLASSIFICATION_SINGLE_ENSEMBLER' or step_type == 'REGRESSION_SINGLE_ENSEMBLER':
-            #     estimator_obj = prim_obj.estimator
-            #     for smac_name, smac_params in SMAC_DICT.items():
-            #         if estimator_obj.__class__.__name__ in smac_name:
-            #             configspace.add_hyperparameters(cast_primitive(smac_params))
+                    add_params(params, all_params)
+            elif step_type == 'CLASSIFICATION_SINGLE_ENSEMBLER' or step_type == 'REGRESSION_SINGLE_ENSEMBLER':
+                estimator_obj = prim_obj.estimator
+                for smac_name, params in SMAC_DICT.items():
+                    if estimator_obj.__class__.__name__ == smac_name.split(".")[-1]:
+                        add_params(params, all_params)
             elif step_type == 'CLASSIFICATION_MULTI_ENSEMBLER' or step_type == 'REGRESSION_MULTI_ENSEMBLER':
                 for estimator_name, _ in prim_obj.estimators:
                     estimator_name_lookup, _ = estimator_name.split('-')
                     params = SMAC_DICT[estimator_name_lookup]
-                    configspace.add_hyperparameters(cast_primitive(params))
+                    add_params(params, all_params)
         except Exception as e:
             logger.critical(f'[SMAC] {str(e)}')
+    configspace.add_hyperparameters(cast_primitive(all_params))
     return configspace
+
+
+def add_params(params, all_params):
+    for param_name, param_conf in params.items():
+        if param_name in all_params:
+            pass
+        else:
+            all_params[param_name] = param_conf
 
 
 def cast_primitive(params):
@@ -144,6 +157,8 @@ def cast_hyperparameter(param_name, param_conf):
         config_space = Float(param_name, (min_value, max_value), default=param_default)
     elif param_type == 'Constant':
         config_space = Constant(param_name, param_value)
+    elif param_type == 'Boolean':
+        config_space = Categorical(param_name, param_value, default=param_default)
     else:
         logger.error(f'Unknown param_type {param_type}')
 
@@ -168,31 +183,40 @@ class SmacOptimizer:
         return
 
     def train(self, config: Configuration, seed: int = 0) -> float:
-        pipeline = gen_pipeline(config, self.pipeline)
+        self.pipeline = gen_pipeline(config, self.pipeline)
+        logger.critical(f"~!~!~!~!~!~!~!~!~!~!~!~!~!~{self.pipeline}~!~!~!~!~!~!~!~!~!~!~!~!~!~")
         scores = cross_val_score(
-            pipeline,
+            self.pipeline,
             self.X,
             self.y,
             cv=self.splitter,
             scoring=self.scorer,
             error_score='raise',
         )
+        logger.critical(f"[WWWWWWWWWWWWWWWW] {self.pipeline} ~~~~~ {scores}")
+        
         return 1 - np.mean(scores)
 
     def optimize_pipeline(self, pipeline):
         self.pipeline = pipeline
+        logger.critical(f"????????????????????????????{pipeline}????????????????????????????")
         if self.pipeline is None:
             logger.critical('[SMAC] get_pipeline return None value!')
             return
         optimized_conf = self._optimize_pipeline(self.pipeline)
-        optimized_pipeline = gen_pipeline(optimized_conf, self.pipeline)
-        logger.debug(f'[SMAC] {pipeline} successfully optimized!')
-        return optimized_pipeline
+        logger.critical(f"[YFW] ----------------- {optimized_conf} --- {pipeline}")
+        if optimized_conf:
+            optimized_pipeline = gen_pipeline(optimized_conf, self.pipeline)
+            logger.debug(f'[SMAC] {pipeline} successfully optimized!')
+            return optimized_pipeline
+        else:
+            return self.pipeline
+        
 
     def _optimize_pipeline(self, pipeline):
         scenario = Scenario(
             gen_configspace(pipeline), deterministic=True, n_trials=self.n_trials
         )
 
-        smac = HyperparameterOptimizationFacade(scenario, self.train)
+        smac = HyperparameterOptimizationFacade(scenario, self.train, overwrite=True)
         return smac.optimize()

@@ -27,16 +27,7 @@
             "default": "word"
         }
     },
-    "sklearn.feature_extraction.text.CountVectorizer": {
-        "min_df": {
-            "type": "Float",
-            "value": [
-                0,
-                0.3
-            ],
-            "default": 0.1
-        }
-    },
+    "sklearn.feature_extraction.text.CountVectorizer": {},
     "sklearn.discriminant_analysis.LinearDiscriminantAnalysis": {},
     "sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis": {},
     "sklearn.ensemble.BaggingClassifier": {
@@ -135,14 +126,6 @@
                 1024
             ],
             "default": 0.1
-        },
-        "penalty": {
-            "type": "Categorical",
-            "value": [
-                "l2",
-                "l1"
-            ],
-            "default": "l2"
         }
     },
     "sklearn.linear_model.PassiveAggressiveClassifier": {},
@@ -241,7 +224,13 @@
     "sklearn.tree.DecisionTreeClassifier": {},
     "xgboost.XGBClassifier": {},
     "lightgbm.LGBMClassifier": {},
-    "sklearn.ensemble.AdaBoostClassifier": {},
+    "sklearn.ensemble.AdaBoostClassifier": {
+        "algorithm": {
+            "type": "Constant",
+            "value": "SAMME",
+            "default": "SAMME"
+        }
+    },
     "sklearn.ensemble.StackingClassifier": {},
     "sklearn.ensemble.VotingClassifier": {},
     "sklearn.ensemble.AdaBoostRegressor": {},
@@ -249,6 +238,11 @@
     "sklearn.ensemble.StackingRegressor": {},
     "sklearn.ensemble.VotingRegressor": {},
     "catboost.CatBoostClassifier": {
+        "logging_level": {
+            "type": "Constant",
+            "value": "Silent",
+            "default": "Silent"
+        },
         "learning_rate": {
             "type": "Float",
             "value": [
@@ -261,7 +255,7 @@
             "type": "Integer",
             "value": [
                 1,
-                16
+                6
             ],
             "default": 6
         },
@@ -290,5 +284,25 @@
             ],
             "default": "None"
         }
+    },
+    "sklearn.impute.SimpleImputer": {
+        "strategy": {
+            "type": "Constant",
+            "value": "most_frequent",
+            "default": "most_frequent"
+        },
+        "keep_empty_features": {
+            "type": "Boolean",
+            "value": [true],
+            "default": true
+        }
+    },
+    "sklearn.preprocessing.OneHotEncoder": {
+        "handle_unknown": {
+            "type": "Constant",
+            "value": "ignore",
+            "default": "ignore"
+        }
     }
+    
 }
