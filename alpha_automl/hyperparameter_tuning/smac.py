@@ -52,6 +52,10 @@ def gen_pipeline(config, pipeline):
             new_pipeline.steps.append([step_name, create_object(step_name, step_obj.__dict__)])
         elif step_type == 'CLASSIFICATION_SINGLE_ENSEMBLER' or step_type == 'REGRESSION_SINGLE_ENSEMBLER':
             estimator = step_obj.estimator
+            estimator_name = estimator.__class__.__name__
+            for smac_name in SMAC_DICT.keys():
+                if estimator_name == smac_name.split(".")[-1]:
+                    estimator = create_object(smac_name, get_primitive_params(config, smac_name))
             primitive_object = create_object(step_name, {'estimator': estimator})
             new_pipeline.steps.append([step_name, primitive_object])
         elif step_type == 'CLASSIFICATION_MULTI_ENSEMBLER' or step_type == 'REGRESSION_MULTI_ENSEMBLER':
@@ -184,7 +188,6 @@ class SmacOptimizer:
 
     def train(self, config: Configuration, seed: int = 0) -> float:
         self.pipeline = gen_pipeline(config, self.pipeline)
-        logger.critical(f"~!~!~!~!~!~!~!~!~!~!~!~!~!~{self.pipeline}~!~!~!~!~!~!~!~!~!~!~!~!~!~")
         scores = cross_val_score(
             self.pipeline,
             self.X,

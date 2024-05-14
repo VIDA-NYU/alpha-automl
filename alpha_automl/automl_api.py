@@ -8,7 +8,7 @@ from sklearn.utils.validation import check_is_fitted
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting, score_pipeline
 from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing, \
-    setup_output_folder, SemiSupervisedSplitter, SemiSupervisedLabelEncoder, write_pipeline_code_as_pyfile
+    setup_output_folder, SemiSupervisedSplitter, SemiSupervisedLabelEncoder, write_pipeline_code_as_pyfile, sample_dataset
 from alpha_automl.visualization import plot_comparison_pipelines
 from alpha_automl.pipeline_serializer import PipelineSerializer
 from alpha_automl.hyperparameter_tuning.smac import SmacOptimizer
@@ -108,18 +108,23 @@ class BaseAutoML():
 
         
         leaderboard_data = []
+        if self.optimizing:
+            X_sample, y_sample, _ = sample_dataset(X, y, 2000, self.task_type)
+            
         for index, pipeline in enumerate(sorted_pipelines, start=1):
             pipeline_id = PIPELINE_PREFIX + str(index)
             self.pipelines[pipeline_id] = pipeline
             # [SMAC] added here!!
             if self.optimizing and index <= 5:
-                optimizer = SmacOptimizer(X=X, y=y, splitter=self.splitter, scorer=self.scorer, n_trials=50)
+                optimizer = SmacOptimizer(X=X_sample, y=y_sample, splitter=self.splitter, scorer=self.scorer, n_trials=100)
                 opt_pipeline = optimizer.optimize_pipeline(pipeline.get_pipeline())
-                alphaautoml_pipeline = score_pipeline(opt_pipeline, X, y, self.scorer, self.splitter, self.task_type)
+                alphaautoml_pipeline = score_pipeline(opt_pipeline, X_sample, y_sample, self.scorer, self.splitter, self.task_type)
+                
                 opt_score = alphaautoml_pipeline.get_score()
-                logger.critical(f'[SMAC] {pipeline_id} successfully optimized: {pipeline.get_score()} => {opt_score}')
-                pipeline.set_pipeline(opt_pipeline)
-                pipeline.set_score(opt_score)
+                if opt_score > pipeline.get_score():
+                    logger.critical(f'[SMAC] {pipeline_id} successfully optimized: {pipeline.get_score()} => {opt_score}')
+                    pipeline.set_pipeline(opt_pipeline)
+                    pipeline.set_score(opt_score)
             leaderboard_data.append([index, pipeline.get_summary(), pipeline.get_score()])
 
         self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'pipeline', self.metric])
