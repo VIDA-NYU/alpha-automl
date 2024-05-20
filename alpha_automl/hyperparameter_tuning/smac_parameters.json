@@ -751,7 +751,5 @@
             "default": 0.1
         }
     },
-    "feature_engine.creation.MathFeatures": {
-        
-    }
+    "sklearn.preprocessing.PolynomialFeatures": {}
 }
