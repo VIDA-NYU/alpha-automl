@@ -170,16 +170,19 @@ def compute_metafeatures(metric, metadata):
         "mean_squared_error",
         "mean_squared_log_error",
         "median_absolute_error",
-        "r2_score",
     ]:
         scoring_type = 2
+    elif metric in [
+        "r2_score",
+    ]:
+        scoring_type = 3
     elif metric in [
         "adjusted_mutual_info_score",
         "rand_score",
         "mutual_info_score",
         "normalized_mutual_info_score",
     ]:
-        scoring_type = 3
+        scoring_type = 4
     metafeatures.append(scoring_type)
 
     # IMPUTE

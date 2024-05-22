@@ -18,11 +18,11 @@ def pipeline_search_rllib(game, time_bound, checkpoint_load_folder, checkpoint_s
     """
     Search for pipelines using Rllib
     """
-    ray.init(local_mode=True, num_cpus=8, logging_level=logging.CRITICAL, log_to_driver=False)
+    ray.init(local_mode=True, logging_level=logging.CRITICAL)
     num_cpus = int(ray.available_resources()["CPU"])
 
     # load checkpoint or create a new one
-    algo = load_rllib_checkpoint(game, checkpoint_load_folder, num_rollout_workers=7)
+    algo = load_rllib_checkpoint(game, checkpoint_load_folder, num_rollout_workers=1)
     logger.debug("Create Algo object done")
 
     # train model
@@ -50,7 +50,7 @@ def load_rllib_checkpoint(game, checkpoint_load_folder, num_rollout_workers):
             clip_param=0.3,
             kl_coeff=0.3,
             entropy_coeff=0.05,
-            train_batch_size=10000,
+            train_batch_size=5000,
         )
     )
     config.lr = 1e-5
@@ -82,7 +82,7 @@ def train_rllib_model(algo, time_bound, checkpoint_load_folder, checkpoint_save_
     while True:
         if (
             time.time() > timeout
-            or (best_unchanged_iter >= 600 and result["episode_reward_mean"] >= 0)
+            or (best_unchanged_iter >= 10 and result["episode_reward_mean"] >= 0)
             # or result["episode_reward_mean"] >= 70
         ):
             logger.debug(f"Training timeout reached")

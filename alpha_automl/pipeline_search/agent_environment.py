@@ -27,10 +27,16 @@ class AutoMLEnv(gym.Env):
         self.board = self.game.getInitBoard()  # initial board
         self.step_stack = ["S"]  # stack for steps
         self.metadata = self.board[: self.game.m]
+
+        if self.metadata[0] == 2:  # regression.error
+            self.scoring_type = "error"
+        else:  # classification.precision | clustering | regression.r2
+            self.scoring_type = "precision"
+
         self.observation_space = Dict(
             {
                 "board": Box(
-                    0, 85, shape=(self.game.p + self.game.m,), dtype=np.uint8
+                    0, 90, shape=(self.game.p + self.game.m,), dtype=np.uint8
                 ),  # Ray env board contains pipeline and metadata
             }
         )
@@ -93,10 +99,10 @@ class AutoMLEnv(gym.Env):
         game_end = self.game.getGameEnded(self.board)
         if game_end == 1:  # pipeline score over threshold
             try:
-                if self.game.problem == "REGRESSION":
+                if self.scoring_type == "error":
                     reward = 10 + (100 / self.game.getEvaluation(self.board))
                 else:
-                    reward = 10 + (self.game.getEvaluation(self.board)) ** 2 * 100
+                    reward = 10 + (self.game.getEvaluation(self.board)) ** 3 * 100
             except Exception as e:
                 logger.critical(f"[PIPELINE FOUND] Error happened: {str(e)}")
         elif game_end == 2:  # finished but invalid

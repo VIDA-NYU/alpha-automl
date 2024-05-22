@@ -13,8 +13,16 @@ logger = logging.getLogger(__name__)
 
 
 EXTRA_PARAMS = {
-    "lightgbm.LGBMClassifier": dict(verbose=-1),
-    "lightgbm.LGBMRegressor": dict(verbose=-1),
+    "lightgbm.LGBMClassifier": {'verbose': -1},
+    "lightgbm.LGBMRegressor": {'verbose': -1},
+    "catboost.CatBoostRegressor": {
+        'grow_policy': 'Depthwise',
+        'logging_level': 'Silent'
+    },
+    "catboost.CatBoostClassifier": {
+        'grow_policy': 'Depthwise',
+        'logging_level': 'Silent'
+    }
 }
 
 
