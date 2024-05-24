@@ -68,8 +68,7 @@
         "sklearn.svm.SVC",
         "sklearn.tree.DecisionTreeClassifier",
         "xgboost.XGBClassifier",
-        "lightgbm.LGBMClassifier",
-        "catboost.CatBoostClassifier"
+        "lightgbm.LGBMClassifier"
     ],
     "REGRESSOR": [
         "sklearn.linear_model.ARDRegression",
@@ -95,8 +94,7 @@
         "sklearn.linear_model.RidgeCV",
         "sklearn.linear_model.TheilSenRegressor",
         "xgboost.XGBRegressor",
-        "lightgbm.LGBMRegressor",
-        "catboost.CatBoostRegressor"
+        "lightgbm.LGBMRegressor"
     ],
     "CLUSTERER": [
         "sklearn.cluster.KMeans",

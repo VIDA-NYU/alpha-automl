@@ -85,7 +85,7 @@ class BaseAutoML():
         automl_hyperparams = {'new_primitives': self.new_primitives}
         pipelines = []
         start_time = datetime.datetime.utcnow()
-
+        X, y, _ = sample_dataset(X, y, 5000, self.task_type)
         for pipeline_data in self.automl_manager.search_pipelines(X, y, self.scorer, self.splitter, automl_hyperparams):
             end_time = datetime.datetime.utcnow()
             pipeline = pipeline_data['pipeline']
@@ -108,17 +108,15 @@ class BaseAutoML():
 
         
         leaderboard_data = []
-        if self.optimizing:
-            X_sample, y_sample, _ = sample_dataset(X, y, 2000, self.task_type)
             
         for index, pipeline in enumerate(sorted_pipelines, start=1):
             pipeline_id = PIPELINE_PREFIX + str(index)
             self.pipelines[pipeline_id] = pipeline
             # [SMAC] added here!!
             if self.optimizing and index <= 5:
-                optimizer = SmacOptimizer(X=X_sample, y=y_sample, splitter=self.splitter, scorer=self.scorer, n_trials=100)
+                optimizer = SmacOptimizer(X=X, y=y, splitter=self.splitter, scorer=self.scorer, n_trials=100)
                 opt_pipeline = optimizer.optimize_pipeline(pipeline.get_pipeline())
-                alphaautoml_pipeline = score_pipeline(opt_pipeline, X_sample, y_sample, self.scorer, self.splitter, self.task_type)
+                alphaautoml_pipeline = score_pipeline(opt_pipeline, X, y, self.scorer, self.splitter, self.task_type)
                 
                 opt_score = alphaautoml_pipeline.get_score()
                 if opt_score > pipeline.get_score():
