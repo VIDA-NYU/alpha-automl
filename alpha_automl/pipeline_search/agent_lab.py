@@ -77,7 +77,7 @@ def train_rllib_model(algo, time_bound, checkpoint_load_folder, checkpoint_save_
     result = algo.train()
     last_best = result["episode_reward_mean"]
     best_unchanged_iter = 1
-    logger.debug(pretty_print(result))
+    logger.info(pretty_print(result))
 
     while True:
         if (
@@ -95,7 +95,7 @@ def train_rllib_model(algo, time_bound, checkpoint_load_folder, checkpoint_save_
             weights = load_rllib_policy_weights(checkpoint_load_folder)
             algo.set_weights(weights)
         result = algo.train()
-        logger.debug(pretty_print(result))
+        logger.info(pretty_print(result))
         # stop training of the target train steps or reward are reached
         if result["episode_reward_mean"] > last_best:
             last_best = result["episode_reward_mean"]

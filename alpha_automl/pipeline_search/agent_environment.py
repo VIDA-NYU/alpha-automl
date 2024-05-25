@@ -36,7 +36,7 @@ class AutoMLEnv(gym.Env):
         self.observation_space = Dict(
             {
                 "board": Box(
-                    0, 90, shape=(self.game.p + self.game.m,), dtype=np.uint8
+                    0, 95, shape=(self.game.p + self.game.m,), dtype=np.uint8
                 ),  # Ray env board contains pipeline and metadata
             }
         )
