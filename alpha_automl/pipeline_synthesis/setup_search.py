@@ -33,7 +33,7 @@ config = {
         "VIDEO": 4, 
         "MULTIMODAL": 5
     },
-    "PIPELINE_SIZE": 10,
+    "PIPELINE_SIZE": 12,
 }
 
 
