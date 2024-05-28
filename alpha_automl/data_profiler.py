@@ -33,7 +33,7 @@ def profile_data(X):
             add_nonnumeric_column(column_type, metadata, index_column, column_name)
 
         elif TEXT_COLUMN == profiled_column['structural_type']:
-            samples = X[column_name].dropna().sample(5)
+            samples = X[column_name].dropna().sample(5, replace=True)
             if samples.apply(lambda x: x.endswith(('jpg', 'png', 'jpeg', 'gif'))).all():
                 column_type = mapping_encoders[IMAGE_COLUMN]
             else:
