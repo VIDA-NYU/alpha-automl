@@ -1,3 +1,4 @@
+import os
 import argparse
 import openml
 import pandas as pd
@@ -95,4 +96,8 @@ if __name__ == "__main__":
     automl.plot_leaderboard(use_print=True)
 
     # Evaluate best model
-    automl.score(X_test, y_test)
+    result = automl.score(X_test, y_test)
+
+    result = pd.DataFrame.from_dict({"task_id": [args.task], "score": [result["score"]]})
+
+    result.to_csv('result.csv', mode='a', header=not os.path.exists('result.csv'), index=False)
