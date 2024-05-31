@@ -191,9 +191,13 @@ class BaseAutoML():
 
     def add_primitives(self, new_primitives):
         """
-        Add new primitives.
+        Add new primitives to the search space.
 
-        :param new_primitives: Set of new primitives, tuples of name and object primitive
+        :param new_primitives: Set of new primitives, tuples of name and object primitive. Possible names are:
+            `IMPUTER`, `FEATURE_GENERATOR`, `FEATURE_SCALER`, `FEATURE_SELECTOR`, `TEXT_ENCODER`, `CATEGORICAL_ENCODER`, 
+            `DATETIME_ENCODER`, `IMAGE_ENCODER`, `CLASSIFICATION_SINGLE_ENSEMBLER`, `CLASSIFICATION_MULTI_ENSEMBLER`, 
+            `REGRESSION_SINGLE_ENSEMBLER`, `REGRESSION_MULTI_ENSEMBLER`, `CLASSIFIER`, `REGRESSOR`, `CLUSTERER`, 
+            `TIME_SERIES_FORECASTER`, `SEMISUPERVISED_SELFTRAINER`, and `SEMISUPERVISED_LABELPROPAGATOR`
         """
         for primitive_object, primitive_type in new_primitives:
             #check_input_for_multiprocessing(self._start_method, primitive_object, 'primitive')
