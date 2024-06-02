@@ -8,6 +8,7 @@ from sklearn.compose import ColumnTransformer
 from alpha_automl.utils import create_object, COLUMN_TRANSFORMER_ID, COLUMN_SELECTOR_ID, NATIVE_PRIMITIVE, \
     ADDED_PRIMITIVE
 from alpha_automl.primitive_loader import PRIMITIVE_TYPES
+from feature_engine.creation import MathFeatures
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,17 @@ def change_default_hyperparams(primitive_object):
         primitive_object.set_params(strategy='most_frequent', keep_empty_features=True)
     elif isinstance(primitive_object, AdaBoostClassifier):
         primitive_object.set_params(algorithm='SAMME')
+
+
+def create_math_features(primitive_type, columns):
+    if primitive_type == "sum":
+        return MathFeatures(variables=columns, func='sum')
+    elif primitive_type == "mean":
+        return MathFeatures(variables=columns, func='mean')
+    elif primitive_type == "std":
+        return MathFeatures(variables=columns, func='std')
+    elif primitive_type == "prod":
+        return MathFeatures(variables=columns, func='prod')
 
 
 def extract_estimators(pipeline_primitives, all_primitives):
@@ -87,6 +99,7 @@ class BaseBuilder:
         transformers = []
         nonnumeric_columns = self.metadata['nonnumeric_columns']
         useless_columns = self.metadata['useless_columns']
+        numeric_columns = self.metadata['numeric_columns']
 
         if len(useless_columns) > 0 and len(nonnumeric_columns) == 0:  # Add the transformer to the first step
             selector = (COLUMN_SELECTOR_ID, 'drop', [col_index for col_index, _ in useless_columns])
@@ -105,6 +118,9 @@ class BaseBuilder:
             elif primitive_type == 'CLASSIFICATION_MULTI_ENSEMBLER' or primitive_type == 'REGRESSION_MULTI_ENSEMBLER':
                 estimators = extract_estimators(pipeline_primitives, self.all_primitives)
                 primitive_object = create_object(primitive_name, {'estimators': estimators})
+            elif "feature_engine.creation" in primitive_name:
+                primitive_name, primitive_name_type = primitive_name.split('-')
+                primitive_object = create_math_features(primitive_name_type, numeric_columns)
             elif self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
                 primitive_object = create_object(primitive_name, EXTRA_PARAMS.get(primitive_name, None))
             else:
