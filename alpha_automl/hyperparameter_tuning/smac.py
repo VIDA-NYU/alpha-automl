@@ -40,7 +40,12 @@ SMAC_DICT = load_smac_parameters()
 def gen_pipeline(config, pipeline):
     new_pipeline = make_pipeline()
     for step_name, step_obj in pipeline.steps:
-        step_type = PRIMITIVE_TYPES[step_name]
+        if "feature_engine.creation" in step_name:
+            step_type = "FEATURE_GENERATOR"
+        elif "feature_engine.selection" in step_name:
+            step_type = "FEATURE_SELECTOR"
+        else:
+            step_type = PRIMITIVE_TYPES[step_name]
 
         if step_type == 'COLUMN_TRANSFORMER':
             transformers = []
