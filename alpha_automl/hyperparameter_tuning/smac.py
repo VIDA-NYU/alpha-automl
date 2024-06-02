@@ -99,7 +99,12 @@ def gen_configspace(pipeline):
     configspace = ConfigurationSpace(seed=0)
     all_params = {}
     for primitive, prim_obj in pipeline.steps:
-        step_type = PRIMITIVE_TYPES[primitive]
+        if "feature_engine.creation" in primitive:
+            step_type = "FEATURE_GENERATOR"
+        elif "feature_engine.selection" in primitive:
+            step_type = "FEATURE_SELECTOR"
+        else:
+            step_type = PRIMITIVE_TYPES[primitive]
         try:
             params = SMAC_DICT[primitive]
             add_params(params, all_params)
