@@ -35,8 +35,8 @@
         "sklearn.feature_selection.GenericUnivariateSelect",
         "sklearn.feature_selection.SelectPercentile",
         "sklearn.feature_selection.SelectKBest",
-        "feature_engine.selection.SmartCorrelatedSelection",
-        "feature_engine.selection.DropHighPSIFeatures"
+        "feature_engine.selection.smart_correlation_selection.SmartCorrelatedSelection",
+        "feature_engine.selection.drop_psi_features.DropHighPSIFeatures"
     ],
     "COLUMN_TRANSFORMER": [
         "sklearn.compose.ColumnTransformer"
