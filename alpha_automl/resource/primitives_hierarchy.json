@@ -20,7 +20,11 @@
         "alpha_automl.builtin_primitives.image_encoder.HogTransformer"
     ],
     "FEATURE_GENERATOR": [
-        "alpha_automl.wrapper_primitives.llm_feature_engine.LLMFeatureGenerator"
+        "alpha_automl.wrapper_primitives.llm_feature_engine.LLMFeatureGenerator",
+        "feature_engine.creation.math_features.MathFeatures-sum",
+        "feature_engine.creation.math_features.MathFeatures-mean",
+        "feature_engine.creation.math_features.MathFeatures-prod",
+        "feature_engine.creation.math_features.MathFeatures-std"
     ],
     "FEATURE_SCALER": [
         "sklearn.preprocessing.MaxAbsScaler",
