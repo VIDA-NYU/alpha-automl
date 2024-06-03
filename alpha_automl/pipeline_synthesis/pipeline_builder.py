@@ -119,7 +119,7 @@ class BaseBuilder:
                 estimators = extract_estimators(pipeline_primitives, self.all_primitives)
                 primitive_object = create_object(primitive_name, {'estimators': estimators})
             elif "feature_engine.creation" in primitive_name:
-                primitive_name, primitive_name_type = primitive_name.split('-')
+                primitive_name_type = primitive_name.split('-')[1]
                 primitive_object = create_math_features(primitive_name_type, numeric_columns)
             elif self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
                 primitive_object = create_object(primitive_name, EXTRA_PARAMS.get(primitive_name, None))

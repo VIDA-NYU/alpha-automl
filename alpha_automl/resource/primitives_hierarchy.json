@@ -21,10 +21,10 @@
     ],
     "FEATURE_GENERATOR": [
         "sklearn.preprocessing.PolynomialFeatures",
-        "feature_engine.creation.MathFeatures-sum",
-        "feature_engine.creation.MathFeatures-mean",
-        "feature_engine.creation.MathFeatures-prod",
-        "feature_engine.creation.MathFeatures-std"
+        "feature_engine.creation.math_features.MathFeatures-sum",
+        "feature_engine.creation.math_features.MathFeatures-mean",
+        "feature_engine.creation.math_features.MathFeatures-prod",
+        "feature_engine.creation.math_features.MathFeatures-std"
     ],
     "FEATURE_SCALER": [
         "sklearn.preprocessing.MaxAbsScaler",
