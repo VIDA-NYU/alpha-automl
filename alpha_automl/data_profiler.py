@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def profile_data(X):
-    metadata = {'nonnumeric_columns': {}, 'useless_columns': [], 'missing_values': False, 'numeric_columns': [], 'catagorical_columns': []}
+    metadata = {'nonnumeric_columns': {}, 'useless_columns': [], 'missing_values': False, 'numeric_columns': [], 'categorical_columns': []}
     mapping_encoders = {CATEGORICAL_COLUMN: 'CATEGORICAL_ENCODER', DATETIME_COLUMN: 'DATETIME_ENCODER',
                         TEXT_COLUMN: 'TEXT_ENCODER', IMAGE_COLUMN: 'IMAGE_ENCODER'}
 
@@ -44,7 +44,7 @@ def profile_data(X):
             metadata['missing_values'] = True
 
     metadata['numeric_columns'] = list(X.select_dtypes(include=['int64', 'float64']).columns)
-    metadata['catagorical_columns'] = list(X.select_dtypes(include=['object', 'category']).columns)
+    metadata['categorical_columns'] = list(X.select_dtypes(include=['object', 'category']).columns)
 
     logger.debug(f'Results of profiling data: non-numeric features = {str(metadata["nonnumeric_columns"].keys())}, '
                 f'useless columns = {str(metadata["useless_columns"])}, '
