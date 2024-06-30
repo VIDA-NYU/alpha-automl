@@ -20,7 +20,7 @@
         "alpha_automl.builtin_primitives.image_encoder.HogTransformer"
     ],
     "FEATURE_GENERATOR": [
-        "sklearn.preprocessing.PolynomialFeatures"
+        "alpha_automl.wrapper_primitives.llm_feature_engine.LLMFeatureGenerator"
     ],
     "FEATURE_SCALER": [
         "sklearn.preprocessing.MaxAbsScaler",
