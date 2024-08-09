@@ -170,6 +170,6 @@ def modify_search_space(primitives, include_primitives, exclude_primitives):
 
     for include_type, include_primitives in include_primitives.items():
         if include_type in primitives:
-            primitives[include_type] = [i for i in primitives[include_type] if i in include_primitives]
+            primitives[include_type] = [i for i in include_primitives]
 
     return primitives
