@@ -59,6 +59,8 @@ class BaseAutoML():
         self.output_folder = setup_output_folder(output_folder)
         self.pipelines = {}
         self.new_primitives = {}
+        self.include_primitives = {}
+        self.exclude_primitives = {}
         self.X = None
         self.y = None
         self.leaderboard = None
@@ -79,7 +81,11 @@ class BaseAutoML():
         """
         self.X = X
         self.y = y
-        automl_hyperparams = {'new_primitives': self.new_primitives}
+        automl_hyperparams = {
+            'new_primitives': self.new_primitives,
+            'include_primitives': self.include_primitives,
+            'exclude_primitives': self.exclude_primitives
+        }
         pipelines = []
         start_time = datetime.datetime.utcnow()
 
@@ -194,8 +200,8 @@ class BaseAutoML():
         Add new primitives to the search space.
 
         :param new_primitives: Set of new primitives, tuples of name and object primitive. Possible names are:
-            `IMPUTER`, `FEATURE_GENERATOR`, `FEATURE_SCALER`, `FEATURE_SELECTOR`, `TEXT_ENCODER`, `CATEGORICAL_ENCODER`, 
-            `DATETIME_ENCODER`, `IMAGE_ENCODER`, `CLASSIFICATION_SINGLE_ENSEMBLER`, `CLASSIFICATION_MULTI_ENSEMBLER`, 
+            `IMPUTER`, `CATEGORICAL_ENCODER`, `DATETIME_ENCODER`, `TEXT_ENCODER`, `IMAGE_ENCODER`, 
+            `FEATURE_GENERATOR`, `FEATURE_SCALER`, `FEATURE_SELECTOR`, `CLASSIFICATION_SINGLE_ENSEMBLER`, `CLASSIFICATION_MULTI_ENSEMBLER`, 
             `REGRESSION_SINGLE_ENSEMBLER`, `REGRESSION_MULTI_ENSEMBLER`, `CLASSIFIER`, `REGRESSOR`, `CLUSTERER`, 
             `TIME_SERIES_FORECASTER`, `SEMISUPERVISED_SELFTRAINER`, and `SEMISUPERVISED_LABELPROPAGATOR`
         """
@@ -205,6 +211,32 @@ class BaseAutoML():
             primitive_name = primitive_name.replace('__', '')  # Sklearn restriction on estimator names
             self.new_primitives[primitive_name] = {'primitive_object': primitive_object,
                                                    'primitive_type': primitive_type}
+
+    def whitelist_primitives(self, include_primitives):
+        """
+        Whitelist primitives to the search space.
+        :param include_primitives: List of tuples (primitive type, primitive ID) to be used in the search space. 
+            For example: [('CLASSIFIER', 'sklearn.ensemble.RandomForestClassifier'), ...]
+        """
+
+        for primitive_type, primitive_name in include_primitives:
+            if primitive_type not in self.include_primitives:
+                self.include_primitives[primitive_type] = [primitive_name]
+            else:
+                self.include_primitives[primitive_type].append(primitive_name)
+
+    def blacklist_primitives(self, exclude_primitives):
+        """
+        Blacklist primitives to the search space.
+        :param exclude_primitives: List of tuples (primitive type, primitive ID) to be removed from the search space. 
+            For example: [('CLASSIFIER', 'sklearn.ensemble.RandomForestClassifier'), ...]
+        """
+
+        for primitive_type, primitive_name in exclude_primitives:
+            if primitive_type not in self.exclude_primitives:
+                self.exclude_primitives[primitive_type] = [primitive_name]
+            else:
+                self.exclude_primitives[primitive_type].append(primitive_name)
 
     def get_leaderboard(self):
         """

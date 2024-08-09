@@ -135,7 +135,7 @@ def load_manual_grammar(task, encoders, use_imputer, new_primitives, include_pri
         primitive_type = new_primitives[primitive_name]['primitive_type']
         primitives[primitive_type].append(primitive_name)
 
-    # primitives = modify_search_space(primitives, include_primitives, exclude_primitives)
+    primitives = modify_search_space(primitives, include_primitives, exclude_primitives)
     grammar_string = modify_manual_grammar(encoders, use_imputer)
     global_grammar = create_global_grammar(grammar_string, primitives)
     task_grammar = create_task_grammar(global_grammar, task)
@@ -163,17 +163,13 @@ def load_automatic_grammar(task, dataset_path, target_column, include_primitives
 
 
 def modify_search_space(primitives, include_primitives, exclude_primitives):
-    primitives_types = {}  # load_primitives_types()
 
-    for exclude_primitive in exclude_primitives:
-        primitive_type = primitives_types.get(exclude_primitive, None)
-        if primitive_type in primitives:
-            primitives[primitive_type] = [i for i in primitives[primitive_type] if i != exclude_primitive]
+    for exclude_type, exclude_primitives in exclude_primitives.items():
+        if exclude_type in primitives:
+            primitives[exclude_type] = [i for i in primitives[exclude_type] if i not in exclude_primitives]
 
-    for include_primitive in include_primitives:
-        primitive_type = primitives_types.get(include_primitive, None)
-        if primitive_type in primitives:
-            if include_primitive not in primitives[primitive_type]:
-                primitives[primitive_type].append(include_primitive)
+    for include_type, include_primitives in include_primitives.items():
+        if include_type in primitives:
+            primitives[include_type] = [i for i in include_primitives]
 
     return primitives
