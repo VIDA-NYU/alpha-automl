@@ -34,7 +34,7 @@ def change_default_hyperparams(primitive_object):
     elif isinstance(primitive_object, SimpleImputer):
         primitive_object.set_params(strategy='most_frequent', keep_empty_features=True)
     elif isinstance(primitive_object, AdaBoostClassifier):
-        primitive_object.set_params(algorithm='SAMME')
+        primitive_object.set_params(algorithm='SAMME.R')
 
 
 def extract_estimators(pipeline_primitives, all_primitives):
