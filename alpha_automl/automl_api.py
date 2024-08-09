@@ -200,8 +200,8 @@ class BaseAutoML():
         Add new primitives to the search space.
 
         :param new_primitives: Set of new primitives, tuples of name and object primitive. Possible names are:
-            `IMPUTER`, `FEATURE_GENERATOR`, `FEATURE_SCALER`, `FEATURE_SELECTOR`, `TEXT_ENCODER`, `CATEGORICAL_ENCODER`, 
-            `DATETIME_ENCODER`, `IMAGE_ENCODER`, `CLASSIFICATION_SINGLE_ENSEMBLER`, `CLASSIFICATION_MULTI_ENSEMBLER`, 
+            `IMPUTER`, `CATEGORICAL_ENCODER`, `DATETIME_ENCODER`, `TEXT_ENCODER`, `IMAGE_ENCODER`, 
+            `FEATURE_GENERATOR`, `FEATURE_SCALER`, `FEATURE_SELECTOR`, `CLASSIFICATION_SINGLE_ENSEMBLER`, `CLASSIFICATION_MULTI_ENSEMBLER`, 
             `REGRESSION_SINGLE_ENSEMBLER`, `REGRESSION_MULTI_ENSEMBLER`, `CLASSIFIER`, `REGRESSOR`, `CLUSTERER`, 
             `TIME_SERIES_FORECASTER`, `SEMISUPERVISED_SELFTRAINER`, and `SEMISUPERVISED_LABELPROPAGATOR`
         """
@@ -215,7 +215,8 @@ class BaseAutoML():
     def whitelist_primitives(self, include_primitives):
         """
         Whitelist primitives to the search space.
-        include_primitives: [('FEATURE_GENERATOR', 'sklearn.preprocessing.PolynomialFeatures'), ...]
+        :param include_primitives: List of tuples (primitive type, primitive ID) to be used in the search space. 
+            For example: [('CLASSIFIER', 'sklearn.ensemble.RandomForestClassifier'), ...]
         """
 
         for primitive_type, primitive_name in include_primitives:
@@ -227,7 +228,8 @@ class BaseAutoML():
     def blacklist_primitives(self, exclude_primitives):
         """
         Blacklist primitives to the search space.
-        exclude_primitives: [('FEATURE_GENERATOR', 'sklearn.preprocessing.PolynomialFeatures'), ...]
+        :param exclude_primitives: List of tuples (primitive type, primitive ID) to be removed from the search space. 
+            For example: [('CLASSIFIER', 'sklearn.ensemble.RandomForestClassifier'), ...]
         """
 
         for primitive_type, primitive_name in exclude_primitives:
