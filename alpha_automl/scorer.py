@@ -7,7 +7,7 @@ from sklearn.model_selection import BaseCrossValidator, KFold, ShuffleSplit, cro
 from alpha_automl.utils import RANDOM_SEED, hide_logs
 from sklearn.metrics import accuracy_score, f1_score, jaccard_score, precision_score, recall_score,\
     max_error, mean_absolute_error, mean_squared_error, mean_squared_log_error, median_absolute_error, r2_score,\
-    adjusted_mutual_info_score, rand_score, mutual_info_score, normalized_mutual_info_score
+    adjusted_mutual_info_score, rand_score, mutual_info_score, normalized_mutual_info_score, roc_auc_score
 from alpha_automl.pipeline import Pipeline
 from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 
@@ -19,6 +19,7 @@ METRICS = {
     'f1_score': f1_score,
     'precision_score': precision_score,
     'recall_score': recall_score,
+    'roc_auc_score': roc_auc_score,
     'jaccard_score': jaccard_score,
     # Regression metrics
     'max_error': max_error,
@@ -41,6 +42,7 @@ METRICS_ORDERING = {
     f1_score: 'ascending',
     precision_score: 'ascending',
     recall_score: 'ascending',
+    roc_auc_score: 'ascending', 
     jaccard_score: 'ascending',
     # Regression metrics
     max_error: 'descending',
