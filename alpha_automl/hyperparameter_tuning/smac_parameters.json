@@ -1,0 +1,281 @@
+{
+    "sklearn.compose.ColumnTransformer": {},
+    "sklearn.preprocessing.MaxAbsScaler": {},
+    "sklearn.preprocessing.RobustScaler": {},
+    "sklearn.preprocessing.StandardScaler": {},
+    "sklearn.feature_selection.GenericUnivariateSelect": {},
+    "sklearn.feature_selection.SelectPercentile": {},
+    "sklearn.feature_selection.SelectKBest": {
+        "k": {
+            "type": "Categorical",
+            "value": [
+                1000,
+                2000,
+                4000,
+                6000
+            ],
+            "default": 2000
+        }
+    },
+    "sklearn.feature_extraction.text.TfidfVectorizer": {
+        "analyzer": {
+            "type": "Categorical",
+            "value": [
+                "word",
+                "char"
+            ],
+            "default": "word"
+        }
+    },
+    "sklearn.feature_extraction.text.CountVectorizer": {
+        "min_df": {
+            "type": "Float",
+            "value": [
+                0,
+                0.3
+            ],
+            "default": 0.1
+        }
+    },
+    "sklearn.ensemble.ExtraTreesClassifier": {
+        "n_estimators": {
+            "type": "Integer",
+            "value": [
+                200,
+                2000
+            ],
+            "default": 400
+        },
+        "max_features": {
+            "type": "Float",
+            "value": [
+                0.1,
+                1.0
+            ],
+            "default": 1.0
+        },
+        "max_leaf_nodes": {
+            "type": "Integer",
+            "value": [
+                80,
+                10000
+            ],
+            "default": 80
+        },
+        "criterion": {
+            "type": "Categorical",
+            "value": [
+                "entropy",
+                "gini"
+            ],
+            "default": "entropy"
+        }
+    },
+    "sklearn.ensemble.RandomForestClassifier": {
+        "n_estimators": {
+            "type": "Integer",
+            "value": [
+                200,
+                2000
+            ],
+            "default": 400
+        },
+        "max_features": {
+            "type": "Float",
+            "value": [
+                0.1,
+                1.0
+            ],
+            "default": 1.0
+        },
+        "criterion": {
+            "type": "Categorical",
+            "value": [
+                "entropy",
+                "gini"
+            ],
+            "default": "entropy"
+        }
+    },
+    "xgboost.XGBClassifier": {
+        "n_estimators": {
+            "type": "Integer",
+            "value": [
+                200,
+                2000
+            ],
+            "default": 400
+        },
+        "max_leaves": {
+            "type": "Integer",
+            "value": [
+                80,
+                10000
+            ],
+            "default": 80
+        },
+        "min_child_weight": {
+            "type": "Float",
+            "value": [
+                0.001,
+                0.1
+            ],
+            "default": 0.1
+        },
+        "learning_rate": {
+            "type": "Float",
+            "value": [
+                0.01,
+                0.3
+            ],
+            "default": 0.1
+        },
+        "subsample": {
+            "type": "Float",
+            "value": [
+                0.5,
+                1.0
+            ],
+            "default": 1.0
+        },
+        "colsample_bylevel": {
+            "type": "Float",
+            "value": [
+                0.5,
+                1.0
+            ],
+            "default": 1.0
+        },
+        "colsample_bytree": {
+            "type": "Float",
+            "value": [
+                0.5,
+                1.0
+            ],
+            "default": 1.0
+        }
+    },
+    "lightgbm.LGBMClassifier": {
+        "n_estimators": {
+            "type": "Integer",
+            "value": [
+                200,
+                2000
+            ],
+            "default": 400
+        },
+        "num_leaves": {
+            "type": "Integer",
+            "value": [
+                80,
+                10000
+            ],
+            "default": 80
+        },
+        "min_child_samples": {
+            "type": "Integer",
+            "value": [
+                20,
+                100
+            ],
+            "default": 20
+        },
+        "learning_rate": {
+            "type": "Float",
+            "value": [
+                0.001,
+                0.3
+            ],
+            "default": 0.1
+        },
+        "log_max_bin": {
+            "type": "Integer",
+            "value": [
+                6,
+                10
+            ],
+            "default": 8
+        },
+        "colsample_bytree": {
+            "type": "Float",
+            "value": [
+                0.3,
+                1.0
+            ],
+            "default": 1.0
+        },
+        "verbose": {
+            "type": "Constant",
+            "value": -1,
+            "default": -1
+        }
+    },
+    "catboost.CatBoostClassifier": {
+        "logging_level": {
+            "type": "Constant",
+            "value": "Silent",
+            "default": "Silent"
+        },
+        "learning_rate": {
+            "type": "Float",
+            "value": [
+                0.01,
+                0.3
+            ],
+            "default": 0.1
+        },
+        "depth": {
+            "type": "Integer",
+            "value": [
+                1,
+                6
+            ],
+            "default": 6
+        },
+        "l2_leaf_reg": {
+            "type": "Float",
+            "value": [
+                1,
+                10
+            ],
+            "default": 3
+        },
+        "border_count": {
+            "type": "Integer",
+            "value": [
+                32,
+                255
+            ],
+            "default": 254
+        },
+        "auto_class_weights": {
+            "type": "Categorical",
+            "value": [
+                "None",
+                "Balanced",
+                "SqrtBalanced"
+            ],
+            "default": "None"
+        }
+    },
+    "sklearn.impute.SimpleImputer": {
+        "strategy": {
+            "type": "Constant",
+            "value": "most_frequent",
+            "default": "most_frequent"
+        }
+    },
+    "sklearn.preprocessing.OneHotEncoder": {
+        "handle_unknown": {
+            "type": "Constant",
+            "value": "ignore",
+            "default": "ignore"
+        }
+    },
+    "sklearn.preprocessing.PolynomialFeatures": {},
+    "alpha_automl.wrapper_primitives.llm_feature_engine.LLMFeatureGenerator": {},
+    "feature_engine.creation.math_features.MathFeatures-sum": {},
+    "feature_engine.creation.math_features.MathFeatures-mean": {},
+    "feature_engine.creation.math_features.MathFeatures-prod": {},
+    "feature_engine.creation.math_features.MathFeatures-std": {}
+}
