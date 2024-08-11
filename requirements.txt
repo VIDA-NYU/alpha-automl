@@ -12,3 +12,5 @@ numpy
 typing-extensions==4.5.0
 catboost
 ray[rllib]
+ConfigSpace
+smac
