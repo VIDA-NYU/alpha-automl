@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def profile_data(X):
-    metadata = {'nonnumeric_columns': {}, 'useless_columns': [], 'missing_values': False}
+    metadata = {'nonnumeric_columns': {}, 'useless_columns': [], 'missing_values': False, 'numeric_columns': [], 'categorical_columns': []}
     mapping_encoders = {CATEGORICAL_COLUMN: 'CATEGORICAL_ENCODER', DATETIME_COLUMN: 'DATETIME_ENCODER',
                         TEXT_COLUMN: 'TEXT_ENCODER', IMAGE_COLUMN: 'IMAGE_ENCODER'}
 
@@ -42,6 +42,9 @@ def profile_data(X):
 
         if 'missing_values_ratio' in profiled_column:
             metadata['missing_values'] = True
+
+    metadata['numeric_columns'] = [(index_column, column_name) for index_column, column_name in enumerate(X.columns) if X[column_name].dtype in ['int64', 'float64']]
+    metadata['categorical_columns'] = [(index_column, column_name) for index_column, column_name in enumerate(X.columns) if X[column_name].dtype in ['object', 'category']]
 
     logger.debug(f'Results of profiling data: non-numeric features = {str(metadata["nonnumeric_columns"].keys())}, '
                 f'useless columns = {str(metadata["useless_columns"])}, '
