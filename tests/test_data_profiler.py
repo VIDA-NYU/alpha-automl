@@ -14,6 +14,10 @@ def test_profile_data():
                                                                  (5, 'country'), (8, 'duration'), (9, 'listed_in'),
                                                                  (10, 'description')],
                                                 'DATETIME_ENCODER': [(6, 'date_added')]},
-                         'useless_columns': [], 'missing_values': True}
+                         'useless_columns': [], 'missing_values': True,
+                         'numeric_columns': [(0, 'show_id'), (7, 'release_year')],
+                         'categorical_columns': [(1, 'type'), (2, 'title'), (3, 'director'), (4, 'cast'),
+                                                 (5, 'country'), (6, 'date_added'), (8, 'duration'), (9, 'listed_in'),
+                                                 (10, 'description')]}
 
     assert actual_metadata == expected_metadata

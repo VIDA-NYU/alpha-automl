@@ -92,7 +92,7 @@ def search_pipelines(X, y, scoring, splitting_strategy, task_name, time_bound, a
     checkpoint_save_folder = (
         checkpoints_folder
         if checkpoints_folder is not None
-        else DEFAULT_CHECKPOINT_PATH
+        else output_folder
     )
     game = PipelineGame(config_updated, evaluate_pipeline)
     pipeline_search_rllib(

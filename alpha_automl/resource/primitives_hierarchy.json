@@ -20,7 +20,11 @@
         "alpha_automl.builtin_primitives.image_encoder.HogTransformer"
     ],
     "FEATURE_GENERATOR": [
-        "sklearn.preprocessing.PolynomialFeatures"
+        "sklearn.preprocessing.PolynomialFeatures",
+        "alpha_automl.builtin_primitives.math_features.MathFeaturesSum",
+        "alpha_automl.builtin_primitives.math_features.MathFeaturesMean",
+        "alpha_automl.builtin_primitives.math_features.MathFeaturesProd",
+        "alpha_automl.builtin_primitives.math_features.MathFeaturesStd"
     ],
     "FEATURE_SCALER": [
         "sklearn.preprocessing.MaxAbsScaler",
@@ -30,7 +34,9 @@
     "FEATURE_SELECTOR": [
         "sklearn.feature_selection.GenericUnivariateSelect",
         "sklearn.feature_selection.SelectPercentile",
-        "sklearn.feature_selection.SelectKBest"
+        "sklearn.feature_selection.SelectKBest",
+        "feature_engine.selection.SmartCorrelatedSelection",
+        "feature_engine.selection.DropHighPSIFeatures"
     ],
     "COLUMN_TRANSFORMER": [
         "sklearn.compose.ColumnTransformer"
