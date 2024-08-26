@@ -89,6 +89,7 @@ class BaseBuilder:
         nonnumeric_columns = self.metadata['nonnumeric_columns']
         useless_columns = self.metadata['useless_columns']
         numeric_columns = self.metadata['numeric_columns']
+        column_names = self.metadata['column_names']
 
         if len(useless_columns) > 0 and len(nonnumeric_columns) == 0:  # Add the transformer to the first step
             selector = (COLUMN_SELECTOR_ID, 'drop', [col_index for col_index, _ in useless_columns])
@@ -108,7 +109,7 @@ class BaseBuilder:
                 estimators = extract_estimators(pipeline_primitives, self.all_primitives)
                 primitive_object = create_object(primitive_name, {'estimators': estimators})
             elif "alpha_automl.builtin_primitives.math_features" in primitive_name:
-                primitive_object = create_object(primitive_name, {'columns': [column_name for _, column_name in numeric_columns]})
+                primitive_object = create_object(primitive_name, {'numeric_columns': [column_name for _, column_name in numeric_columns], 'column_names': column_names})
             elif self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
                 primitive_object = create_object(primitive_name, EXTRA_PARAMS.get(primitive_name, None))
             else:
