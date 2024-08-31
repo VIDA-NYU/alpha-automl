@@ -11,14 +11,15 @@ from alpha_automl.base_primitive import BasePrimitive
 logger = logging.getLogger(__name__)
 
 class LLMFeatureGenerator(BasePrimitive):
-    def __init__(self, extra_system_prompt=None):
+    def __init__(self, description=None, extra_system_prompt=None):
+        self.description = description
         self.extra_system_prompt = extra_system_prompt
         self.prompt = None
         self.code = None
         pass
 
     def fit(self, X, y=None):
-        self.prompt = build_prompt_from_df(description="", df=X)
+        self.prompt = build_prompt_from_df(description=self.description, df=X)
         self.code = generate_code(self.prompt, self.extra_system_prompt)
         return self
 
@@ -28,7 +29,7 @@ class LLMFeatureGenerator(BasePrimitive):
         access_scope = {"df": X_cp, "pd": pd, "np": np}
         parsed = ast.parse(self.code)
         exec(compile(parsed, filename="<ast>", mode="exec"), access_scope, loc)
-        return np.array(X_cp)
+        return X_cp
 
 def get_prompt(
     df, description, iterative=1, data_description_unparsed=None, samples=None, **kwargs
@@ -55,6 +56,7 @@ The scale of columns and offset does not matter. Make sure all used columns exis
 This code also drops columns, if these may be redundant and hurt the predictive performance of the downstream classifier (Feature selection). Dropping columns may help as the chance of overfitting is lower, especially if the dataset is small.
 The classifier will be trained on the dataset with the generated columns and evaluated on a holdout set. The evaluation metric is accuracy. The best performing code will be selected.
 Added columns can be used in other codeblocks, dropped columns are not available anymore.
+Remember do not include np.inf, -np.inf in any generated columns.
 
 Code formatting for each added column:
 ```python
