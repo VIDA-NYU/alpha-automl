@@ -11,6 +11,6 @@ lightgbm
 numpy
 typing-extensions==4.5.0
 catboost
-ray[rllib]
+ray[rllib]==2.10.0
 ConfigSpace
 smac
