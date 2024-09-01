@@ -41,11 +41,14 @@ def gen_pipeline(config, pipeline):
 
         if step_type == 'COLUMN_TRANSFORMER':
             transformers = []
-            for trans_name, _, trans_index in step_obj.__dict__['transformers']:
+            for trans_name, trans_obj_ori, trans_index in step_obj.__dict__['transformers']:
                 trans_prim_name = trans_name.split('-')[0]
-                trans_obj = create_object(trans_prim_name, get_primitive_params(config, trans_prim_name))
-                transformers.append((trans_name, trans_obj, trans_index))
-                step_obj.__dict__['transformers'] = transformers
+                if "alpha_automl.builtin_primitives.math_features" in trans_prim_name:
+                    transformers.append((trans_name, trans_obj_ori, trans_index))
+                else:
+                    trans_obj = create_object(trans_prim_name, get_primitive_params(config, trans_prim_name))
+                    transformers.append((trans_name, trans_obj, trans_index))
+            step_obj.__dict__['transformers'] = transformers
             new_pipeline.steps.append([step_name, create_object(step_name, step_obj.__dict__)])
         else:
             new_pipeline.steps.append([step_name, create_object(step_name, get_primitive_params(config, step_name))])
