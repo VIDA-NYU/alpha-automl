@@ -150,7 +150,7 @@ class SmacOptimizer:
             scoring=self.scorer,
             error_score='raise',
         )
-        return 1 - np.mean(scores)
+        return np.mean(scores)
 
     def optimize_pipeline(self, pipeline):
         self.pipeline = pipeline
