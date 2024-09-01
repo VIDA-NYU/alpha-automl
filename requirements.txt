@@ -14,4 +14,3 @@ catboost
 ray[rllib]
 ConfigSpace
 smac
-openai
