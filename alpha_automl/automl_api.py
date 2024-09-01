@@ -121,7 +121,7 @@ class BaseAutoML():
                 pipeline_id = PIPELINE_PREFIX + str(index+1)
                 self.pipelines[pipeline_id] = pipeline
                 # [SMAC] added here!!
-                if self.optimizing and index < 10:
+                if self.optimizing and index < 5:
                     opt_pipeline = optimizer.optimize_pipeline(pipeline.get_pipeline())
                     smac_pipeline = score_pipeline(opt_pipeline, X_sample, y_sample, self.scorer, self.splitter, self.task_type)
                     if smac_pipeline.get_score() < pipeline.get_score():
