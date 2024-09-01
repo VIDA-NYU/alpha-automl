@@ -124,7 +124,7 @@ class BaseAutoML():
                 if self.optimizing and index < 10:
                     opt_pipeline = optimizer.optimize_pipeline(pipeline.get_pipeline())
                     smac_pipeline = score_pipeline(opt_pipeline, X_sample, y_sample, self.scorer, self.splitter, self.task_type)
-                    if smac_pipeline.get_score() > pipeline.get_score():
+                    if smac_pipeline.get_score() < pipeline.get_score():
                         logger.critical(f'[SMAC] Former {pipeline_id} successfully optimized: {pipeline.get_score()} => {smac_pipeline.get_score()}')
                         sorted_pipelines[index] = smac_pipeline
         

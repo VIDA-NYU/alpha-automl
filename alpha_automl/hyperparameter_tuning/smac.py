@@ -130,7 +130,7 @@ class SmacOptimizer:
         y=None,
         n_trials=50,
         splitter=make_splitter('holdout'),
-        scorer=make_scorer('accuracy_score'),
+        scorer=make_scorer('r2_score'),
     ):
         self.pipeline = None
         self.X = X
