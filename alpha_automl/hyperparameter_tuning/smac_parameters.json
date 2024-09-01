@@ -27,16 +27,7 @@
             "default": "word"
         }
     },
-    "sklearn.feature_extraction.text.CountVectorizer": {
-        "min_df": {
-            "type": "Float",
-            "value": [
-                0,
-                0.3
-            ],
-            "default": 0.1
-        }
-    },
+    "sklearn.feature_extraction.text.CountVectorizer": {},
     "sklearn.ensemble.ExtraTreesClassifier": {
         "n_estimators": {
             "type": "Integer",
