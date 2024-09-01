@@ -492,15 +492,6 @@
                 255
             ],
             "default": 254
-        },
-        "auto_class_weights": {
-            "type": "Categorical",
-            "value": [
-                "None",
-                "Balanced",
-                "SqrtBalanced"
-            ],
-            "default": "None"
         }
     }
 }
