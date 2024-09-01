@@ -334,10 +334,12 @@
         "criterion": {
             "type": "Categorical",
             "value": [
-                "entropy",
-                "gini"
+                "squared_error",
+                "absolute_error",
+                "friedman_mse",
+                "poisson"
             ],
-            "default": "entropy"
+            "default": "squared_error"
         }
     },
     "xgboost.XGBRegressor": {
