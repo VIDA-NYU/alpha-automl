@@ -5,28 +5,8 @@
     "sklearn.preprocessing.StandardScaler": {},
     "sklearn.feature_selection.GenericUnivariateSelect": {},
     "sklearn.feature_selection.SelectPercentile": {},
-    "sklearn.feature_selection.SelectKBest": {
-        "k": {
-            "type": "Categorical",
-            "value": [
-                1000,
-                2000,
-                4000,
-                6000
-            ],
-            "default": 2000
-        }
-    },
-    "sklearn.feature_extraction.text.TfidfVectorizer": {
-        "analyzer": {
-            "type": "Categorical",
-            "value": [
-                "word",
-                "char"
-            ],
-            "default": "word"
-        }
-    },
+    "sklearn.feature_selection.SelectKBest": {},
+    "sklearn.feature_extraction.text.TfidfVectorizer": {},
     "sklearn.feature_extraction.text.CountVectorizer": {},
     "sklearn.ensemble.ExtraTreesClassifier": {
         "n_estimators": {
