@@ -79,8 +79,10 @@ docker build -t alpha-automl:latest-jupyterhub --target alpha-automl-jupyterhub 
 ```
 See also the documentation on how to setup Alpha-AutoML + JupyterHub on [Kubernetes](https://github.com/VIDA-NYU/alpha-automl/tree/devel/kubernetes).
 
+
 ## Others
 Documentation for the Streamlit app for image triage  developed by Jataware Corp is available [here](https://github.com/jataware/st-image-triage), see this [video demo](https://drive.google.com/file/d/1h3o0C0wNfT2AQduhqfgGEWl8fInFkdFZ/view).
 
-## Disclaimer
-The development of AlphaAutoML was supported by the DARPA D3M Program. Any opinions, findings and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of DARPA.
+
+## Acknowledgment
+The development of Alpha-AutoML was supported by the DARPA D3M Program. Any opinions, findings and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of DARPA.
