@@ -79,3 +79,6 @@ You can also build an image to use with JupyterHub as follows:
 docker build -t alpha-automl:latest-jupyterhub --target alpha-automl-jupyterhub .
 ```
 See also the documentation on how to setup Alpha-AutoML + JupyterHub on [Kubernetes](https://github.com/VIDA-NYU/alpha-automl/tree/devel/kubernetes).
+
+## Disclaimer
+The development of AlphaAutoML was supported by the DARPA D3M Program. Any opinions, findings and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of DARPA.
