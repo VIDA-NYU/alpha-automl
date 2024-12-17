@@ -1,6 +1,7 @@
 import logging
 import time
 import multiprocessing
+from alpha_automl.pipeline import Pipeline
 from alpha_automl.data_profiler import profile_data
 from alpha_automl.scorer import make_splitter, score_pipeline
 from alpha_automl.utils import sample_dataset, is_equal_splitting
@@ -14,14 +15,16 @@ INCLUDE_PRIMITIVES = []
 NEW_PRIMITIVES = {}
 SPLITTING_STRATEGY = 'holdout'
 SAMPLE_SIZE = 2000
+MAX_RUNNING_PROCESSES = multiprocessing.cpu_count()
 
 logger = logging.getLogger(__name__)
 
 
 class AutoMLManager():
 
-    def __init__(self, output_folder, time_bound, time_bound_run, task, verbose):
+    def __init__(self, output_folder, checkpoints_folder, time_bound, time_bound_run, task, num_cpus, verbose):
         self.output_folder = output_folder
+        self.checkpoints_folder = checkpoints_folder
         self.time_bound = time_bound * 60
         self.time_bound_run = time_bound_run * 60
         self.task = task
@@ -29,7 +32,10 @@ class AutoMLManager():
         self.y = None
         self.scoring = None
         self.splitting_strategy = None
+        self.found_pipelines = None
+        self.running_processes = 1
         self.verbose = verbose
+        self.num_cpus = num_cpus if num_cpus is not None else MAX_RUNNING_PROCESSES
 
     def search_pipelines(self, X, y, scoring, splitting_strategy, automl_hyperparams=None):
         if automl_hyperparams is None:
@@ -46,63 +52,42 @@ class AutoMLManager():
     def _search_pipelines(self, automl_hyperparams):
         search_start_time = time.time()
         automl_hyperparams = self.check_automl_hyperparams(automl_hyperparams)
-        metadata = profile_data(self.X)
         X, y, is_sample = sample_dataset(self.X, self.y, SAMPLE_SIZE, self.task)
+        metadata = profile_data(X)
         internal_splitting_strategy = make_splitter(SPLITTING_STRATEGY)
+        self.found_pipelines = 0
         need_rescoring = True
 
         if not is_sample and is_equal_splitting(internal_splitting_strategy, self.splitting_strategy):
             need_rescoring = False
 
-        queue = multiprocessing.Queue()
-        search_process = multiprocessing.Process(target=search_pipelines_proc,
-                                                 args=(X, y, self.scoring, internal_splitting_strategy, self.task,
-                                                       self.time_bound, automl_hyperparams, metadata,
-                                                       self.output_folder, self.verbose, queue
-                                                       )
-                                                 )
+        pipelines = search_pipelines_proc(X, y, self.scoring, internal_splitting_strategy, self.task,
+                        self.time_bound, automl_hyperparams, metadata, self.output_folder, 
+                        self.checkpoints_folder)
 
-        search_process.start()
         found_pipelines = 0
 
-        while True:
-            result = queue.get()
+        pipeline_threshold = 20
+        X, y, _ = sample_dataset(self.X, self.y, SAMPLE_SIZE, self.task)
+        while pipelines and found_pipelines < pipeline_threshold:
+            pipeline = pipelines.pop()
+            try:
+                alphaautoml_pipeline = score_pipeline(pipeline, X, y, self.scoring, self.splitting_strategy, self.task)
+    
+                if alphaautoml_pipeline is not None:
+                    score = alphaautoml_pipeline.get_score()
+                    logger.debug(f'Pipeline scored successfully, score={score}')
+                    found_pipelines += 1
+                    yield {'pipeline': alphaautoml_pipeline, 'message': 'SCORED'}
+            except:
+                logger.debug(f'Pipeline scoring error!')
+                continue
+        
+        logger.debug(f'Found {found_pipelines} pipelines')
+        logger.debug('Search done')
 
-            if result == 'DONE':
-                search_process.terminate()
-                search_process.join(10)
-                logger.debug(f'Found {found_pipelines} pipelines')
-                logger.debug('Search done')
-                break
-
-            pipeline = result
-            score = pipeline.get_score()
-            logger.debug('Found new pipeline')
-            yield {'pipeline': pipeline, 'message': 'FOUND'}
-
-            if need_rescoring:
-                score, start_time, end_time = score_pipeline(pipeline.get_pipeline(), self.X, self.y, self.scoring,
-                                                             self.splitting_strategy, self.task)
-                pipeline.set_score(score)
-                pipeline.set_start_time(start_time)
-                pipeline.set_end_time(end_time)
-
-            if score is not None:
-                logger.debug(f'Pipeline scored successfully, score={score}')
-                found_pipelines += 1
-                yield {'pipeline': pipeline, 'message': 'SCORED'}
-
-            if time.time() > search_start_time + self.time_bound:
-                logger.debug('Reached search timeout')
-                search_process.terminate()
-                search_process.join(10)
-                logger.debug(f'Found {found_pipelines} pipelines')
-                break
 
     def check_automl_hyperparams(self, automl_hyperparams):
-        if 'use_automatic_grammar' not in automl_hyperparams:
-            automl_hyperparams['use_automatic_grammar'] = USE_AUTOMATIC_GRAMMAR
-
         if 'prioritize_primitives' not in automl_hyperparams:
             automl_hyperparams['prioritize_primitives'] = PRIORITIZE_PRIMITIVES
 

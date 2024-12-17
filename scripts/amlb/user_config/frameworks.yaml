@@ -1,0 +1,5 @@
+Alpha-AutoML:
+  module: extensions.Alpha-AutoML
+  version: 'stable'
+  project: https://github.com/VIDA-NYU/alpha-automl
+  description: 'Alpha-AutoML is an AutoML library that automatically searches for models and derives end-to-end pipelines that read, pre-process the data, and train the model.'

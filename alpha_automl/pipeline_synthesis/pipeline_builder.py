@@ -3,6 +3,7 @@ import logging
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder, OrdinalEncoder
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.compose import ColumnTransformer
 from alpha_automl.utils import create_object, COLUMN_TRANSFORMER_ID, COLUMN_SELECTOR_ID, NATIVE_PRIMITIVE, \
     ADDED_PRIMITIVE
@@ -10,31 +11,18 @@ from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 
 logger = logging.getLogger(__name__)
 
-SEMI_CLASSIFIER_PARAMS = {
-    "sklearn.discriminant_analysis.LinearDiscriminantAnalysis": {},
-    "sklearn.discriminant_analysis.QuadraticDiscriminantAnalysis": {},
-    "sklearn.ensemble.BaggingClassifier": {},
-    "sklearn.ensemble.ExtraTreesClassifier": {},
-    "sklearn.ensemble.GradientBoostingClassifier": {},
-    "sklearn.ensemble.RandomForestClassifier": {},
-    "sklearn.naive_bayes.BernoulliNB": {},
-    "sklearn.naive_bayes.GaussianNB": {},
-    "sklearn.naive_bayes.MultinomialNB": {},
-    "sklearn.neighbors.KNeighborsClassifier": {},
-    "sklearn.linear_model.LogisticRegression": {},
-    "sklearn.linear_model.PassiveAggressiveClassifier": {},
-    "sklearn.linear_model.SGDClassifier": dict(alpha=1e-5, penalty="l2", loss="log_loss"),
-    "sklearn.svm.LinearSVC": {},
-    "sklearn.svm.SVC": {},
-    "sklearn.tree.DecisionTreeClassifier": {},
-    "xgboost.XGBClassifier": {},
-    "lightgbm.LGBMClassifier": dict(verbose=-1),
-}
-
 
 EXTRA_PARAMS = {
-    "lightgbm.LGBMClassifier": dict(verbose=-1),
-    "lightgbm.LGBMRegressor": dict(verbose=-1),
+    "lightgbm.LGBMClassifier": {'verbose': -1},
+    "lightgbm.LGBMRegressor": {'verbose': -1},
+    "catboost.CatBoostRegressor": {
+        'grow_policy': 'Depthwise',
+        'logging_level': 'Silent'
+    },
+    "catboost.CatBoostClassifier": {
+        'grow_policy': 'Depthwise',
+        'logging_level': 'Silent'
+    }
 }
 
 
@@ -44,7 +32,24 @@ def change_default_hyperparams(primitive_object):
     elif isinstance(primitive_object, OrdinalEncoder):
         primitive_object.set_params(handle_unknown='use_encoded_value', unknown_value=-1)
     elif isinstance(primitive_object, SimpleImputer):
-        primitive_object.set_params(strategy='most_frequent')
+        primitive_object.set_params(strategy='most_frequent', keep_empty_features=True)
+    elif isinstance(primitive_object, AdaBoostClassifier):
+        primitive_object.set_params(algorithm='SAMME.R')
+
+
+def extract_estimators(pipeline_primitives, all_primitives):
+    estimators = []
+    estimator_name, estimator_obj = pipeline_primitives.pop()
+    current_primitive_type = all_primitives[estimator_name]['type']
+    counter = 0
+
+    while current_primitive_type == 'CLASSIFIER' or current_primitive_type == 'REGRESSOR':
+        estimators.append((f'{estimator_name}-{counter}', estimator_obj))
+        estimator_name, estimator_obj = pipeline_primitives.pop()
+        current_primitive_type = all_primitives[estimator_name]['type']
+        counter += 1
+    
+    return estimators
 
 
 class BaseBuilder:
@@ -88,27 +93,26 @@ class BaseBuilder:
             transformer_obj = ColumnTransformer([selector], remainder='passthrough')
             pipeline_primitives.append((COLUMN_TRANSFORMER_ID, transformer_obj))
 
-        for primitive in primitives:
-            primitive_name = primitive
+        for primitive_name in primitives:
             primitive_type = self.all_primitives[primitive_name]['type']
 
-            # Make sure that SEMISUPERVISED_CLASSIFIER primitive has a classifier primitive behind
-            if primitive_type == 'SEMISUPERVISED_CLASSIFIER':
-                if self.all_primitives[primitives[-1]]['type'] != 'CLASSIFIER':
-                    return
-                classifier_obj = create_object(primitives[-1], SEMI_CLASSIFIER_PARAMS[primitives[-1]])
+            if primitive_type == 'SEMISUPERVISED_SELFTRAINER':
+                classifier_obj = pipeline_primitives.pop()[1]
                 primitive_object = create_object(primitive_name, {'base_estimator': classifier_obj})
+            elif primitive_type == 'CLASSIFICATION_SINGLE_ENSEMBLER' or primitive_type == 'REGRESSION_SINGLE_ENSEMBLER':
+                classifier_obj = pipeline_primitives.pop()[1]
+                primitive_object = create_object(primitive_name, {'estimator': classifier_obj})
+            elif primitive_type == 'CLASSIFICATION_MULTI_ENSEMBLER' or primitive_type == 'REGRESSION_MULTI_ENSEMBLER':
+                estimators = extract_estimators(pipeline_primitives, self.all_primitives)
+                primitive_object = create_object(primitive_name, {'estimators': estimators})
             elif self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
-                if primitive in EXTRA_PARAMS:
-                    primitive_object = create_object(primitive, EXTRA_PARAMS[primitive])
-                else:
-                    primitive_object = create_object(primitive)
+                primitive_object = create_object(primitive_name, EXTRA_PARAMS.get(primitive_name, None))
             else:
                 primitive_object = self.automl_hyperparams['new_primitives'][primitive_name]['primitive_object']
 
             change_default_hyperparams(primitive_object)
 
-            if primitive_type in nonnumeric_columns:  # Create a  new transformer and add it to the list
+            if primitive_type in nonnumeric_columns:  # Create a new transformer and add it to the list
                 transformers += self.create_transformers(primitive_object, primitive_name, primitive_type)
             else:
                 if len(transformers) > 0:  # Add previous transformers to the pipeline
@@ -119,8 +123,6 @@ class BaseBuilder:
                     pipeline_primitives.append((COLUMN_TRANSFORMER_ID, transformer_obj))
                     transformers = []
                 pipeline_primitives.append((primitive_name, primitive_object))
-                if primitive_type == 'SEMISUPERVISED_CLASSIFIER':
-                    break
             
         return pipeline_primitives
 

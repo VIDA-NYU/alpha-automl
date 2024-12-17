@@ -1,11 +1,7 @@
 from __future__ import print_function
-import os
-import pickle
 import math
 import logging
-from copy import deepcopy
-from alpha_automl.pipeline_search.Game import Game
-from alpha_automl.pipeline_search.pipeline.PipelineLogic import Board
+from alpha_automl.pipeline_search.game_logic import Board
 import numpy as np
 import traceback
 import time
@@ -13,11 +9,10 @@ import time
 logger = logging.getLogger(__name__)
 
 
-class PipelineGame(Game):
+class PipelineGame():
     # FIXEME: Maybe the input parameters can be in json
-    def __init__(self, input={}, eval_pipeline=None, args=None):
+    def __init__(self, input=None, eval_pipeline=None):
         self.steps = 0
-        self.args = input['ARGS']
         self.evaluations = {}
         self.eval_times = {}
 
@@ -31,21 +26,7 @@ class PipelineGame(Game):
         self.data_type = input['DATA_TYPE'].upper()
         self.metric = input['METRIC']
         self.dataset = input['DATASET']
-
-        self.dataset_metafeatures = input['DATASET_METAFEATURES']
-        if self.dataset_metafeatures is None:
-            metafeatures_path = args.get('metafeatures_path')
-            if metafeatures_path is not None:
-                metafeatures_file = os.path.join(metafeatures_path, args['dataset'] + '_metafeatures.pkl')
-                if os.path.isfile(metafeatures_file):
-                    m_f = open(metafeatures_file, 'rb')
-                    self.dataset_metafeatures = pickle.load(m_f)[args['dataset']]
-
-        if self.dataset_metafeatures is None:
-            logger.warning('No Dataset Metafeatures specified - Initializing to empty')
-            self.dataset_metafeatures = []
-        else:
-            self.dataset_metafeatures = list(np.nan_to_num(np.asarray(self.dataset_metafeatures)))
+        self.dataset_metafeatures = list(np.nan_to_num(np.asarray(input['DATASET_METAFEATURES'])))
 
         self.m = len(self.dataset_metafeatures)+2
         self.p = input['PIPELINE_SIZE']
@@ -69,18 +50,18 @@ class PipelineGame(Game):
         board = Board(self.m, self.grammar, self.pipeline_size, self.metric)
         return len(board.valid_moves)
 
-    def getNextState(self, board, player, action):
-        # if player takes action on board, return next (board,player)
+    def getNextState(self, board, action):
         # action must be a valid move
         b = Board(self.m, self.grammar, self.pipeline_size, self.metric)
         b.set_metafeatures(board)
         b.set_pipeline(board)
         # logger.debug('PREV STATE %s', b.pieces_p)
-        b.execute_move(action, player)
+        b.execute_move(action)
         # logger.debug('NEXT STATE %s', b.pieces_p)
-        return (b.pieces_m+b.pieces_p, -player)
 
-    def getValidMoves(self, board, player):
+        return b.pieces_m+b.pieces_p
+
+    def getValidMoves(self, board):
         # return a fixed size binary vector
         b = Board(self.m, self.grammar, self.pipeline_size, self.metric)
         b.set_metafeatures(board)
@@ -102,7 +83,7 @@ class PipelineGame(Game):
         if eval_val is None:
             self.steps = self.steps + 1
             try:
-                eval_val = self.eval_pipeline(pipeline, 'AlphaAutoML')
+                eval_val = self.eval_pipeline(pipeline)
             except Exception:
                 logger.warning('Error in Pipeline Execution %s', eval_val)
                 traceback.print_exc()
@@ -113,40 +94,32 @@ class PipelineGame(Game):
 
         return eval_val
 
-    def getGameEnded(self, board, player, eval_val=None):
-        # return 0 if not ended, 1 if x won, -1 if x lost
-        # player = 1
+    def getGameEnded(self, board, eval_val=None):
+        # return 0 if not ended, 1 if x won, 2 if x lost
 
         b = Board(self.m, self.grammar, self.pipeline_size, self.metric)
         b.set_metafeatures(board)
         b.set_pipeline(board)
         if not b.is_terminal_pipeline():
             return 0
-        if len(self.evaluations) > 0:
-            sorted_evals = sorted([eval for eval in list(self.evaluations.values()) if eval != float('inf')])
-            if len(sorted_evals) > 0:
-                if 'error' in self.metric.lower():
-                    win_threshold = sorted_evals[0]
-                else:
-                    win_threshold = sorted_evals[-1]
-                b.win_threshold = win_threshold
+#         if len(self.evaluations) > 0:
+#             sorted_evals = sorted([eval for eval in list(self.evaluations.values()) if eval != float('inf')])
+#             if len(sorted_evals) > 0:
+#                 if 'error' in self.metric.lower():
+#                     win_threshold = sorted_evals[0]
+#                 else:
+#                     win_threshold = sorted_evals[-1]
+#                 b.win_threshold = win_threshold
 
         eval_val = self.getEvaluation(board)
 
-        if b.findWin(player, eval_val):
-            logger.debug('findwin %s', player)
+        if b.findWin(eval_val):
+            logger.debug('Win')
             return 1
-        if b.findWin(-player, eval_val):
-            logger.debug('findwin %', -player)
-            return -1
         if b.has_legal_moves():
             return 0
 
         return 2
-
-    def getCanonicalForm(self, board, player):
-        # return state if player==1, else return -state if player==-1
-        return deepcopy(board)
 
     def stringRepresentation(self, board):
         # 3x3 numpy array (canonical board)

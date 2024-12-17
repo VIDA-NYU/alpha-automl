@@ -8,11 +8,12 @@ from sklearn.utils.validation import check_is_fitted
 from alpha_automl.automl_manager import AutoMLManager
 from alpha_automl.scorer import make_scorer, make_splitter, make_str_metric, get_sign_sorting
 from alpha_automl.utils import make_d3m_pipelines, hide_logs, get_start_method, check_input_for_multiprocessing, \
-    setup_output_folder, SemiSupervisedSplitter, SemiSupervisedLabelEncoder
+    setup_output_folder, SemiSupervisedSplitter, SemiSupervisedLabelEncoder, write_pipeline_code_as_pyfile
 from alpha_automl.visualization import plot_comparison_pipelines
 from alpha_automl.pipeline_serializer import PipelineSerializer
 
-logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
+logging.basicConfig(level=logging.DEBUG, stream=sys.stdout, format='%(levelname)s|%(asctime)s|%(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
 logger = logging.getLogger(__name__)
 
 AUTOML_NAME = 'AlphaAutoML'
@@ -23,23 +24,26 @@ class BaseAutoML():
 
     def __init__(self, time_bound=15, metric=None, split_strategy='holdout', time_bound_run=5, task=None,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None,  output_folder=None,
-                 start_mode='auto', verbose=logging.INFO):
+                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an BaseAutoML object.
 
-        :param time_bound: Limit time in minutes to perform the search
+        :param time_bound: Limit time in minutes to perform the search.
         :param metric: A str (see in the documentation the list of available metrics) or a callable object/function
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
-            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits
-        :param time_bound_run: Limit time in minutes to score a pipeline
-        :param task: The task to be solved
+            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits.
+        :param time_bound_run: Limit time in minutes to score a pipeline.
+        :param task: The task to be solved.
         :param score_sorting: The sort used to order the scores. It could be `auto`, `ascending` or `descending`.
             `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
-        :param metric_kwargs: Additional arguments for metric
+        :param metric_kwargs: Additional arguments for metric.
         :param split_strategy_kwargs: Additional arguments for splitting_strategy.
         :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
+        :param checkpoints_folder: Path to the directory to load and save the checkpoints. If it is None, 
+            it will use the default checkpoints and save the new checkpoints in output_folder.
+        :param num_cpus: Number of CPUs to be used.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
-        :param verbose: Whether or not to show additional logs
+        :param verbose: The logs level.
         """
 
         hide_logs(verbose)
@@ -55,15 +59,18 @@ class BaseAutoML():
         self.output_folder = setup_output_folder(output_folder)
         self.pipelines = {}
         self.new_primitives = {}
+        self.include_primitives = {}
+        self.exclude_primitives = {}
         self.X = None
         self.y = None
         self.leaderboard = None
-        self.automl_manager = AutoMLManager(self.output_folder, time_bound, time_bound_run, task, verbose)
-        self._start_method = get_start_method(start_mode)
-        set_start_method(self._start_method, force=True)
-        check_input_for_multiprocessing(self._start_method, self.scorer._score_func, 'metric')
-        check_input_for_multiprocessing(self._start_method, self.splitter, 'split strategy')
+        self.automl_manager = AutoMLManager(self.output_folder, checkpoints_folder, time_bound, time_bound_run, task, num_cpus, verbose)
+        #self._start_method = get_start_method(start_mode)
+        #set_start_method(self._start_method, force=True)
+        #check_input_for_multiprocessing(self._start_method, self.scorer._score_func, 'metric')
+        #check_input_for_multiprocessing(self._start_method, self.splitter, 'split strategy')
         self.label_encoder = None
+        self.task_type = task
 
     def fit(self, X, y):
         """
@@ -74,7 +81,11 @@ class BaseAutoML():
         """
         self.X = X
         self.y = y
-        automl_hyperparams = {'new_primitives': self.new_primitives}
+        automl_hyperparams = {
+            'new_primitives': self.new_primitives,
+            'include_primitives': self.include_primitives,
+            'exclude_primitives': self.exclude_primitives
+        }
         pipelines = []
         start_time = datetime.datetime.utcnow()
 
@@ -102,21 +113,7 @@ class BaseAutoML():
         for index, pipeline in enumerate(sorted_pipelines, start=1):
             pipeline_id = PIPELINE_PREFIX + str(index)
             self.pipelines[pipeline_id] = pipeline
-            if (
-                pipeline.get_pipeline().steps[-1][0]
-                == 'sklearn.semi_supervised.SelfTrainingClassifier'
-                or pipeline.get_pipeline().steps[-1][0]
-                == 'alpha_automl.builtin_primitives.semisupervised_classifier.AutonBox'
-            ):
-                leaderboard_data.append(
-                    [
-                        index,
-                        f'{pipeline.get_summary()}, {pipeline.get_pipeline().steps[-1][1].base_estimator.__class__.__name__}',
-                        pipeline.get_score(),
-                    ]
-                )
-            else:
-                leaderboard_data.append([index, pipeline.get_summary(), pipeline.get_score()])
+            leaderboard_data.append([index, pipeline.get_summary(), pipeline.get_score()])
 
         self.leaderboard = pd.DataFrame(leaderboard_data, columns=['ranking', 'pipeline', self.metric])
 
@@ -200,16 +197,46 @@ class BaseAutoML():
 
     def add_primitives(self, new_primitives):
         """
-        Add new primitives.
+        Add new primitives to the search space.
 
-        :param new_primitives: Set of new primitives, tuples of name and object primitive
+        :param new_primitives: Set of new primitives, tuples of name and object primitive. Possible names are:
+            `IMPUTER`, `CATEGORICAL_ENCODER`, `DATETIME_ENCODER`, `TEXT_ENCODER`, `IMAGE_ENCODER`, 
+            `FEATURE_GENERATOR`, `FEATURE_SCALER`, `FEATURE_SELECTOR`, `CLASSIFICATION_SINGLE_ENSEMBLER`, `CLASSIFICATION_MULTI_ENSEMBLER`, 
+            `REGRESSION_SINGLE_ENSEMBLER`, `REGRESSION_MULTI_ENSEMBLER`, `CLASSIFIER`, `REGRESSOR`, `CLUSTERER`, 
+            `TIME_SERIES_FORECASTER`, `SEMISUPERVISED_SELFTRAINER`, and `SEMISUPERVISED_LABELPROPAGATOR`
         """
         for primitive_object, primitive_type in new_primitives:
-            check_input_for_multiprocessing(self._start_method, primitive_object, 'primitive')
+            #check_input_for_multiprocessing(self._start_method, primitive_object, 'primitive')
             primitive_name = f'{primitive_object.__module__}.{primitive_object.__class__.__name__}'
             primitive_name = primitive_name.replace('__', '')  # Sklearn restriction on estimator names
             self.new_primitives[primitive_name] = {'primitive_object': primitive_object,
                                                    'primitive_type': primitive_type}
+
+    def whitelist_primitives(self, include_primitives):
+        """
+        Whitelist primitives to the search space.
+        :param include_primitives: List of tuples (primitive type, primitive ID) to be used in the search space. 
+            For example: [('CLASSIFIER', 'sklearn.ensemble.RandomForestClassifier'), ...]
+        """
+
+        for primitive_type, primitive_name in include_primitives:
+            if primitive_type not in self.include_primitives:
+                self.include_primitives[primitive_type] = [primitive_name]
+            else:
+                self.include_primitives[primitive_type].append(primitive_name)
+
+    def blacklist_primitives(self, exclude_primitives):
+        """
+        Blacklist primitives to the search space.
+        :param exclude_primitives: List of tuples (primitive type, primitive ID) to be removed from the search space. 
+            For example: [('CLASSIFIER', 'sklearn.ensemble.RandomForestClassifier'), ...]
+        """
+
+        for primitive_type, primitive_name in exclude_primitives:
+            if primitive_type not in self.exclude_primitives:
+                self.exclude_primitives[primitive_type] = [primitive_name]
+            else:
+                self.exclude_primitives[primitive_type].append(primitive_name)
 
     def get_leaderboard(self):
         """
@@ -268,6 +295,15 @@ class BaseAutoML():
         else:
             plot_comparison_pipelines(precomputed_pipelines, precomputed_primitive_types)
 
+    def export_pipeline_code(self, pipeline_id):
+        """
+        Export Pipeline to executable .py file.
+
+        :param pipeline_id: Id of a pipeline
+        """
+        pipeline_obj = self.pipelines[pipeline_id].get_pipeline()
+        write_pipeline_code_as_pyfile(pipeline_id, pipeline_obj, self.task_type)
+
     def _fit(self, X, y, pipeline_id):
         self.pipelines[pipeline_id].get_pipeline().fit(X, y)
 
@@ -295,11 +331,11 @@ class BaseAutoML():
         return serialized_pipeline
 
 
-class AutoMLClassifier(BaseAutoML):
+class ClassifierBaseAutoML(BaseAutoML):
 
-    def __init__(self, time_bound=15, metric='accuracy_score', split_strategy='holdout', time_bound_run=5,
+    def __init__(self, time_bound=15, metric='accuracy_score', split_strategy='holdout', time_bound_run=5, task=None,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
-                 start_mode='auto', verbose=logging.INFO):
+                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLClassifier object.
 
@@ -308,18 +344,21 @@ class AutoMLClassifier(BaseAutoML):
         :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
             BaseCrossValidator, BaseShuffleSplit, RepeatedSplits.
         :param time_bound_run: Limit time in minutes to score a pipeline.
+        :param task: The task to be solved.
         :param score_sorting: The sort used to order the scores. It could be `auto`, `ascending` or `descending`.
             `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
         :param metric_kwargs: Additional arguments for metric.
         :param split_strategy_kwargs: Additional arguments for splitting_strategy.
         :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
+        :param checkpoints_folder: Path to the directory to load and save the checkpoints. If it is None, 
+            it will use the default checkpoints and save the new checkpoints in output_folder.
+        :param num_cpus: Number of CPUs to be used.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
-        :param verbose: Whether or not to show additional logs.
+        :param verbose: The logs level.
         """
 
-        task = 'CLASSIFICATION'
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
-                         split_strategy_kwargs, output_folder, start_mode, verbose)
+                         split_strategy_kwargs, output_folder, checkpoints_folder, num_cpus, start_mode, verbose)
 
         self.label_encoder = LabelEncoder()
 
@@ -351,11 +390,41 @@ class AutoMLClassifier(BaseAutoML):
         return super().score_pipeline(X, y, pipeline_id)
 
 
+class AutoMLClassifier(ClassifierBaseAutoML):
+
+    def __init__(self, time_bound=15, metric='accuracy_score', split_strategy='holdout', time_bound_run=5,
+                 score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
+                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO):
+        """
+        Create/instantiate an AutoMLClassifier object.
+
+        :param time_bound: Limit time in minutes to perform the search.
+        :param metric: A str (see in the documentation the list of available metrics) or a callable object/function.
+        :param split_strategy: Method to score the pipeline: `holdout`, `cross_validation` or an instance of
+            BaseCrossValidator, BaseShuffleSplit, RepeatedSplits.
+        :param time_bound_run: Limit time in minutes to score a pipeline.
+        :param score_sorting: The sort used to order the scores. It could be `auto`, `ascending` or `descending`.
+            `auto` is used for the built-in metrics. For the user-defined metrics, this param must be passed.
+        :param metric_kwargs: Additional arguments for metric.
+        :param split_strategy_kwargs: Additional arguments for splitting_strategy.
+        :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
+        :param checkpoints_folder: Path to the directory to load and save the checkpoints. If it is None, 
+            it will use the default checkpoints and save the new checkpoints in output_folder.
+        :param num_cpus: Number of CPUs to be used.
+        :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
+        :param verbose: The logs level.
+        """
+
+        task = 'CLASSIFICATION'
+        super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
+                         split_strategy_kwargs, output_folder, checkpoints_folder, num_cpus, start_mode, verbose)
+
+
 class AutoMLRegressor(BaseAutoML):
 
     def __init__(self, time_bound=15, metric='mean_absolute_error', split_strategy='holdout', time_bound_run=5,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
-                 start_mode='auto', verbose=logging.INFO):
+                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLRegressor object.
 
@@ -369,19 +438,23 @@ class AutoMLRegressor(BaseAutoML):
         :param metric_kwargs: Additional arguments for metric.
         :param split_strategy_kwargs: Additional arguments for splitting_strategy.
         :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
+        :param checkpoints_folder: Path to the directory to load and save the checkpoints. If it is None, 
+            it will use the default checkpoints and save the new checkpoints in output_folder.
+        :param num_cpus: Number of CPUs to be used.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
-        :param verbose: Whether or not to show additional logs.
+        :param verbose: The logs level.
         """
 
         task = 'REGRESSION'
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
-                         split_strategy_kwargs, output_folder, start_mode, verbose)
+                         split_strategy_kwargs, output_folder, checkpoints_folder, num_cpus, start_mode, verbose)
 
 
 class AutoMLTimeSeries(BaseAutoML):
     def __init__(self, time_bound=15, metric='mean_squared_error', split_strategy='timeseries', time_bound_run=5,
                  score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
-                 start_mode='auto', verbose=logging.INFO, date_column=None, target_column=None):
+                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO, date_column=None,
+                 target_column=None):
         """
         Create/instantiate an AutoMLTimeSeries object.
 
@@ -395,8 +468,11 @@ class AutoMLTimeSeries(BaseAutoML):
         :param metric_kwargs: Additional arguments for metric.
         :param split_strategy_kwargs: Additional arguments for TimeSeriesSplit, E.g. n_splits and test_size(int).
         :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
+        :param checkpoints_folder: Path to the directory to load and save the checkpoints. If it is None, 
+            it will use the default checkpoints and save the new checkpoints in output_folder.
+        :param num_cpus: Number of CPUs to be used.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
-        :param verbose: Whether or not to show additional logs.
+        :param verbose: The logs level.
         """
 
         task = 'TIME_SERIES_FORECAST'
@@ -404,7 +480,7 @@ class AutoMLTimeSeries(BaseAutoML):
         self.target_column = target_column
 
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
-                         split_strategy_kwargs, output_folder, start_mode, verbose)
+                         split_strategy_kwargs, output_folder, checkpoints_folder, num_cpus, start_mode, verbose)
 
     def _column_parser(self, X):
         cols = list(X.columns.values)
@@ -419,11 +495,11 @@ class AutoMLTimeSeries(BaseAutoML):
         super().fit(X, y)
 
 
-class AutoMLSemiSupervisedClassifier(BaseAutoML):
+class AutoMLSemiSupervisedClassifier(ClassifierBaseAutoML):
 
-    def __init__(self, time_bound=15, metric='f1_score', split_strategy='holdout', time_bound_run=5,
-                 score_sorting='auto', metric_kwargs={'average': 'micro'}, split_strategy_kwargs=None,
-                 output_folder=None, start_mode='auto', verbose=logging.INFO):
+    def __init__(self, time_bound=15, metric='accuracy_score', split_strategy='holdout', time_bound_run=5,
+                 score_sorting='auto', metric_kwargs=None, split_strategy_kwargs=None, output_folder=None,
+                 checkpoints_folder=None, num_cpus=None, start_mode='auto', verbose=logging.INFO):
         """
         Create/instantiate an AutoMLSemiSupervisedClassifier object.
 
@@ -438,43 +514,19 @@ class AutoMLSemiSupervisedClassifier(BaseAutoML):
         :param split_strategy_kwargs: Additional arguments for splitting_strategy. In SemiSupervised case, `n_splits`
             and `test_size`(test proportion from 0 to 1) can be pass to the splitter.
         :param output_folder: Path to the output directory. If it is None, create a temp folder automatically.
+        :param checkpoints_folder: Path to the directory to load and save the checkpoints. If it is None, 
+            it will use the default checkpoints and save the new checkpoints in output_folder.
+        :param num_cpus: Number of CPUs to be used.
         :param start_mode: The mode to start the multiprocessing library. It could be `auto`, `fork` or `spawn`.
-        :param verbose: Whether or not to show additional logs.
+        :param verbose: The logs level.
         """
 
         task = 'SEMISUPERVISED'
         super().__init__(time_bound, metric, split_strategy, time_bound_run, task, score_sorting, metric_kwargs,
-                         split_strategy_kwargs, output_folder, start_mode, verbose)
+                         split_strategy_kwargs, output_folder, checkpoints_folder, num_cpus, start_mode, verbose)
 
         if split_strategy_kwargs is None:
-            split_strategy_kwargs = {'test_size': 0.2}
+            split_strategy_kwargs = {'test_size': 0.25}
 
         self.splitter = SemiSupervisedSplitter(**split_strategy_kwargs)
         self.label_encoder = SemiSupervisedLabelEncoder()
-
-    def fit(self, X, y):
-        y = self.label_encoder.fit_transform(y)
-        super().fit(X, y)
-
-    def predict(self, X):
-        predictions = super().predict(X)
-
-        return self.label_encoder.inverse_transform(predictions)
-
-    def score(self, X, y):
-        y = self.label_encoder.transform(y)
-
-        return super().score(X, y)
-
-    def fit_pipeline(self, pipeline_id):
-        super().fit_pipeline(pipeline_id)
-
-    def predict_pipeline(self, X, pipeline_id):
-        predictions = super().predict_pipeline(X, pipeline_id)
-
-        return self.label_encoder.inverse_transform(predictions)
-
-    def score_pipeline(self, X, y, pipeline_id):
-        y = self.label_encoder.transform(y)
-
-        return super().score_pipeline(X, y, pipeline_id)

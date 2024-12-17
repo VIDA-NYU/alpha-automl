@@ -4,10 +4,11 @@ import numpy as np
 from sklearn.metrics import make_scorer as make_scorer_sk
 from sklearn.model_selection._split import BaseShuffleSplit, _RepeatedSplits
 from sklearn.model_selection import BaseCrossValidator, KFold, ShuffleSplit, cross_val_score, TimeSeriesSplit
-from alpha_automl.utils import RANDOM_SEED
+from alpha_automl.utils import RANDOM_SEED, hide_logs
 from sklearn.metrics import accuracy_score, f1_score, jaccard_score, precision_score, recall_score,\
     max_error, mean_absolute_error, mean_squared_error, mean_squared_log_error, median_absolute_error, r2_score,\
-    adjusted_mutual_info_score, rand_score, mutual_info_score, normalized_mutual_info_score
+    adjusted_mutual_info_score, rand_score, mutual_info_score, normalized_mutual_info_score, roc_auc_score
+from alpha_automl.pipeline import Pipeline
 from alpha_automl.primitive_loader import PRIMITIVE_TYPES
 
 logger = logging.getLogger(__name__)
@@ -18,6 +19,7 @@ METRICS = {
     'f1_score': f1_score,
     'precision_score': precision_score,
     'recall_score': recall_score,
+    'roc_auc_score': roc_auc_score,
     'jaccard_score': jaccard_score,
     # Regression metrics
     'max_error': max_error,
@@ -40,6 +42,7 @@ METRICS_ORDERING = {
     f1_score: 'ascending',
     precision_score: 'ascending',
     recall_score: 'ascending',
+    roc_auc_score: 'ascending', 
     jaccard_score: 'ascending',
     # Regression metrics
     max_error: 'descending',
@@ -139,7 +142,11 @@ def score_pipeline(pipeline, X, y, scoring, splitting_strategy, task_name):
         logger.debug('Exception scoring a pipeline')
         logger.debug('Detailed error:', exc_info=True)
 
-    return score, start_time, end_time
+        return None
+
+    alphaautoml_pipeline = Pipeline(pipeline, score, start_time, end_time)
+
+    return alphaautoml_pipeline
 
 
 def make_str_metric(metric):

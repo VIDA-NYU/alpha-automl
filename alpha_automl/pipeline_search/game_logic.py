@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 class Board():
 
-    def __init__(self, m=30, grammar={}, pipeline_size=6, metric='f1macro', win_threshold=0.6):
+    def __init__(self, m=30, grammar=None, pipeline_size=6, metric='accuracy', win_threshold=0.01):
         "Set up initial board configuration."
 
         self.terminals = grammar['TERMINALS']
@@ -61,7 +61,7 @@ class Board():
                 return False
         return True
 
-    def findWin(self, player, eval_val=None):
+    def findWin(self, eval_val=None):
         """Find win of the given color in row, column, or diagonal
         (1 for x, -1 for o)"""
         if not any(self[0:]):
@@ -95,17 +95,20 @@ class Board():
 
     def next_state(self, action):
         s = self.valid_moves[action]
-        nt = self.non_terminals[s[:s.index('-')].strip()]
+        nt = self.non_terminals[s[:s.index('->')].strip()]
         r = [self.non_terminals[p] if p in self.non_terminals.keys() else
-             self.terminals[p] for p in s[s.index('-')+2:].strip().split(' ')]
+             self.terminals[p] for p in s[s.index('->')+2:].strip().split(' ')]
         r = [x for x in r if x != 0]
         s = []
+        not_used = True
+
         for p in self.pieces_p:
             if p == 0:
                 continue
 
-            if p == nt:
+            if p == nt and not_used:  # Chose one primitive at the time
                 s += r
+                not_used = False
             else:
                 s.append(p)
 
@@ -132,7 +135,7 @@ class Board():
     def get_board_size(self):
         return self.m+(len(self.terminals)+len(self.non_terminals))
 
-    def execute_move(self, action, player):
+    def execute_move(self, action):
         """Perform the given move on the board;
         color gives the color of the piece to play (1=x,-1=o)
         """

@@ -8,9 +8,12 @@ import tempfile
 import numpy as np
 import pandas as pd
 import torch
+from datetime import datetime
+from enum import Enum
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import ShuffleSplit, train_test_split
+from xgboost import XGBClassifier, XGBRegressor
 
 from alpha_automl.primitive_loader import PRIMITIVE_TYPES as INSTALLED_PRIMITIVES
 
@@ -21,6 +24,25 @@ COLUMN_SELECTOR_ID = 'ColumnSelector'
 NATIVE_PRIMITIVE = 'native'
 ADDED_PRIMITIVE = 'added'
 RANDOM_SEED = 0
+
+
+class PrimitiveType(Enum):
+    IMPUTER = 'IMPUTER'
+    CATEGORICAL_ENCODER = 'CATEGORICAL_ENCODER'
+    DATETIME_ENCODER = 'DATETIME_ENCODER'
+    TEXT_ENCODER = 'TEXT_ENCODER'
+    IMAGE_ENCODER = 'IMAGE_ENCODER'
+    FEATURE_SCALER = 'FEATURE_SCALER'
+    FEATURE_SELECTOR = 'FEATURE_SELECTOR'
+    COLUMN_TRANSFORMER = 'COLUMN_TRANSFORMER'
+    TIME_SERIES_FORECASTER = 'TIME_SERIES_FORECASTER'
+    CLASSIFIER = 'CLASSIFIER'
+    REGRESSOR = 'REGRESSOR'
+    CLUSTERER = 'CLUSTERER'
+    SINGLE_ENSEMBLER = 'SINGLE_ENSEMBLER'
+    MULTI_ENSEMBLER = 'MULTI_ENSEMBLER'
+    SEMISUPERVISED_SELFTRAINER = 'SEMISUPERVISED_SELFTRAINER'
+    SEMISUPERVISED_LABELPROPAGATOR = 'SEMISUPERVISED_LABELPROPAGATOR'
 
 
 def create_object(import_path, class_params=None):
@@ -45,10 +67,10 @@ def sample_dataset(X, y, sample_size, task):
     if original_size > sample_size:
         ratio = sample_size / original_size
         try:
-            _, X_test, _, y_test = train_test_split(X, y, random_state=RANDOM_SEED, test_size=ratio, stratify=y, shuffle=shuffle)
+            _, X_test, _, y_test = train_test_split(X, y, random_state=int(datetime.now().microsecond), test_size=ratio, stratify=y, shuffle=shuffle)
         except Exception:
             # Not using stratified sampling when the minority class has few instances, not enough for all the folds
-            _, X_test, _, y_test = train_test_split(X, y, random_state=RANDOM_SEED, test_size=ratio, shuffle=shuffle)
+            _, X_test, _, y_test = train_test_split(X, y, random_state=int(datetime.now().microsecond), test_size=ratio, shuffle=shuffle)
         logger.debug(f'Sampling down data from {original_size} to {len(X_test)}')
         if isinstance(X_test, pd.DataFrame):
             X_test = X_test.reset_index(drop=True)
@@ -129,7 +151,7 @@ def make_d3m_pipelines(pipelines, new_primitives, metric, ordering_sign, source_
                 cur_step_idx = add_d3m_step(steps_in_type, cur_step_idx, prev_list, new_prev_list, new_pipeline)
                 prev_list = new_prev_list
             
-            if all_primitive_types[step_id] == 'SEMISUPERVISED_CLASSIFIER':
+            if all_primitive_types[step_id] == 'SEMISUPERVISED_SELFTRAINER':
                 classifier_object = step_object.base_estimator
                 classifier_path = f'classifier.{classifier_object.__class__.__name__}'
                 for primitive_name, primitive_type in all_primitive_types.items():
@@ -215,7 +237,7 @@ def hide_logs(level):
 def setup_output_folder(output_folder):
     if output_folder is None:
         output_folder = tempfile.mkdtemp(prefix="alpha_automl", suffix="_log")
-        logger.debug(f'Created temporary directory: {output_folder}')
+        logger.info(f'Created temporary directory: {output_folder}')
     else:
         os.makedirs(output_folder, exist_ok=True)
 
@@ -332,3 +354,89 @@ class SemiSupervisedLabelEncoder:
             index=df[df.columns[0]][df[df.columns[0]].notnull()].index
         )
         return df.to_numpy()
+
+
+def write_pipeline_code_as_pyfile(pipeline_id, pipeline_obj, task_type):
+    index = pipeline_id.split("#")[1]
+    f = open(f"pipeline_{index}_code.py", "w")
+
+    pipeline_str = """Pipeline(steps=[\n"""
+    # Import
+    f.write("""import pandas as pd
+from os.path import join, dirname
+from sklearn.pipeline import Pipeline
+""")
+    print("""import pandas as pd
+from os.path import join, dirname
+from sklearn.pipeline import Pipeline""")
+    
+    if task_type == "CLASSIFICATION":
+        f.write("from sklearn.preprocessing import LabelEncoder\n")
+        print("from sklearn.preprocessing import LabelEncoder")
+
+    for step_name, step_obj in pipeline_obj.steps:
+        # Print step Import
+        path_list = step_name.split('.')
+        f.write(f"""from {".".join(path_list[:-1])} import {path_list[-1]}\n""")
+        print(f"""from {".".join(path_list[:-1])} import {path_list[-1]}""")
+
+        if isinstance(step_obj, ColumnTransformer):
+            for transformer_name, _, _ in step_obj.transformers:
+                transformer_list = transformer_name.split('.')
+                f.write(f"""from {".".join(transformer_list[:-1])} import {transformer_list[-1].split("-")[0]}\n""")
+                print(f"""from {".".join(transformer_list[:-1])} import {transformer_list[-1].split("-")[0]}""")
+        
+        # Append to pipeline
+        if isinstance(step_obj, XGBClassifier) or isinstance(step_obj, XGBRegressor):
+            xgb_params = step_obj.get_xgb_params()
+            pipeline_str += (f"""\t\t('{step_name}', {step_obj.__class__.__name__}(**{xgb_params})),\n""")
+        else:
+            pipeline_str += (f"""\t\t('{step_name}', {step_obj}),\n""")
+
+    pipeline_str += ("\t])\n")
+
+    # Pipeline fit/predict
+    f.write(f"""if __name__ == '__main__':
+\ttrain_dataset = pd.read_csv(join(dirname(__file__), 'FILLIN_DATASET_PATH_HERE'))
+\tpred_dataset = pd.read_csv(join(dirname(__file__), 'FILLIN_DATASET_PATH_HERE'))
+\ttarget_column = 'FILLIN_TARGET_COLUMN_HERE'
+\tX_train = train_dataset.drop(columns=[target_column])
+\ty_train = train_dataset[[target_column]]
+\tX_pred = pred_dataset.drop(columns=[target_column])
+    
+\tpipeline = {pipeline_str}""")
+    print(f"""if __name__ == '__main__':
+\ttrain_dataset = pd.read_csv(join(dirname(__file__), 'FILLIN_DATASET_PATH_HERE'))
+\tpred_dataset = pd.read_csv(join(dirname(__file__), 'FILLIN_DATASET_PATH_HERE'))
+\ttarget_column = 'FILLIN_TARGET_COLUMN_HERE'
+\tX_train = train_dataset.drop(columns=[target_column])
+\ty_train = train_dataset[[target_column]]
+\tX_pred = pred_dataset.drop(columns=[target_column])
+\tpipeline = {pipeline_str}
+""")
+
+    if task_type == "CLASSIFICATION":
+        f.write("""
+\tlabel_encoder = LabelEncoder()
+
+\tpipeline.fit(X_train, label_encoder.fit_transform(y_train))
+
+\tprint(label_encoder.inverse_transform(pipeline.predict(X_pred)))
+
+""")
+        print("""
+\tlabel_encoder = LabelEncoder()
+\tpipeline.fit(X_train, label_encoder.fit_transform(y_train))
+\tprint(label_encoder.inverse_transform(pipeline.predict(X_pred)))
+""")
+    else:
+        f.write("""
+\tpipeline.fit(X_train, y_train)
+
+\tprint(pipeline.predict(X_pred))
+
+""")
+        print("""
+\tpipeline.fit(X_train, y_train)
+\tprint(pipeline.predict(X_pred))
+""")
