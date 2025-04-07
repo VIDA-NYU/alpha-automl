@@ -8,6 +8,7 @@ from sklearn.compose import ColumnTransformer
 from alpha_automl.utils import create_object, COLUMN_TRANSFORMER_ID, COLUMN_SELECTOR_ID, NATIVE_PRIMITIVE, \
     ADDED_PRIMITIVE
 from alpha_automl.primitive_loader import PRIMITIVE_TYPES
+from feature_engine.creation import MathFeatures
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,8 @@ class BaseBuilder:
         transformers = []
         nonnumeric_columns = self.metadata['nonnumeric_columns']
         useless_columns = self.metadata['useless_columns']
+        numeric_columns = self.metadata['numeric_columns']
+        column_names = self.metadata['column_names']
 
         if len(useless_columns) > 0 and len(nonnumeric_columns) == 0:  # Add the transformer to the first step
             selector = (COLUMN_SELECTOR_ID, 'drop', [col_index for col_index, _ in useless_columns])
@@ -105,6 +108,8 @@ class BaseBuilder:
             elif primitive_type == 'CLASSIFICATION_MULTI_ENSEMBLER' or primitive_type == 'REGRESSION_MULTI_ENSEMBLER':
                 estimators = extract_estimators(pipeline_primitives, self.all_primitives)
                 primitive_object = create_object(primitive_name, {'estimators': estimators})
+            elif "alpha_automl.builtin_primitives.math_features" in primitive_name:
+                primitive_object = create_object(primitive_name, {'numeric_columns': [column_name for _, column_name in numeric_columns], 'column_names': column_names})
             elif self.all_primitives[primitive_name]['origin'] == NATIVE_PRIMITIVE:  # It's an installed primitive
                 primitive_object = create_object(primitive_name, EXTRA_PARAMS.get(primitive_name, None))
             else:
@@ -113,6 +118,8 @@ class BaseBuilder:
             change_default_hyperparams(primitive_object)
 
             if primitive_type in nonnumeric_columns:  # Create a new transformer and add it to the list
+                transformers += self.create_transformers(primitive_object, primitive_name, primitive_type)
+            elif primitive_type == 'FEATURE_GENERATOR':
                 transformers += self.create_transformers(primitive_object, primitive_name, primitive_type)
             else:
                 if len(transformers) > 0:  # Add previous transformers to the pipeline
@@ -129,6 +136,7 @@ class BaseBuilder:
     def create_transformers(self, primitive_object, primitive_name, primitive_type):
         column_transformers = []
         nonnumeric_columns = self.metadata['nonnumeric_columns']
+        numeric_columns = self.metadata['numeric_columns']
 
         if primitive_type == 'TEXT_ENCODER':
             column_transformers = [(f'{primitive_name}-{col_name}', primitive_object, col_index) for
@@ -136,6 +144,9 @@ class BaseBuilder:
         elif primitive_type == 'CATEGORICAL_ENCODER' or primitive_type == 'DATETIME_ENCODER' or primitive_type == 'IMAGE_ENCODER':
             column_transformers = [(primitive_name, primitive_object, [col_index for col_index, _
                                                                        in nonnumeric_columns[primitive_type]])]
+        elif primitive_type == 'FEATURE_GENERATOR':
+            column_transformers = [(primitive_name, primitive_object, [col_index for col_index, _
+                                                                       in numeric_columns])]
 
         return column_transformers
 
